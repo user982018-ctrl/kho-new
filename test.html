@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<title>Bảng đơn hàng → JSON</title>
+<style>
+  table{border-collapse:collapse;width:100%}
+  th,td{border:1px solid #e5e7eb;padding:8px}
+  thead th{background:#2563eb;color:#fff}
+  tfoot td{background:#f8fafc}
+  input[type="checkbox"]{width:18px;height:18px;accent-color:#2563eb}
+  input[type="number"], input[type="text"]{width:100%;box-sizing:border-box}
+  .right{text-align:right}
+  .save{position:fixed;right:28px;bottom:28px;padding:12px 18px;border:0;border-radius:10px;background:#4f46e5;color:#fff;cursor:pointer}
+  pre{background:#0b1020;color:#d1e0ff;padding:12px;border-radius:8px;max-height:260px;overflow:auto}
+</style>
+</head>
+<body>
+
+<table id="orderTable">
+  <thead>
+    <tr>
+      <th>Sản phẩm</th>
+      <th>Quà</th>
+      <th class="right">Đơn giá</th>
+      <th class="right">Số lượng</th>
+      <th class="right">Thành tiền</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="items">
+    <!-- Mỗi dòng dữ liệu cần class item-row (có thể thêm data-id sản phẩm nếu muốn) -->
+    <tr class="item-row" data-id="P001">
+      <td class="name">Siêu lớn trái</td>
+      <td class="right"><input type="checkbox" class="gift" checked></td>
+      <td class="right"><input type="text" class="price" value="120,000"></td>
+      <td class="right"><input type="number" class="qty" value="2" min="0"></td>
+      <td class="right"><span class="amount">240,000</span></td>
+      <td class="right">🗑️</td>
+    </tr>
+
+    <tr class="item-row" data-id="P002">
+      <td class="name">1kg Humic</td>
+      <td class="right"><input type="checkbox" class="gift" checked></td>
+      <td class="right"><input type="text" class="price" value="120,000"></td>
+      <td class="right"><input type="number" class="qty" value="1" min="0"></td>
+      <td class="right"><span class="amount">120,000</span></td>
+      <td class="right">🗑️</td>
+    </tr>
+
+    <tr class="item-row" data-id="P003">
+      <td class="name">Đạm tôm 20l</td>
+      <td class="right"><input type="checkbox" class="gift"></td>
+      <td class="right"><input type="text" class="price" value="1,675,000"></td>
+      <td class="right"><input type="number" class="qty" value="1" min="0"></td>
+      <td class="right"><span class="amount">1,675,000</span></td>
+      <td class="right">🗑️</td>
+    </tr>
+  </tbody>
+
+  <tfoot>
+    <tr>
+      <td colspan="3"></td>
+      <td class="right"><label><input type="checkbox" id="promo"> Khuyến mãi</label></td>
+      <td class="right" id="grandTotal" style="color:#dc2626;font-weight:700">2,880,000</td>
+      <td></td>
+    </tr>
+  </tfoot>
+</table>
+
+<button class="save" id="saveBtn">Lưu</button>
+
+<h3>JSON xuất ra</h3>
+<pre id="out"></pre>
+
+<script>
+  // --- Helpers ---
+  const parseCurrency = (v) => {
+    if (v == null) return 0;
+    // VND: bỏ mọi ký tự không phải số
+    const digits = String(v).replace(/[^\d]/g, '');
+    return digits ? Number(digits) : 0;
+  };
+  const formatCurrency = (n) => n.toLocaleString('vi-VN');
+
+  // (Tuỳ chọn) Cập nhật thành tiền mỗi khi đổi giá/SL
+  document.querySelectorAll('#items .item-row').forEach(tr => {
+    const priceEl = tr.querySelector('.price');
+    const qtyEl   = tr.querySelector('.qty');
+    const amtEl   = tr.querySelector('.amount');
+
+    function recalc() {
+      const amount = parseCurrency(priceEl.value) * Number(qtyEl.value || 0);
+      amtEl.textContent = formatCurrency(amount);
+      updateGrandTotal();
+    }
+    priceEl.addEventListener('input', recalc);
+    qtyEl.addEventListener('input', recalc);
+  });
+
+  function updateGrandTotal() {
+    const total = Array.from(document.querySelectorAll('#items .item-row .amount'))
+      .reduce((s, el) => s + parseCurrency(el.textContent), 0);
+    document.getElementById('grandTotal').textContent = formatCurrency(total);
+  }
+
+  // --- Lấy tất cả dòng => JSON khi nhấn Lưu ---
+  function tableToJSON() {
+    const rows = Array.from(document.querySelectorAll('#items .item-row'));
+    const items = rows.map((tr, idx) => {
+      const id    = tr.dataset.id || null;
+      const name  = tr.querySelector('.name')?.textContent.trim() || '';
+      const gift  = tr.querySelector('.gift')?.checked || false;
+      const price = parseCurrency(tr.querySelector('.price')?.value
+                   ?? tr.querySelector('.price')?.textContent);
+      const qty   = Number(tr.querySelector('.qty')?.value || 0);
+      const amount = price * qty; // hoặc parse từ .amount nếu bạn muốn giữ nguyên
+      return { id, name, gift, unitPrice: price, quantity: qty, amount };
+    });
+
+    const payload = {
+      promo: document.getElementById('promo').checked,
+      items,
+      subtotal: items.reduce((s,i)=>s+i.amount,0)
+    };
+    return payload;
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const payload = tableToJSON();
+    // Hiển thị
+    document.getElementById('out').textContent = JSON.stringify(payload, null, 2);
+
+    // (Tuỳ chọn) Gửi về server:
+    // fetch('/api/orders/save', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(payload)
+    // });
+  });
+</script>
+</body>
+</html>

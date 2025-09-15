@@ -1,0 +1,118 @@
+.text-bold {
+    font-weight: 600;
+}
+.header-order .title {
+    padding: 10px 12px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+.order-tracking-customer {
+    height: 100%;
+}
+.info-order {
+    background-color: #fff;
+    padding: 16px 0 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 -1px 4px rgba(0,0,0,.06);
+}
+.header-order .table-row {
+    padding: 6px 12px;
+    display: flex;
+    color: #141414;
+}
+.header-order .table-row .label {
+    width: 40%;
+}
+.header-order .table-row .value {
+    width: 60%;
+    word-break: break-word;
+}
+.header-order .table-row .value .status {
+    color: #fff;
+    display: inline-block;
+    padding: 5px;
+    background: #00467f;
+    border-radius: 4px;
+    line-height: 16px;
+    font-size: 12px;
+}
+.block-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.block-left {
+    display: flex;
+    justify-content: flex-start;
+}
+.block-wrap {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.card-order-container {
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 -1px 4px rgba(0,0,0,.06);
+    border-radius: 4px;
+}
+.card-order-container .card-order-header {
+    color: #434343;
+    font-weight: 600;
+    font-size: 18px;
+    padding: 16px;
+    border-bottom: 1px solid #e6edf2;
+}
+.card-order-container .card-order-content {
+    padding: 16px;
+}
+
+.block-between, .block-center-between {
+    display: flex;
+    justify-content: space-between;
+}
+.responsive-table-log .table-col {
+    flex-basis: 100%;
+}
+.responsive-table-log .table-col:last-child {
+    flex-basis: 30%;
+}
+.responsive-table-log .table-row.first {
+    background-color: #f5f5f5;
+    font-weight: 600;
+    display: flex;
+}
+
+.responsive-table-log .table-row .table-col {
+    padding: 15px 16px;
+}
+.responsive-table-log .table-col:first-child {
+    flex-basis: 40%;
+}
+
+.responsive-table-log .table-row {
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+}
+
+.responsive-table-log .table-log-item {
+    box-shadow: 0 1px 0 rgba(229,233,242,.5);
+    margin-bottom: 1px;
+}
+.responsive-table-log .table-log-item.active {
+    color: #00467f;
+}
+.block-align-top {
+    align-items: flex-start !important;
+}
+.responsive-table-log .error {
+    color: #f26522;
+}
+
+.responsive-table-log .table-row-sm:not(.first) {
+    box-shadow: 0 1px 0 rgba(229,233,242,.5);
+    margin-bottom: 1px;
+}
+.responsive-table-log .table-row-sm {
+    display: none;
+}

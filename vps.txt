@@ -1,0 +1,21 @@
+sudo nano /etc/apache2/sites-available/ngathinkpad.com.conf
+<VirtualHost *:80>
+    ServerName ngathinkpad.com
+    ServerAlias www.ngathinkpad.com
+    DocumentRoot /var/www/ngathinkpad.com
+
+    <Directory /var/www/ngathinkpad.com>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/ngathinkpadcom_error.log
+    CustomLog ${APACHE_LOG_DIR}/ngathinkpadcom_access.log combined
+</VirtualHost>
+
+
+sudo a2ensite ngathinkpad.com.conf
+sudo systemctl reload apache2
+
+sudo certbot --apache -d ngathinkpad.com -d www.ngathinkpad.com

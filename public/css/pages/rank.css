@@ -1,0 +1,309 @@
+.ltc-hidden {
+    display: none;
+}
+
+.ltc-show11 {
+    display: inherit;
+}
+
+.ltc-show22 {
+    display: inherit;
+}
+
+.table-line {
+    font-size: 12px;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .table-line th {
+        text-align: left;
+        padding: 8px;
+        font-size: 11px;
+        font-style: italic;
+        vertical-align: bottom;
+    }
+
+    .table-line td {
+        text-align: left;
+        border-top: 1px solid #aaa;
+        padding: 2px;
+    }
+
+.w25pc {
+    width: 25%;
+}
+
+.w14pc {
+    width: 12%;
+}
+
+.textbox-invisible {
+    border: none;
+}
+
+.w14pc .chosen-container {
+    border: none;
+}
+
+.form-control {
+    display: unset;
+}
+
+tr.r-caption {
+}
+
+    tr.r-caption td {
+        background-color: orange;
+    }
+
+tr.r-caption-m {
+}
+
+    tr.r-caption-m td {
+        background-color: yellowgreen;
+    }
+
+.bxh-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.bxh .item-rank {
+    width: 6.5%;
+    height: 6.5%;
+    display: inline-block;
+    position: absolute;
+}
+
+    .bxh .item-rank .avatar-container {
+        display: inline-block;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        border-radius: 50%;
+        border: 6px solid #e8e9ec;
+    }
+
+    .bxh .item-rank .item-info {
+        text-align: center;
+    }
+
+    .bxh .item-rank .item-stt {
+        font-size: 14px;
+        color: #333;
+        font-weight: bold;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+
+    .bxh .item-rank .item-tennv {
+        font-size: 11px;
+        padding-top: 3px;
+    }
+
+    .bxh .item-rank .item-ds {
+        font-size: 11px;
+        padding-top: 3px;
+    }
+
+.bxh .item-rank1 .avatar-container {
+    border: 6px solid #f49000;
+}
+
+.bxh .item-rank.my-rank .avatar-container {
+    border: 6px solid #0aa2e1;
+    box-shadow: 0 0 15px #0aa2e1;
+}
+
+.bxh .item-rank.my-rank .item-stt {
+    color: #0aa2e1;
+}
+
+.bxh .item-rank.my-rank .item-tennv {
+    color: #0aa2e1;
+    font-weight: bold;
+}
+
+.bxh .item-rank.my-rank .item-ds {
+    color: #0aa2e1;
+    font-weight: bold;
+}
+
+.bxh .item-rank1 .item-stt {
+    color: #f48f00;
+    font-size: 16px;
+}
+
+.bxh .item-rank1 .item-tennv {
+    color: #f48f00;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.bxh .item-rank1 .item-ds {
+    color: #f48f00;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+
+.bxh .item-rank .avatar-img {
+    width: 100%;
+    height: auto;
+    border: 1px solid white;
+    border-radius: 50%;
+}
+
+.bxh .item-rank1 {
+    left: 0%;
+}
+
+.bxh .item-rank2 {
+    left: 9%;
+    top: 2%
+}
+
+.bxh .item-rank3 {
+    left: 18%;
+    top: 4%
+}
+
+.bxh .item-rank4 {
+    left: 27%;
+    top: 6%
+}
+
+.bxh .item-rank5 {
+    left: 36%;
+    top: 8%
+}
+
+.bxh .item-rank6 {
+    left: 45%;
+    top: 10%
+}
+
+.bxh .item-rank7 {
+    left: 54%;
+    top: 12%
+}
+
+.bxh .item-rank8 {
+    left: 63%;
+    top: 14%
+}
+
+.bxh .item-rank9 {
+    left: 72%;
+    top: 16%
+}
+
+.bxh .item-rank10 {
+    left: 81%;
+    top: 18%
+}
+
+.bxh .item-rank11 {
+    left: 94%;
+    top: 21%
+}
+
+.bxh .king-sale {
+    display: none;
+    text-align: center;
+    position: absolute;
+    width: 100%;
+    margin-top: -40%;
+}
+
+    .bxh .king-sale img {
+        width: 45%;
+    }
+
+.bxh .item-rank1 .king-sale {
+    display: block;
+}
+
+.square {
+    position: relative;
+    width: 100%;
+}
+
+    .square:after {
+        content: "";
+        display: block;
+        padding-bottom: 100%;
+    }
+
+.content1 {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    margin-top: 30px;
+}
+
+@keyframes blink1 {
+    0% {
+        box-shadow: 0 0 25px #f49000;
+    }
+
+    50% {
+        box-shadow: 0 0 5px #f49000;
+    }
+
+    100% {
+        box-shadow: 0 0 25px #f49000;
+    }
+}
+
+@-webkit-keyframes blink1 {
+    0% {
+        box-shadow: 0 0 25px #f49000;
+    }
+
+    50% {
+        box-shadow: 0 0 5px #f49000;
+    }
+
+    100% {
+        box-shadow: 0 0 25px #f49000;
+    }
+}
+
+@keyframes blink2 {
+    0% {
+        box-shadow: 0 0 25px #0aa2e1;
+    }
+
+    50% {
+        box-shadow: 0 0 5px #0aa2e1;
+    }
+
+    100% {
+        box-shadow: 0 0 25px #0aa2e1;
+    }
+}
+
+@-webkit-keyframes blink2 {
+    0% {
+        box-shadow: 0 0 25px #0aa2e1;
+    }
+
+    50% {
+        box-shadow: 0 0 5px #0aa2e1;
+    }
+
+    100% {
+        box-shadow: 0 0 25px #0aa2e1;
+    }
+}
+
+.blink1 {
+    animation: blink1 5.0s linear infinite;
+}
+
+.blink-my-rank {
+    animation: blink2 3.0s linear infinite;
+}

@@ -1,0 +1,307 @@
+
+.hidden_sp {
+    /*display: none !important;*/
+}
+
+.select2-container-multi {
+    height: auto !important;
+}
+
+.tabledata {
+    border: 1px solid #ddd !important;
+    width: 100%;    
+    margin-bottom: 0px !important;
+}
+    .tabledata th:last-child.header_cpr_quang_cao {
+        background-color: #eba557 !important;
+    }
+    .tabledata th:last-child.header_ty_le_huy {
+        background-color: #b4b1b1 !important;
+    }
+    .tabledata th:last-child.header_ty_le_hoan {
+        background-color: #d9d8d8 !important;
+    }
+    .tabledata th:last-child.header_doanh_so_nhan_su {
+        background-color: #0ec4ff !important;
+    }
+    .tabledata th:last-child.header_doanh_so {
+        background-color: #b6f56b !important;
+    }
+
+    .tabledata th:last-child.header_doanh_so_thucte {
+        background-color: #8af803 !important;
+    }
+
+    .tabledata th:last-child.header_so_contact_khm {
+        background-color: #4f94ea !important;
+    }
+
+    .tabledata th:last-child.header_so_contact_khc {
+        background-color: #549b99 !important;
+    }
+
+    .tabledata th:last-child.header_gia_tri_tb {
+        background-color: #ff6a00 !important;
+    }
+
+    .tabledata th:last-child.header_ty_le_chot {
+        background-color: #33b9a5 !important;
+    }
+
+    .tabledata th:last-child.header_chogiao {
+        background-color: #5a95cf !important;
+    }
+
+    .tabledata th:last-child.header_danggiao {
+        background-color: #ffc30e !important;
+    }
+
+    .tabledata th:last-child.header_dagiao {
+        background-color: #33b9a5 !important;
+    }
+
+    .tabledata th:last-child.header_thutien {
+        background-color: #8dfd06 !important;
+    }
+
+    .tabledata th:last-child.header_hoandon {
+        background-color: #de5b5b !important;
+    }
+
+    .tabledata th:last-child.header_tylehoandon {
+        background-color: #f78f1d !important;
+    }
+
+.rowsum {
+    background-color: #4b719e !important;
+    color: black;
+}
+
+    .rowsum:hover {
+        color: black;
+    }
+
+.table {
+    background-color: #e8e8e8 !important;
+/*    margin-bottom: 15px !important;*/
+}
+
+.table-info, .tabledata {
+    border-collapse: collapse !important;
+    border-radius: 1em !important;
+    overflow: hidden !important;
+}
+
+    .tabledata tr .table-info tr {
+        line-height: 15px !important;
+        padding: 3px !important;
+    }
+
+    .tabledata tr td, .table-info tr td {
+        line-height: 15px !important;
+        padding: 3px !important;
+    }
+
+.font-weight-bold {
+    font-weight: bold !important;
+}
+
+.pu-caption {
+    padding-top: 0 !important;
+}
+
+.table-info th {
+    background-color: #eee !important;
+}
+
+.fs15 {
+    font-size: 15px;
+}
+
+.table tr td .progress {
+    margin: 0px;
+}
+
+.table tr td.tdProgress {
+    padding: 0 !important;
+}
+
+.progress {
+    background-color: #e8e8e8 !important;
+}
+
+.box-progress {
+    height: 21px;
+    width: 100%;
+    position: relative;
+}
+
+    .box-progress .progress {
+        height: 100%;
+    }
+
+        .box-progress .progress .progress-bar {
+            height: 35px;
+        }
+
+    .box-progress .progress-text {
+        position: absolute;
+        height: 50%;
+        width: 100%;
+        text-align: center;
+        top: 8px;
+        vertical-align: middle;
+        line-height: 50%;
+    }
+/*'all new'*/
+.tdNganSach .progress-bar {
+    background-color: #6556ea !important;
+}
+
+.tdSoContact .progress-bar {
+    background-color: #4f94ea !important;
+}
+
+.tdSoClick .progress-bar {
+    background-color: #87e6e3 !important;
+}
+
+.tdSoChotDon .progress-bar {
+    background-color: #ffc30e !important;
+}
+
+.tdTyLeChotDon .progress-bar {
+    background-color: #33b9a5 !important;
+}
+
+.tdSoSanPham .progress-bar {
+    background-color: #1df7f0 !important;
+}
+
+.tdGiaContact .progress-bar {
+    background-color: #c38bd7 !important;
+}
+
+.tdGiaTriDon .progress-bar {
+    background-color: #ff6a00 !important;
+}
+
+.tdDoanhSo .progress-bar {
+    background-color: #a9f64c !important;
+}
+
+.tdDoanhSoKPI .progress-bar {
+    background-color: #a2d069 !important;
+}
+
+.tdDoanhSoTong .progress-bar {
+    background-color: #9ee647 !important;
+}
+
+.tdDoanhSoThucTe .progress-bar {
+    background-color: #8af803 !important;
+}
+
+.tdTyLeHuy .progress-bar {
+    background-color: #b4b1b1 !important;
+}
+
+.tdTyLeHoan .progress-bar {
+    background-color: #d9d8d8 !important;
+}
+
+.tdCOD .progress-bar {
+    background-color: #f37c7c !important;
+}
+
+.tdHoTroCOD .progress-bar {
+    background-color: #f65c5c !important;
+}
+
+.tdTyLeNganSachDoanhSo .progress-bar {
+    background-color: #1397ee !important;
+}
+
+.tdTyLeDoanhSoKPI .progress-bar {
+    background-color: #276e9d !important;
+}
+/*old*/
+
+.tdSoContactOld .progress-bar {
+    background-color: #5a95cf !important;
+}
+
+.tdSoChotDonOld .progress-bar {
+    background-color: #de5b5b !important;
+}
+
+.tdTyLeChotDonOld .progress-bar {
+    background-color: #33b9a5 !important;
+}
+
+.tdSoSanPhamOld .progress-bar {
+    background-color: #1df7f0 !important;
+}
+
+.tdDoanhSoOld .progress-bar {
+    background-color: #8dfd06 !important;
+}
+
+/*'marketing'*/
+.tdNganSach_Marketing .progress-bar {
+    background-color: #5a95cf !important;
+}
+
+.tdSoClick_Marketing .progress-bar {
+    background-color: #ffc30e !important;
+}
+
+.tdSoContact_Marketing .progress-bar {
+    background-color: #33b9a5 !important;
+}
+
+.tdTyLeContactClick_Marketing .progress-bar {
+    background-color: #f78f1d !important;
+}
+
+.tdTyLeNganSachDoanhSo_Marketing .progress-bar {
+    background-color: #de5b5b !important;
+}
+
+.tdDoanhSo_Marketing .progress-bar {
+    background-color: #8dfd06 !important;
+}
+
+.tdDoanhSoThucTe_Marketing .progress-bar {
+    background-color: #8dfd06 !important;
+}
+
+.tdDoanhSoKPI_Marketing .progress-bar {
+    background-color: #ceced0 !important;
+}
+
+@media only screen and (max-width: 768px) {
+    .m-header {
+        top: 0px;
+        box-shadow: 0 0 5px #999;
+        z-index: 1;
+        background-color: white;
+        width: 100%;
+        padding-top: 10px;
+        min-height: 55px;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+    }
+
+    .m-header-inso {
+        top: 0px;
+        box-shadow: 0 0 5px #999;
+        z-index: 1;
+        background-color: white;
+        width: 100%;
+        padding-top: 10px;
+        min-height: 225px;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+    }
+}
