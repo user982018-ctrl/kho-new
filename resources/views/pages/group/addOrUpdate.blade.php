@@ -15,7 +15,7 @@
   }
 </style>
 
-<?php $teleNhacTNCskh = $teleNhacTN = $leadSale = $id = $name = $member = $membersStr = $teleCskhData = $teleCreateOder = $teleHotData 
+<?php $labelNameSrc = $teleNhacTNCskh = $teleNhacTN = $leadSale = $id = $name = $member = $membersStr = $teleCskhData = $teleCreateOder = $teleHotData 
     = $teleBotToken = $teleCreateOderByCSKH = $teleNotifyCSKH = '';
     $status = 1;
     $isShareDataCSKH = 0;
@@ -38,6 +38,7 @@
         $isShareDataCSKH = $group->is_share_data_cskh;
         $listLeader = json_decode($group->lead_sale, true);
         $memberCskh = $group->sales->where('type_sale', 2)->pluck('id_user')->toArray();
+        $labelNameSrc = $group->label_name_src;
     }
     $listLeadSale = Helper::getListLeadSale();
 
@@ -105,41 +106,47 @@
                                                 @endforeach
                                             </select>
                                         </div>
+                                         <div class="col-12 form-group">
+                                            <label class="form-label" for="label_name_src">Nhãn thay tên nguồn</label>
+                                            <input <?= !$checkAll ? 'readonly' : ''; ?>  value="{{$labelNameSrc}}" class="form-control" name="label_name_src" id="label_name_src" type="text">
+                                            <p class="error_msg" id="label_name_src"></p>
+                                        </div>
 
                                         @if ($checkAll)
+                                       
                                         <div class="col-12 form-group">
                                             <label class="form-label" for="botTele">Token Bot Telegram</label>
-                                            <input <?= !$checkAll ? 'readonly' : ''; ?>  value="{{$teleBotToken}}" class="form-control" name="teleBotToken" id="botTele" type="text" required>
+                                            <input <?= !$checkAll ? 'readonly' : ''; ?>  value="x" class="form-control" name="teleBotToken" id="botTele" type="text">
                                             <p class="error_msg" id="name"></p>
                                         </div>
                                         <div class="col-3  form-group">
                                             <label class="form-label" for="teleCreateOrderByCSKH">Chat Id Tạo đơn từ nhóm CSKH</label>
-                                            <input <?= !$checkAll ? 'readonly' : ''; ?>  value="{{$teleCreateOderByCSKH}}" class="form-control" name="teleCreateOrderByCSKH" id="teleCreateOrderByCSKH" type="text">
+                                            <input <?= !$checkAll ? 'readonly' : ''; ?>  value="x" class="form-control" name="teleCreateOrderByCSKH" id="teleCreateOrderByCSKH" type="text">
                                             <p class="error_msg" id="name"></p>
                                         </div>
                                         <div class="col-3  form-group">
                                             <label class="form-label" for="teleDataHot">Chat Id Data Nóng</label>
-                                            <input <?= !$checkAll ? 'readonly' : ''; ?>  value="{{$teleHotData}}" class="form-control" name="teleHotData" id="teleDataHot" type="text" required>
+                                            <input <?= !$checkAll ? 'readonly' : ''; ?>  value="x" class="form-control" name="teleHotData" id="teleDataHot" type="text" required>
                                             <p class="error_msg" id="name"></p>
                                         </div>
                                         <div class="col-3 form-group">
                                             <label class="form-label" for="teleCreateOrder">Chat Id Chốt đơn</label>
-                                            <input <?= !$checkAll ? 'readonly' : ''; ?>  value="{{$teleCreateOder}}" class="form-control" name="teleCreateOrder" id="teleCreateOrder" type="text" required>
+                                            <input <?= !$checkAll ? 'readonly' : ''; ?>  value="x" class="form-control" name="teleCreateOrder" id="teleCreateOrder" type="text" required>
                                             <p class="error_msg" id="name"></p>
                                         </div>
                                         <div class="col-3 form-group">
                                             <label class="form-label" for="teleChatCskh">Chat Id CSKH</label>
-                                            <input <?= !$checkAll ? 'readonly' : ''; ?> value="{{$teleCskhData}}" class="form-control" name="teleCskhData" id="teleChatCskh" type="text" required>
+                                            <input <?= !$checkAll ? 'readonly' : ''; ?> value="x" class="form-control" name="teleCskhData" id="teleChatCskh" type="text" required>
                                             <p class="error_msg" id="name"></p>
                                         </div>
                                         <div class="col-3 form-group">
                                             <label class="form-label" for="teleChatCskh">Chat Id Nhắc TN</label>
-                                            <input <?= !$checkAll ? 'readonly' : ''; ?> value="{{$teleNhacTN}}" class="form-control" name="teleNhacTN" id="teleNhacTN" type="text" required>
+                                            <input <?= !$checkAll ? 'readonly' : ''; ?> value="x" class="form-control" name="teleNhacTN" id="teleNhacTN" type="text" required>
                                             <p class="error_msg" id="teleNhacTN"></p>
                                         </div>
                                         <div class="col-3 form-group">
                                             <label class="form-label" for="teleNhacTNCskh">Chat Id Nhắc TN CSKH</label>
-                                            <input <?= !$checkAll ? 'readonly' : ''; ?> value="{{$teleNhacTNCskh}}" class="form-control" name="teleNhacTNCskh" id="teleNhacTNCskh" type="text">
+                                            <input <?= !$checkAll ? 'readonly' : ''; ?> value="x" class="form-control" name="teleNhacTNCskh" id="teleNhacTNCskh" type="text">
                                             <p class="error_msg" id="teleNhacTNCskh"></p>
                                         </div>
                                         @endif

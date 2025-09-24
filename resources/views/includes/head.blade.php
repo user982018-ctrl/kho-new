@@ -30,6 +30,9 @@
     
    
     <style type="text/css">
+    .avatar-img {
+        height: 100%;
+    }
         /* .loader img {
             position: absolute;
             right: 50%;

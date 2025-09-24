@@ -1,127 +1,10 @@
+<?php
+use App\Http\Controllers\OrdersController;
+?>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
-<style>
-    #laravel-notify .notify {
-      z-index: 9999;
-  }
-  .example-custom {
-    font-size: 13px;
-  }
-  /* .header.header-sticky {
-    display: none;
-  } */
 
-  .green span {
-    width: 75px;
-    display: inline-block; 
-    color: #fff;
-    background: #0f0;
-    padding: 3px;
-    border-radius: 8px;
-    border: 1px solid #0f0;
-    font-weight: 700;
-  }
-
-  .red span {
-    width: 75px;
-    display: inline-block; 
-    color: #ff0000;
-    background: #fff;
-    padding: 3px;
-    border-radius: 8px;
-    border: 1px solid #ff0000;
-    font-weight: 700;
-  }
-
-  .orange span {
-    width: 75px;
-    display: inline-block;
-    color: #fff;
-    background: #ffbe08;
-    padding: 3px;
-    border-radius: 8px;
-    border: 1px solid #fff;
-    font-weight: 700;
-  }
-  #myModal .modal-dialog {
-    /* margin-top: 5px;
-    width: 1280px; */
-    /* margin: 10px; */
-    height: 90%;
-    /* background: #0f0; */
-  }
-  #myModal .modal-dialog iframe {
-    /* 100% = dialog height, 120px = header + footer */
-    height: 100%;
-    overflow-y: scroll;
-  }
-
-
-  .filter-order .daterange {
-    min-width: 230px;
-  }
-
-  .add-order {
-    position: fixed;
-    right: 10px;
-    bottom: 10px;
-  }
-
-  input#daterange {
-    color: #000;
-    width: 100%;
-  }
-
-  .link-name {
-    text-decoration: none;
-    color: unset;
-  }
-      .select2-container {
-        width: 100% !important;
-    }
-    /* .select2-selection__rendered { */
-  .result-TN-col .select-assign, .result-TN-col .select2-container--default .select2-selection--single , .result-TN {
-      background-color: inherit !important;
-      border: none;
-  }
-
-  .selectedClass .select2-container {
-      box-shadow: rgb(0, 123, 255) 0px 1px 1px 1px;
-  }
-
-  .form-control {
-    line-height: unset;
-  }
-  
-  .row > * {
-    padding-right: 12px;
-    padding-left: 12px;
-  }
-  .btn.active {
-    border-color: #0f0;
-  }
-  .modal-dialog .modal-content {
-    height: 100%;
-    /* overflow: scroll; */
-  }
-  .modal-dialog,
-.modal-content {
-    /* 80% of window height */
-    height: 90%;
-}
-iframe {
-  height: 100%;
-}
-
-.modal-body {
-    /* 100% = dialog height, 120px = header + footer */
-    max-height: calc(100% - 120px);
-    overflow-y: scroll;
-}
-
-.btn-outline-primary:hover a{
-  color: aliceblue;
-}
-</style>
+    
+<link href="{{ asset('public/css/pages/order.css') }}" rel="stylesheet">
 
 <?php 
   $active       = '';
@@ -173,7 +56,7 @@ iframe {
 
       <div class="col-xs-12 col-sm-6 col-md-2 form-group">
         <select name="status" id="status-filter" class="form-select" style="padding-right: 12px !important;padding-left: 12px !important;">
-          <option value="999">--Trạng Thái--</option>
+          <option value="999">--Trạng thái đơn hàng--</option>
           <option value="1">Chưa giao vận</option>
           <option value="4">Chờ vận đơn</option>
           <option value="5">Có vận đơn, đvvc chưa lấy</option>
@@ -190,6 +73,13 @@ iframe {
           <option value="GHTK">Giao hàng tiết kiệm</option>
         </select>
       </div>
+      <div class="col-xs-12 col-sm-6 col-md-2 form-group">
+        <select name="print_status" id="print-status-filter" class="form-select" style="padding-right: 12px !important;padding-left: 12px !important;">
+          <option value="999">--Trạng thái in đơn--</option>
+          <option value="0">Chưa in</option>
+          <option value="1">Đã in</option>
+        </select>
+      </div>
     </div>
     <div class="row filter-order">
       <div class="col-xs-12 col-sm-6 col-md-2 form-group">
@@ -204,15 +94,8 @@ iframe {
       </div>
     </div>
     <hr>
-    <div class="row">
-      <div class="col-12 col-sm-6 col-md-4 form-group" style="display: flex;">
-          <input style="width: 70%" name="search" type="text"  value="{{ isset($search) ? $search : null}}" class="form-control" placeholder="Nhập số điện thoại, tên khách hàng, mã vận đơn">
-          <button type="submit" class="btn btn-primary" style="margin-left: 10px;">
-            <svg class="icon me-2">
-              <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-filter')}}"></use>
-            </svg>Lọc
-          </button>
-        </div>
+    <div class="row" style="justify-content:space-between;">
+      
       <div class="col-12 col-sm-6 col-md-4">
         @if (isset($list))
         <?php $activeBtnOrder = $activeBtnProduct = '';
@@ -228,31 +111,39 @@ iframe {
           // $hrefProduct = url()->full();
         ?> 
        
-        <button type="button" class="btn">Tổng đơn: {{$totalOrder}}</button>
-        <button type="button" class="btn btn-outline-primary"><a class="orderModal"
+        <button type="button" class="btn" style="padding-left:0;">Tổng đơn: <span id="total-val" list_id="[]" data-total="0">{{$totalOrder}}</span></button>
+        <button type="button" class="btn btn-total-product btn-secondary-page"><a class="orderModal"
           data-target="#createOrder" data-toggle="modal" data-href="{{$hrefProduct}}"
           > Tổng sản phẩm: {{$sumProduct}}</a></button>
+        <button type="button" class="btn btn-secondary-page btn-print-all"><i class="fas fa-print"></i> In vận đơn</button>
         @endif
+      </div>
+      <div class="col-12 col-sm-6 col-md-4 form-group" style="display: flex; justify-content:flex-end;">
+        <input style="width: 70%" name="search" type="text"  value="{{ isset($search) ? $search : null}}" class="form-control" placeholder="Nhập số điện thoại, tên khách hàng, mã vận đơn">
+        <button type="submit" class="btn btn-primary" style="margin-left: 10px;">
+          <svg class="icon me-2">
+            <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-filter')}}"></use>
+          </svg>Lọc
+        </button>
       </div>
       
     </div>
   </form>
 </div>
+{{-- <div><span id="total-val" list_id="[]" data-total="0"></span></div> --}}
 
 <div style="overflow-x: auto;" class="tab-pane p-0 pt-1 active preview" role="tabpanel" id="preview-1002">
   <table class="table table-bordered table-line">
     <thead>
       <tr>
-        <th scope="col">STT</th>
-        <th scope="col">ID đơn hàng</th>
-        <th scope="col">Sđt</th>
-        <th class="mobile-col-tbl" scope="col" >Tên</th>
-        <th scope="col" class="text-center">Số lượng</th>
-        <th scope="col" class="text-center">Tổng tiền</th>
+        <th scope="col"><span class="chk-all" style="display: inline-block; min-width: 40px;">
+          <input id="checkAllId" type="checkbox">
+          <label for="checkAllId" >STT</label></span> </th>
+        <th scope="col">ĐVVC</th>
+        <th scope="col">Người nhận</th>
+        <th scope="col">Sản phẩm</th>
+        <th scope="col">Tổng</th>
         <th class="text-center" scope="col">Trạng thái</th>
-        <th scope="col" class="text-center">Mã vận đơn</th>
-        <th scope="col" class="text-center">ĐVVC</th>
-        <th class="mobile-col-tbl" scope="col">Ngày tạo đơn</th>
         <th scope="col"></th>
         <th scope="col"></th>
       </tr>
@@ -271,26 +162,64 @@ iframe {
     $shippingOrderId  = $shippingOrder->id ?? '';
     ?>
       <tr>
-        <td>{{$i}}</td>
-        <?php $i++;?>
-        <td onclick="window.location='{{route('view-order', $item->id)}}';" style='cursor: pointer;'>#{{ $item->id }}</td>
-        <td style='cursor: pointer;'> <a class="link-name" target="blank" href="{{route('view-order', $item->id)}}">{{ $item->phone }}</a> </td>
-        <td style='cursor: pointer;' class="mobile-col-tbl"> <a class="link-name" target="blank" href="{{route('view-order', $item->id)}}">{{$name .= $item->name }}</a></td>
-        <td class="text-center"> {{ $item->qty }} </td>
-        <td class="text-center"> {{ number_format($item->total) }}đ</td>
-        <td class="text-center {{$styleStatus[$item->status]}}"><span>{{$listStatus[$item->status]}}</span> </td>
-        <td class="text-center">
+        <td class="chk-item">
           @if ($shippingOrderId)
-          <a  title="sửa" target="_blank" href="{{route('detai-shipping-order',['id'=>$shippingOrderId])}}" role="button">{{$orderCode}}</a>
+          <input data-id="{{$item->id}}" class="chk-item-input" value="{{$item->id}}" type="checkbox" id="{{$item->id}}">
           @endif
+          <label for="{{$item->id}}">{{$i}}</label>
+        </td>
+        <?php $i++;?>
         
         </td>
-        <td class="text-center">@if ($shippingOrderId)
+        <td >@if ($shippingOrderId)
           <?= ($shippingOrder->vendor_ship)?>
+          <a class="print" target="_blank" data-title="nhấn để in đơn này" href="{{route('print-order-code-'. $shippingOrder->vendor_ship,['order_code'=>$orderCode])}}" role="button">
+              <svg class="icon me-2 " >
+                <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-print')}}"></use>
+              </svg>
+          </a>
+          <br>
+          <span>Mã vận đơn: <a data-title="chi tiết đơn vận" target="_blank" href="{{route('detai-shipping-order',['id'=>$shippingOrderId])}}" role="button">{{$orderCode}}</a>
+          </span>
+          <br>
+          @if ($shippingOrder->print_status == 1)
+          <span class="status-tracking green">Đã in vận đơn</span>
+          @else 
+          <span class="status-tracking red">Chưa in vận đơn</span>
           @endif
+          {{-- <br> --}}
+          
+            @else
+            <a target="_blank" href="{{URL::to('tao-van-don/'. $item->id)}}" class="btn-create-tracking btn btn-warning ms-1" style="color:#fff;">Tạo vận đơn</a>
+            @endif
+         
         </td>
+        <td style='cursor: pointer;'> 
+          <a target="_blank" href="{{route('view-order', $item->id)}}">
+            <span>#{{$item->id}}</span>
+            <br>
+            <span>{{ $item->phone }}</span> - <span>{{$name .= $item->name }}</span>
 
-        <td class="mobile-col-tbl">  {{ date_format($item->created_at,"H:i d-m-Y ")}}</td>
+          </a>
+         
+          <br>
+          <span class="mini-text">Ngày tạo: {{ date_format($item->created_at,"H:i d-m-Y ")}}</span>
+        </td>
+        <td class="products">
+          <?php
+          $orderCollter = new OrdersController();
+          $listProduct = $orderCollter->getDetailProductsByIdOrder($item);
+          echo $listProduct;
+             ?>
+        </td>
+        <td class="total"> <p>Thu COD: <span class="price">{{ number_format($item->total) }} đ </span></p> 
+          <p class="qty">Số sản phẩm: {{ $item->qty }}</p>
+          <span>Phí ship: </span>
+        </td>
+        <td class="text-center {{$styleStatus[$item->status]}}">
+          
+          <span>{{$listStatus[$item->status]}}</span> </td>
+       
         <td>
           <a title="sửa" href="{{route('update-order',['id'=>$item->id])}}" role="button">
             
@@ -374,6 +303,11 @@ iframe {
   let dvvc = $.urlParam('dvvc')
   if (dvvc) {
     $('#dvvc-filter option[value=' + dvvc +']').attr('selected','selected');
+  }
+
+  let printStatus = $.urlParam('print_status')
+  if (printStatus) {
+    $('#print-status-filter option[value=' + printStatus +']').attr('selected','selected');
   }
 
   let category = $.urlParam('category') 
@@ -508,6 +442,10 @@ if (src) {
 <script>
   $(function() {
       $('#product-filter').select2();
+      $('#dvvc-filter').select2();
+      $('#status-filter').select2();
+      $('#sale-filter').select2();
+      $('#print-status-filter').select2();
   });
  
   $("#product-filter").change(function() {
@@ -584,4 +522,65 @@ document.getElementById('orderForm').addEventListener('submit', function (e) {
         $("#createOrder iframe").attr("src", href);
     }
   });
+</script>
+
+<script>
+  $("#checkAllId").click(function () {
+    $('.chk-item-input:checkbox').not(this).prop('checked', this.checked);
+
+    var $checkboxes = $('.chk-item-input:checkbox');
+    var countCheckedCheckboxes = $checkboxes.filter(':checked').length;
+
+    $('#total-val').data( "total", countCheckedCheckboxes );
+    $('#total-val').text( countCheckedCheckboxes);
+
+    var list = [];
+    $('.chk-item-input:checkbox:checked').each(function () {
+        list.push($(this).val());
+    });
+
+    list = list.map((x) => parseInt(x));
+
+    var listIdString = JSON.stringify(list);
+    $('#total-val').attr('list_id', listIdString);
+    console.log(list);
+    });
+
+    $(".chk-item-input").click(function () {
+
+        var total = $('#total-val').data('total');
+        var listId = $('#total-val').attr('list_id');
+        var id = $(this).data("id");
+
+        listId = JSON.parse(listId);
+        if ($(this).is(":checked")) {
+            total = parseInt(total) + 1;
+            if (listId.indexOf(id) == -1) {
+                listId.push(id);
+            }
+        } else {
+            total = parseInt(total) - 1;
+            if (listId.indexOf(id) > -1) {
+                listId.splice(listId.indexOf(id), 1);
+            }
+        }
+
+        var listIdString = JSON.stringify(listId);
+        $('#total-val').attr('list_id', listIdString);
+        $('#total-val').data( "total", total );
+        $('#total-val').text(total);
+    });
+
+     $(".btn-print-all").click(function () {
+      var total = $('#total-val').data('total');
+      var list_id = $('#total-val').attr('list_id');
+      // console.log(typeof list_id);
+      if (typeof list_id === 'string' && list_id === '[]') {
+        alert('Chưa chọn đơn!');
+        return;
+      }
+
+      var link = "{{URL::to('/in-tat-ca-van-don')}}";
+      window.open(link + '?q=' + list_id);
+    });
 </script>

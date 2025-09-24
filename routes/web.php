@@ -98,6 +98,10 @@ Route::middleware('admin-auth')->group(function () {
     Route::get('/empty',  [OrdersController::class, 'empty'])->name('empty');
     Route::get('/get-order-by-id-salecare',  [OrdersController::class, 'getOrderByIdSalecare'])->name('get-order-by-id-salecare');
     Route::get('/thong-ke-san-pham-theo-don',  [OrdersController::class, 'reportProductByOrder'])->name('report-product-by-order');
+    Route::get('/in-don-le-GHTK/{order_code}',  [OrdersController::class, 'printOrderByOrderCodeGHTK'])->name('print-order-code-GHTK');
+    Route::get('/in-don-le-GHN/{order_code}',  [OrdersController::class, 'printOrderByOrderCodeGHN'])->name('print-order-code-GHN');
+    Route::get('/in-tat-ca-van-don',  [OrdersController::class, 'printOrderByOrderAll'])->name('print-order-all');
+    // Route::get('/in-tat-ca-van-don',  [OrdersController::class, 'printOrderByOrderAll'])->name('print-order-all');
     
 
     Route::get('/cap-nhat-thanh-vien/{id}',[UserController::class,'viewUpdate'])->name('update-user');
@@ -145,8 +149,9 @@ Route::middleware('admin-auth')->group(function () {
     Route::get('/bao-cao-cong-viec',  [SaleCareCountActionController::class, 'viewReportEffectTN'])->name('view-sale-report-effect-TN');
     Route::get('/view-count-dataTN-ajax',  [SaleCareCountActionController::class, 'ajaxViewReportEffect'])->name('view-count-dataTN-ajax');
     Route::post('/cap-nhat-sale',  [SaleController::class, 'update'])->name('update-sale-care');
-
-
+    Route::get('/bao-cao-doanh-so-sale',  [HomeController::class, 'viewReportSale'])->name('view-sale-report');
+    Route::get('/bao-cao-doanh-so-mkt',  [HomeController::class, 'viewReportMkt'])->name('view-mkt-report');
+    
     Route::get('/loai-TN-sale',  [CategoryCallController::class, 'index'])->name('category-call'); 
     Route::get('/tao-loai-TN-sale',  [CategoryCallController::class, 'add'])->name('category-call-add');
     Route::post('/save-loai-TN-sale',  [CategoryCallController::class, 'save'])->name('category-call-save');
@@ -219,6 +224,7 @@ Route::get('/filter-total-sales',  [HomeController::class, 'ajaxFilterDashboard'
 Route::get('/filter-total-cskh-dt',  [HomeController::class, 'ajaxFilterDashboardCskhDT'])->name('filter-total-cskh-dt');
 Route::get('/filter-total-digital',  [HomeController::class, 'ajaxFilterDashboardDigitalV3'])->name('filter-total-digital');
 
+Route::get('/updateGHN',  [TestController::class, 'updateStatusOrderGhnV2'])->name('updateStatusOrderGhnV2');
 Route::get('/test',  [TestController::class, 'crawlerGroup'])->name('test');
 Route::get('/updateGHTK',  [TestController::class, 'updateStatusOrderGHTK'])->name('updateGHTK');
 Route::get('/ghtk',  [TestController::class, 'ghtkToShipping'])->name('toShipping');
@@ -240,3 +246,6 @@ Route::get('/add-test', [TestController::class, 'addData']);
 Route::get('/nga', [TestController::class, 'nga']);
 
 Route::get('/get', [SheetDbController::class, 'get']);
+Route::get('/ghn', [TestController::class, 'updatePrintStatusGHN2']);
+Route::get('/done', [TestController::class, 'done']);
+

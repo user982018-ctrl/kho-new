@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html  lang="vi-VN">
+<head id="Head"><meta content="text/html; charset=UTF-8" http-equiv="Content-Type" /><title>
+	PUSHSALE.VN > ld > unit-admin > dash-board
+</title><meta id="MetaRobots" name="ROBOTS" content="INDEX, FOLLOW" /><link href="/Portals/_default/default.css?cdv=2" media="all" type="text/css" rel="stylesheet"/><link href="/Portals/0/portal.css?cdv=2" media="all" type="text/css" rel="stylesheet"/><script src="/Resources/Shared/Scripts/jquery/jquery.min.js?cdv=2" type="text/javascript"></script><script src="/Resources/Shared/Scripts/jquery/jquery-migrate.min.js?cdv=2" type="text/javascript"></script>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-158089565-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'UA-158089565-1');
+
+        //if (window.top !== window.self) window.self.location.href="https://google.com";
+    </script>
+   
+ <style>
+     div.rcbSlide { position: absolute !important; }
+ </style>
+<meta name="viewport" content="width=device-width,initial-scale=1" /></head>
+<body id="Body">
+      <script>
+          var isTimeInWork = false;
+      </script>
+    <form method="post" action="/ld/unit-admin/dash-board" id="Form" enctype="multipart/form-data">
+<div class="aspNetHidden">
+<input type="hidden" name="StylesheetManager_TSSM" id="StylesheetManager_TSSM" value="" />
+<input type="hidden" name="ScriptManager_TSM" id="ScriptManager_TSM" value="" />
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__VIEWSTATE_CACHEKEY" id="__VIEWSTATE_CACHEKEY" value="VS_3hj1j4steowfc32yoo12mcqt_638935604553101299" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['Form'];
+if (!theForm) {
+    theForm = document.Form;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=-w7X2A0Ty1F1jxlR5PNXHoB6yIdhZZkHjL0zdSAfNfTFVXkLNddxkZQPBFAePML5z73jmExDyRhMD9Ie0&amp;t=638240595755514788" type="text/javascript"></script>
+
+
+<script src="/Telerik.Web.UI.WebResource.axd?_TSM_HiddenField_=ScriptManager_TSM&amp;compress=1&amp;_TSM_CombinedScripts_=%3b%3bSystem.Web.Extensions%2c+Version%3d4.0.0.0%2c+Culture%3dneutral%2c+PublicKeyToken%3d31bf3856ad364e35%3aen-US%3a7c62b5ab-ce5f-4af2-9208-7ca632e5b845%3aea597d4b%3ab25378d2" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+if (typeof(Sys) === 'undefined') throw new Error('ASP.NET Ajax client-side framework failed to load.');
+//]]>
+</script>
+
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEENCRYPTED" id="__VIEWSTATEENCRYPTED" value="" />
+</div><script src="/js/Debug/dnncore.js?cdv=2" type="text/javascript"></script><script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ScriptManager', 'Form', ['tdnn$ctr1479$Main$DashBoard2$up','dnn_ctr1479_Main_DashBoard2_up'], [], [], 90, '');
+//]]>
+</script>
+
+        
+        
+        
+<link href="/Portals/_default/Skins/APP/style_font.css" rel="stylesheet">
+<link href="/Portals/_default/Skins/APP/reset.css" rel="stylesheet" />
+<!-- Bootstrap 3.3.5 -->
+<link rel="stylesheet" href="/Portals/_default/Skins/APP/AdminLTE-2.3.0/bootstrap/css/bootstrap.min.css">
+
+<!-- Theme style -->
+<link rel="stylesheet" href="/Portals/_default/Skins/APP/AdminLTE-2.3.0/dist/css/AdminLTE.min.css?v=2.4.0">
+  
+<link rel="stylesheet" href="/Portals/_default/Skins/APP/AdminLTE-2.3.0/dist/css/font-awesome.css?v=2.0.5">
+
+
+<link rel="stylesheet" href="/Portals/_default/Skins/APP/AdminLTE-2.3.0/dist/css/skins/skin-blue-light.css?v=2.4.0">
+<!--Plugin--->
+
+<link href="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/select2-3.5.2/select2.css" rel="stylesheet" />
+
+
+<!-- Font Awesome -->
+
+<!-- Date Picker -->
+<link rel="stylesheet" href="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/datepicker/datepicker3.css">
+<link rel="stylesheet" type="text/css" href="/cdn/daterangepicker.css" />
+<script type="text/javascript" src="/cdn/moment.min.js"></script>
+<script type="text/javascript" src="/cdn/daterangepicker.min.js"></script>
+<link href="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/jquery-validator/validationEngine.jquery.css" rel="stylesheet" />
+<link href="/Portals/_default/Skins/APP/custom.css?v=2.7.0" rel="stylesheet" />
+<link href="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/toastr-master/build/toastr.css" rel="stylesheet" />
+<link href="/DesktopModules/APP/Mains/LD/Style/TongDai.css" rel="stylesheet" />
+<style type="text/css">
+    .left-none { display: none; }
+    .select2-container-multi { height: auto !important; }
+    .modal-loading .modal-dialog { display: table; position: relative; margin: 0 auto; top: calc(50% - 24px); }
+        .modal-loading .modal-dialog .modal-content { background-color: transparent; border: none; }
+    #vnp_chat { bottom: 0px !important; right: 0px !important; }
+  
+</style>
+
+<!---->
+<div class="skin-blue-light hold-transition bodyfake sidebar-collapse">
+    
+    <div class="wrapper">
+        
+<style type="text/css">
+    .bo { border-radius: 50%; position: absolute; left: 6px; top: 6px; background: transparent; padding: 5px; z-index: 10 }
+        .bo span { width: 28px; border-radius: 50%; height: 20px; margin-left: 0; margin-top: 3px; color: #036CB7; font-size: 12px; font-weight: bold; line-height: 24px; text-align: center; text-transform: uppercase; display: inline-block; text-shadow: none }
+    .bo2 { padding: 30px !important; margin-left: 86px }
+        .bo2 span { font-size: 24px !important }
+    .blockdiv { width: 100%; text-align: center; height: 90px }
+    .google_translate_element { }
+    .trogiup { }
+        .trogiup:hover { background: rgba(0, 0, 0, 0.1) none repeat scroll 0 0; }
+    .logo-xs { }
+    .main-header .logo { display: inline-block; padding: 0 10px; }
+    .main-header .logo.two-row span { display: block; padding: 0 10px; height:25px;  line-height:25px; font-size:16px; }
+
+    .nav-header a { background: #4ca4ee none repeat scroll 0 0; }
+    .navbar-nav > .user-menu > .dropdown-menu { padding: 0; }
+
+    @media (max-width: 767px) {
+        .skin-blue-light .main-header .navbar .dropdown-menu li a { color: unset; }
+        .navbar-nav .open .dropdown-menu .dropdown-header, .navbar-nav .open .dropdown-menu > li > a { padding: 6px 15px; }
+    }
+
+    @media (max-width: 991px) {
+        .navbar-custom-menu > .navbar-nav > li > .dropdown-menu { right: 0; }
+        .navbar-custom-menu > .navbar-nav > li { position: relative; }
+    }
+
+    .skin-blue-light .main-header .navbar .dropdown-menu li a:hover { background-color: #e1e3e9; }
+    .dropdown-menu .divider { margin: 5px 0; }
+    .thongbao { font-weight: bold; line-height: 20px; }
+    #Form.showControlBar { margin-top: 0px !important; }
+        #Form.showControlBar.ControlBarOn { margin-top: 53px !important; }
+    #Form #ControlBar_ControlPanel { display: none; }
+    #Form.ControlBarOn #ControlBar_ControlPanel { display: block; }
+    .dnnFormInfoAdminErrMssg { display: none !important; }
+    .noti-item { border-bottom: 1px solid #ddd; box-sizing: border-box; }
+    .noti-content { font-size: 0.9em; width: calc(100% - 80px) !important; float: left; }
+    .noti-unread { width: 20px; float: left; display: block; height: 50px; padding: 15px 10px; }
+    .noti-title { font-weight: bold; margin-bottom: 0.5em; }
+    .noti-message { margin-bottom: 0.5em; font-size: 12px; text-align: justify; white-space: normal; }
+    .noti-time { font-size: 10px; text-align: right; }
+    .noti-avatar img { width: 48px; height: 48px; border: 2px solid #fff; border-radius: 24px; }
+    .noti-footer { text-align: center; font-size: 0.9em; }
+    .noti-header { font-size: 0.9em; box-sizing: border-box; border-bottom: 1px solid #ddd; }
+    /*.un-read { background-color: #edf2fa; }*/
+    .un-read .noti-title { color: #2e89ff; }
+    .un-read .noti-message { font-weight: 500 !important; color: #000; }
+    .un-read .noti-time { color: #2e89ff; }
+    .custom-notification li:hover, .custom-notification li a:hover { background: #b4c7f5 !important; text-decoration: none; }
+
+    .layout-wrapper .layout-menu li div.noti-time i:first-child { margin-right: 0px; width: 15px; line-height: 15px; }
+    .noti-avatar { float: left; height: 50px; width: 60px; }
+    .slimScrollDiv { height: 350px !important; }
+    .custom-notification { height: 350px !important; max-height: 350px !important }
+    [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak { display: none !important; }
+    .red{
+        color: #eb1e1e !important;
+    }
+    .orange{
+        color: yellow !important;
+    }
+    .green{
+        color: lime !important;
+    }
+    .spanTextSecurity{
+        line-height: 50px;
+        font-weight: 500;
+        font-size: 17px;
+        float: right;
+        margin-right: 2px;
+    }
+   
+</style>
+
+
+
+
+<input type="hidden" name="dnn$Header$_SettingSoundNoti" id="dnn_Header__SettingSoundNoti" />
+
+
+<header class="main-header hidden-print" ng-app="header" ng-controller="headerCtrl" ng-init="init()">
+    
+    <nav class="navbar navbar-static-top" role="navigation" style="margin-left: 0">
+        <a href="/#" class="sidebar-toggle" data-toggle="offcanvas" role="button" style="border-right: 1px solid #1183d6;">
+            <span class="sr-only">Toggle navigation</span>
+        </a>
+        <a href="/" class="logo" style="width: auto; padding: 0; float: left;">
+            
+        </a>
+        <a href="/ld/unit-admin/dash-board" onclick="show_menu();return false;" class="logo" ng-class="isUseOmi ? 'logo two-row' : 'logo'" style="width: auto; padding: 0; float: left;">
+            <span class="logo-xs visible-xs" style="padding: 0; font-size: 16px; color: #fff !important; max-width: calc(100vw - 230px); word-break: break-word; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; height: 50px; line-height: 50px;">
+                <span id="dnn_Header_lblMobilePortalName">CÔNG TY TNHH CÔNG NGHỆ SẠCH GREEN BIO</span>
+            </span>
+            <span class="logo-lg hidden-xs" style="padding: 0px 0px 0px 10px; font-size: 16px; color: #fff !important">
+                <span id="dnn_Header_lblWebPortalName">CÔNG TY TNHH CÔNG NGHỆ SẠCH GREEN BIO</span>
+                <span id="dnn_Header_lblThongBaoHetHan" style="color: darkorange; font-size: 12px;"> (còn 20 ngày sử dụng)</span>
+                <span id="dnn_Header_lblThongBaoHetHanMyHub" style="color: darkorange; font-size: 12px;"></span>
+                
+
+            </span>
+            <span class="hidden-xs" ng-if="isUseOmi" style="padding: 0px 0px 0px 10px; font-size: 12px; color: #ffff00 !important">
+                Số dư tổng đài Omi: {{OmiBalance | currency : "": 0}}
+            </span>
+        </a>
+        <div class="hidden-xs hidden-sm" style="display: inline-block; height: 50px; width: 35%; color: white; padding-left: 30px; padding-top: 10px; font-size: 12px; text-align: center; float: left;">
+            <div class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="item active">
+                         <div class="item active"></div>
+                    </div>
+
+                    
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="navbar-custom-menu">
+            <ul class="nav navbar-nav">
+                <li class="hidden-md hidden-lg">
+                    <a onclick="showPopupThongBaoHeader();" style="">
+                        <i class="fa fa-bullhorn" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li class="hidden">
+                    <a onclick="showControlBar();" id="dnn_Header_btnShowControlBar" href="javascript:__doPostBack(&#39;dnn$Header$btnShowControlBar&#39;,&#39;&#39;)">
+                        <i class="fa fa-gears"></i>
+                    </a>
+                </li>
+
+                
+
+                <li class='dropdown notifications-menu hidden'>
+
+                    <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true" ng-click="viewAll()" ng-cloak>
+                        <i class="fa fa-bell-o"></i>
+                        <span ng-cloak class="label label-warning" ng-show="totalUnread > 0">{{totalUnread}}</span>
+                    </a>
+
+                    <ul class="dropdown-menu" style="width: 350px;">
+                        <li>
+                            <ul class="menu custom-notification" when-scrolled="loadMore()">
+                                <li ng-repeat="notification in dataNotification track by $index" ng-class="notification.read.length > 0 ? '' : 'un-read'">
+                                    <a href="javascript:void(0)" ng-click="read(notification)" ng-cloak>
+                                        <div class="noti-avatar">
+                                            <img ng-src="{{checkImageAvailable(notification.message.image)}}" width="50" height="50" class="" ng-cloak />
+                                            <br />
+
+                                        </div>
+                                        <div class="noti-content">
+                                            <div class="noti-title" ng-cloak>{{notification.message.title}}</div>
+                                            <div class="noti-message" ng-cloak>{{notification.message.content}}</div>
+                                            <div class="noti-time" ng-cloak>
+                                                <i class="fa fa-clock-o" style="color: #fda738;"></i>
+                                                {{notification.message.time | date:'HH:mm dd/MM/yyyy'}}
+                                            </div>
+                                        </div>
+                                        <div class="noti-unread text-center" ng-cloak>
+                                            <i class="fa fa-circle" aria-hidden="true" style="color: #2e89ff; font-size: 10px; border: none;" ng-show="notification.read.length == 0"></i>
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="footer"><a href="javascript:void(0);" ng-click="readAll()">Đánh dấu tất cả là đã đọc</a></li>
+                    </ul>
+                </li>
+                <li class="hidden-xs">
+                    <a onclick='showPopupThongBao();' style="position: relative;">
+                        <i class="fa fa-bullhorn" aria-hidden="true"></i>
+                        <i class="fa fa-circle hidden" style="position: absolute; bottom: 5px; right: 15px; color: red; font-size: 8px;"></i>
+                    </a>
+                </li>
+                
+
+                <li class="hidden">
+                    <a href="#" data-toggle="control-sidebar"><i class="fa fa-search"></i></a>
+                </li>
+                <!-- User Account: style can be found in dropdown.less -->
+                <li class="dropdown user user-menu ">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" style="overflow: hidden; white-space: nowrap; font-size: 12px; position: relative; min-width: 70px; height: 50px; padding-top: 10px;">
+                        
+                        <div id="dnn_Header_imgstr" class="bo">
+                            <span id="dnn_Header_lblName"></span>
+                        </div>
+                        <span style="padding-left: 45px; display: inline-block;" class="hidden-xs">
+                            <span id="dnn_Header_lblUsername1">bio.admin2<br /><span style='font-weight:bold;color:magenta;font-size:11px;'><i class='fa fa-credit-card'></i> Premium</span></span>
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu" style="width: 100%; min-width: 160px; max-width: 300px;">
+                        <li class="visible-xs" style="background-color: #007bff; color: white; padding-left: 11px; padding-top: 5px; padding-bottom: 5px; font-weight: bold; border: none;">
+                            <span id="dnn_Header_lblUsername2">bio.admin2<br /><span style='font-weight:bold;color:magenta;font-size:11px;'><i class='fa fa-credit-card'></i> Premium</span></span>
+                        </li>
+                        <li>
+                            <a class="show-tooltip ilink" href="/nguoi-dung">
+                                <i class="fa fa-user"></i>Thông tin cá nhân
+                            </a>
+                        </li>
+                        <li>
+                            <a class="show-tooltip ilink" href="/nguoi-dung/doi-mat-khau">
+                                <i class="fa fa-lock"></i>Thay đổi mật khấu</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="/Admin/ctl/Logoff" class="show-tooltip ilink" title="Thoát"><i class="fa fa-power-off"></i>Thoát </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <a id="dnn_Header_resultSec" class="spanTextSecurity hidden-sm hidden-xs red" style="cursor:pointer;" onclick="showPopupShowSercurityPoint();">Điểm bảo mật: 1/18</a>
+    </nav>
+</header>
+
+<input type="hidden" name="dnn$Header$_roleIdShowSercurity" id="dnn_Header__roleIdShowSercurity" value="1" />
+<input type="hidden" name="dnn$Header$_roleId" id="dnn_Header__roleId" value="4" />
+<input type="hidden" name="dnn$Header$donviUseOmicall" id="dnn_Header_donviUseOmicall" value="0" />
+<input type="hidden" name="dnn$Header$donviUseNotification" id="dnn_Header_donviUseNotification" value="0" />
+
+<script src="/DesktopModules/APP/Mains/LD/Facebook/js/angular.min.js"></script>
+<script src="/Portals/_default/Skins/APP/js/signalr/signalr.min.js"></script>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //$('.fa-circle').
+
+        $(document).on('click', '.notifications-menu .dropdown-menu', function (e) {
+            e.stopPropagation();
+        });
+
+    });
+    function showControlBar(flag) {
+        //$('#Form').toggleClass('ControlBarOn');
+        if (flag) {
+            $('#Form').addClass('ControlBarOn');
+        } else {
+            $('#Form').removeClass('ControlBarOn');
+        }
+    }
+    function show_menu() {
+        var url = '/ld/unit-admin/dash-board?skinsrc=[g]%2fskins%2fapp%2fpopup&containersrc=%2fportals%2f_default%2fcontainers%2fapp%2fno-title';
+        showPopupCommon(url, '');
+    }
+    function showPopupThongBao() {
+        var url = '/he-thong/quan-ly-thong-bao/danh-sach-tinh-nang-moi';
+        showPopupCommon(url, '', '900px', '');
+    }
+    function showPopupThongBaoHeader() {
+        var itemSlide = $(".carousel.slide").find('.item');
+        var message = "";
+        for (i = 0; i <= itemSlide.length; i++) {
+            if (itemSlide[i] != undefined) {
+                message += "<p>" + itemSlide[i].innerHTML + "</p>";
+            }
+        }
+        showPopupAlert("Thông báo", message);
+        return false;
+    }
+    function showPopupShowSercurityPoint() {
+        var roleId = 1;
+        if (roleId != 1 && roleId != 2 && roleId != 7) {
+            return;
+        }
+
+        var url = '/he-thong/diem-bao-mat?skinsrc=[g]%2fskins%2fapp%2fpopup&containersrc=%2fportals%2f_default%2fcontainers%2fapp%2fno-title';
+        showPopupCommon(url, 'Tính năng bảo mật', '70%', '');
+    }
+    function playSound() {
+        let audio = new Audio("/Portals/_default/Skins/APP/media/notification.mp3");
+        var audioUrl = '';
+        if (audioUrl != "") {
+            audio = new Audio(audioUrl);
+        }
+        //const audio = new Audio("/Portals/_default/Skins/APP/media/notification.mp3");
+        audio.play();
+    }
+</script>
+<script type="text/javascript">
+    var isShowNotifyPopup = 'true';
+    var notiToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImJpby5hZG1pbjIiLCJ1c2VyRGF0YSI6IntcclxuICBcIkNsaWVudElkXCI6IDEsXHJcbiAgXCJTZXJ2ZXJDb2RlXCI6IFwiUHVzaHNhbGVcIixcclxuICBcIlVzZXJJZFwiOiBcIjgwMjU4XCIsXHJcbiAgXCJVc2VybmFtZVwiOiBcImJpby5hZG1pbjJcIixcclxuICBcIkRpc3BsYXlOYW1lXCI6IFwiXCIsXHJcbiAgXCJBdmF0YXJcIjogXCJcIixcclxuICBcIlN5c3RlbVR5cGVcIjogMCxcclxuICBcIlNlcnZlcldlYmhvb2tDbGllbnRJZFwiOiBcIjFcIixcclxuICBcIk5vdGlmaWNhdGlvblVzZXJJZFwiOiBcIjFfODAyNThcIixcclxuICBcIkRvblZpXCI6IHtcclxuICAgIFwiSWRcIjogMCxcclxuICAgIFwiSWRQaHVvbmdUaHVjR2lhb0hhbmdcIjogMCxcclxuICAgIFwiR0hUS19QaWNrV29ya1NoaWZ0XCI6IDAsXHJcbiAgICBcIkdITl9DbGllbnRJRFwiOiAwLFxyXG4gICAgXCJHSE5fSXNDb25maWdDbGllbnRcIjogZmFsc2UsXHJcbiAgICBcIkdITl9JbnN1cmFuY2VcIjogZmFsc2UsXHJcbiAgICBcIkpOVF9QYXJ0U2lnblwiOiBmYWxzZSxcclxuICAgIFwiRU1TX1hlbUhhbmdcIjogMCxcclxuICAgIFwiRU1TX1N1RHVuZ0tob1wiOiAwLFxyXG4gICAgXCJCT1hNRV9QaWNrdXBJZFwiOiAwLFxyXG4gICAgXCJJZFRpbmhcIjogMCxcclxuICAgIFwiSWRIdXllblwiOiAwLFxyXG4gICAgXCJJZFhhXCI6IDAsXHJcbiAgICBcIlRyYW5nVGhhaUtldE5vaUdpYW9IYW5nXCI6IDAsXHJcbiAgICBcIlRyYW5nVGhhaUNhdUhpbmhDT0RNYWNEaW5oXCI6IDBcclxuICB9LFxyXG4gIFwiQ2h1Y1Z1XCI6IHtcclxuICAgIFwiSWRcIjogMCxcclxuICAgIFwiVGVuXCI6IG51bGxcclxuICB9LFxyXG4gIFwiU2VjdXJlVG9rZW5cIjogXCJcIlxyXG59Iiwic2VydmVyQ29kZSI6IlB1c2hzYWxlIiwibmJmIjoxNzU3OTA0MTUwLCJleHAiOjE3NTc5OTExNTAsImlhdCI6MTc1NzkwNDE1MH0.SZOyT7FB9pkrn8vbGaqbL6ZW4VTItGX7x7QHZ8JjuD8';
+    var appHeader = angular.module('header', []);
+    appHeader.directive("whenScrolled", function () {
+        return {
+            restrict: 'A',
+            link: function (scope, elem, attrs) {
+
+                // we get a list of elements of size 1 and need the first element
+                raw = elem[0];
+
+                // we load more elements when scrolled past a limit
+                elem.bind("scroll", function () {
+                    if (raw.scrollTop + raw.offsetHeight + 5 >= raw.scrollHeight) {
+                        scope.loading = true;
+
+                        // we can give any function which loads more elements into the list
+                        scope.$apply(attrs.whenScrolled);
+                    }
+                });
+            }
+        }
+    });
+    appHeader.controller('headerCtrl', function ($scope, $timeout, $http) {
+        $scope.isUseOmi =  false;
+        $scope.OmiBalance = 0;
+
+        $scope.dataNotification = [];
+        $scope.totalUnread = 0;
+        $scope.offset = 0;
+        $scope.pageSize = 0;
+        $scope.limit = 5;
+        $scope.loading = false;
+        $scope.roleId = 4;
+
+        $scope.roleConfig = {
+            UnitAdmin: 1,
+            Ceo: 2,
+            Sale: 3,
+            Marketing: 4,
+            Accounting: 5,
+            Warehouse: 6,
+            Tester: 7,
+            ChiaSo: 8,
+            TaoDonVi: 9
+        };
+
+        $scope.init = function () {
+            var UseNotificationInApp = "true";
+            var donviUserNotificationInApp = '0';
+            if (UseNotificationInApp == "true" && donviUserNotificationInApp == "1") {
+                start();
+                $scope.showPopupNotify();
+            }
+            $scope.showOmiBalance();
+        };
+
+        //.withUrl("https://notification.pushsale.vn/NotificationHub")
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl('https://notification.pushsale.vn/NotificationHub')
+            .configureLogging(signalR.LogLevel.Information)
+            .withAutomaticReconnect()
+            .build();
+
+        async function start() {
+            try {
+                var UseNotificationInApp = "true";
+                var donviUserNotificationInApp = '0';
+                if (UseNotificationInApp == "true" && donviUserNotificationInApp == "1") {
+                    await connection.start();
+                    connection.invoke("Join", '1_80258').catch(err => console.error(err));
+                    connection.invoke("UserJoin", '1_80258').catch(err => console.error(err));
+                }
+            } catch (err) {
+                console.log(err);
+                setTimeout(() => start(), 5000);
+            }
+        };
+
+        connection.onclose(async () => {
+            await start();
+        });
+
+        connection.on('1_80258', (data) => {
+            //console.log(data);
+            var redirectLink = $scope.redirectNotification(data, true);
+
+            var notifyMessage = "<a href='" + redirectLink + "' style='color:#fff;cursor: pointer;'>" + data.message.content + "</a>";
+
+            //notify_success(data.message.content);
+            if (isShowNotifyPopup == "true") {
+                notify_success(notifyMessage);
+                //play audio
+                playSound();
+            }
+
+            $scope.totalUnread += 1;
+            $scope.dataNotification.unshift(data);
+            $scope.$apply();
+        });
+
+        $scope.loadMore = function () {
+            $scope.pageSize += 1;
+            $scope.addItems()
+        };
+
+        $scope.showPopupNotify = function () {
+            if (notiToken == "") { return; }
+            $scope.pageSize = 0;
+            var offset = $scope.pageSize * $scope.limit;
+
+            //var objRequest = { "offset": offset, "limit": $scope.limit, "method": "GET" };
+
+            //var settings = {
+            //    "url": "/v1/notification/Gets",
+            //    "method": "POST",
+            //    "timeout": 0,
+            //    "headers": {
+            //        "Content-Type": "application/json"
+            //    },
+            //    "data": JSON.stringify(objRequest),
+            //};
+
+            var settings = {
+                "url": 'https://notification.pushsale.vn/' + "Notifications/GetsByUserId?type=1&offset=" + offset + "&limit=" + $scope.limit,
+                "method": "GET",
+                "timeout": 0,
+                "headers": {
+                    "Authorization": "Bearer " + notiToken
+                },
+            };
+
+            $.ajax(settings).done(function (response) {
+                $scope.dataNotification = response.data;
+                $scope.totalUnread = response.totalRecord;
+                $scope.$apply();
+            });
+        }
+
+        $scope.addItems = function () {
+            if (notiToken == "") { return; }
+            $scope.loading = true;
+            var offset = $scope.pageSize * $scope.limit;
+
+            //var objRequest = { "offset": offset, "limit": $scope.limit, "method": "GET" };
+
+            //var settings = {
+            //    "url": "/v1/notification/Gets",
+            //    "method": "POST",
+            //    "timeout": 0,
+            //    "headers": {
+            //        "Content-Type": "application/json"
+            //    },
+            //    "data": JSON.stringify(objRequest),
+            //};
+
+            var settings = {
+                "url": 'https://notification.pushsale.vn/' + "Notifications/GetsByUserId?type=1&offset=" + offset + "&limit=" + $scope.limit,
+                "method": "GET",
+                "timeout": 0,
+                "headers": {
+                    "Authorization": "Bearer " + notiToken
+                },
+            };
+
+            $.ajax(settings).done(function (response) {
+                console.log(response);
+                if (response.data) {
+                    for (var i = 0; i < response.data.length; i++) {
+                        $scope.dataNotification.push(response.data[i]);
+                    }
+                    $scope.totalUnread = response.totalRecord;
+                    $scope.$apply();
+                }
+                $scope.loading = false;
+            });
+        };
+
+        $scope.read = function (notification) {
+            if (notification.read == null || notification.read == undefined || notification.read.length == 0) {
+                if (notiToken == "") { return; }
+                //$scope.loading = true;
+                //var objRequest = { "id": notification.id };
+
+                //var settings = {
+                //    "url": "/v1/notification/Read",
+                //    "method": "POST",
+                //    "timeout": 0,
+                //    "headers": {
+                //        "Content-Type": "application/json"
+                //    },
+                //    "data": JSON.stringify(objRequest),
+                //};
+
+                var settings = {
+                    "url": 'https://notification.pushsale.vn/' + "Notifications/Read/" + notification.id,
+                    "method": "POST",
+                    "timeout": 0,
+                    "headers": {
+                        "Authorization": "Bearer " + notiToken
+                    },
+                };
+
+                $.ajax(settings).done(function (response) {
+                    notification.read = ['1'];
+                    $scope.$apply();
+                    $scope.loading = false;
+
+                    //redirect
+                    $scope.redirectNotification(notification, false);
+                });
+            }
+            else {
+                //redirect
+                $scope.redirectNotification(notification, false);
+            }
+        }
+
+        $scope.redirectNotification = function (notification, getlink) {
+            var linkRedirect = "";
+            var openNewtab = false;
+
+            if (notification.message.link && notification.message.link != '') {
+                openNewtab = true;
+                linkRedirect = notification.message.link;
+            }
+            else {
+                if ($scope.roleId == $scope.roleConfig.Accounting || $scope.roleId == $scope.roleConfig.Warehouse) {
+                    //chỉ warehouse và accountant vào đây (tạm)
+                    if (notification.data.phone && notification.data.phone != '') {
+                        switch ($scope.roleId) {
+                            case $scope.roleConfig.UnitAdmin:
+                                linkRedirect = '/ld/sale/sale-tac-nghiep?kw=' + notification.data.phone;
+                                break;
+                            case $scope.roleConfig.ChiaSo:
+                                linkRedirect = '/ld/sale/danh-sach-khach-hang?kw=' + notification.data.phone;
+                                break;
+                            case $scope.roleConfig.Ceo:
+                                linkRedirect = '/ld/sale/danh-sach-khach-hang?kw=' + notification.data.phone;
+                                break;
+                            case $scope.roleConfig.Sale:
+                                linkRedirect = '/ld/sale/sale-tac-nghiep?kw=' + notification.data.phone;
+                                break;
+                            case $scope.roleConfig.Marketing:
+                                linkRedirect = '/ld/sale/danh-sach-khach-hang?kw=' + notification.data.phone;
+                                break;
+                            case $scope.roleConfig.Accounting:
+                                linkRedirect = '/ld/accounting/accounting-tac-nghiep?kw=' + notification.data.phone;
+                                break;
+                            case $scope.roleConfig.Warehouse:
+                                linkRedirect = '/ld/warehouse/warehouse-tac-nghiep?kw=' + notification.data.phone;
+                                break;
+                            default:
+                                linkRedirect = '/ld/sale/danh-sach-khach-hang?kw=' + notification.data.phone;
+                                break;
+                        }
+                    }
+                }
+                else {
+                    //admin, ceo và sale, mkt thì sẽ đưa về trang này theo id 
+                    if (notification.data.contactId != "0") {
+                        switch ($scope.roleId) {
+                            case $scope.roleConfig.UnitAdmin:
+                                linkRedirect = '/ld/sale/sale-tac-nghiep?id=' + notification.data.contactId;
+                                break;
+                            case $scope.roleConfig.ChiaSo:
+                                linkRedirect = '/ld/sale/danh-sach-khach-hang?id=' + notification.data.contactId;
+                                break;
+                            case $scope.roleConfig.Ceo:
+                                linkRedirect = '/ld/sale/danh-sach-khach-hang?id=' + notification.data.contactId;
+                                break;
+                            case $scope.roleConfig.Sale:
+                                linkRedirect = '/ld/sale/sale-tac-nghiep?id=' + notification.data.contactId;
+                                break;
+                            case $scope.roleConfig.Marketing:
+                                linkRedirect = '/ld/sale/danh-sach-khach-hang?id=' + notification.data.contactId;
+                                break;
+                            default:
+                                linkRedirect = '/ld/sale/danh-sach-khach-hang?id=' + notification.data.contactId;
+                                break;
+                        }
+                    }
+
+                }
+            }
+
+            if (!getlink) {
+                if (linkRedirect != "") {
+                    if (openNewtab) {
+                        window.open(linkRedirect);
+                    } else {
+                        window.location.replace(linkRedirect);
+                    }
+                }
+                return "";
+            }
+            else {
+                return linkRedirect;
+            }
+        }
+
+        $scope.readAll = function () {
+            if (notiToken == "") { return; }
+            //if ($scope.totalUnread <= 0) { return;}
+            $scope.loading = true;
+
+            //var settings = {
+            //    "url": "/v1/notification/ReadAll"
+            //};
+
+            var settings = {
+                "url": 'https://notification.pushsale.vn/' + "Notifications/ReadAll",
+                "method": "GET",
+                "timeout": 0,
+                "headers": {
+                    "Authorization": "Bearer " + notiToken
+                },
+            };
+
+            $.ajax(settings).done(function (response) {
+                //$scope.dataNotification = [];
+                //$scope.showPopupNotify();
+                angular.forEach($scope.dataNotification, function (item) {
+                    item.read = ['1'];
+                });
+
+                $scope.$apply();
+                $scope.loading = false;
+            });
+            return false;
+        }
+        $scope.viewAll = function () {
+            if (notiToken == "") { return; }
+            $scope.loading = true;
+
+            //var settings = {
+            //    "url": "/v1/notification/ViewAll"
+            //};
+
+            var settings = {
+                "url": 'https://notification.pushsale.vn/' + "Notifications/ViewAll",
+                "method": "GET",
+                "timeout": 0,
+                "headers": {
+                    "Authorization": "Bearer " + notiToken
+                },
+            };
+
+            $.ajax(settings).done(function (response) {
+                $scope.loading = false;
+                $scope.totalUnread = 0;
+                $scope.$apply();
+            });
+        }
+
+        $scope.isImageAvailable = true;
+        $scope.checkImageAvailable = function (url) {
+            if (url)
+                return url;
+            else
+                return "/images/Pushsale/pushsale.png";
+        };
+
+        $scope.validateImage = function (url) {
+
+        }
+
+        $scope.showOmiBalance = function () {
+            if ($scope.isUseOmi) {
+                //dung moi call api
+                $scope.LoadBalance();
+
+                setInterval(function () {
+                    $scope.LoadBalance();
+                }, 60 * 30 * 1000);
+            }
+        }
+
+        $scope.LoadBalance = function () {
+            var settings = {
+                "url": "/sp/act.aspx?act=omibalance",
+                "method": "GET",
+                "timeout": 0
+            };
+
+            $.ajax(settings).done(function (response) {
+                $scope.OmiBalance = response;
+                $scope.$apply();
+            });
+        }
+    });
+</script>
+
+<div id="dnn_Header_divNotificationFirebase">
+    <!-- Import and configure the Firebase SDK -->
+    <!-- These scripts are made available when the app is served or deployed on Firebase Hosting -->
+    <!-- If you do not serve/host your project using Firebase Hosting see https://firebase.google.com/docs/web/setup -->
+    <script src="/DesktopModules/APP/Common/js/8.6.8/firebase-app.js"></script>
+    <script src="/DesktopModules/APP/Common/js/8.6.8/firebase-analytics.js"></script>
+    <script src="/DesktopModules/APP/Common/js/8.6.8/firebase-messaging.js"></script>
+
+    <script>
+        var roleId = 4;
+
+        var roleConfig = {
+            UnitAdmin: 1,
+            Ceo: 2,
+            Sale: 3,
+            Marketing: 4,
+            Accounting: 5,
+            Warehouse: 6,
+            Tester: 7,
+            ChiaSo: 8,
+            TaoDonVi: 9
+        };
+
+        var firebaseConfig = {
+            apiKey: "AIzaSyBu94P-zs4zaDHAyYR8fRrghcslZ9vQ_VU",
+            authDomain: "pushsale-pushnotification.firebaseapp.com",
+            projectId: "pushsale-pushnotification",
+            storageBucket: "pushsale-pushnotification.appspot.com",
+            messagingSenderId: "30852857836",
+            appId: "1:30852857836:web:3fd3ffc70d6b4ce4f00ac9",
+            measurementId: "G-CT4P4D2PFB"
+        };
+
+
+        firebase.initializeApp(firebaseConfig);
+        firebase.analytics();
+
+        // Retrieve Firebase Messaging object.
+        const messaging = firebase.messaging();
+
+        // Handle incoming messages. Called when:
+        // - a message is received while the app has focus
+        // - the user clicks on an app notification created by a service worker
+        //   `messaging.onBackgroundMessage` handler.
+        messaging.onMessage((payload) => {
+            // Update the UI to include the received message.
+            console.log("OnMessage :", payload);
+            var obj = payload.notification;
+            var urlRedirect = getLinkNotification(payload, true);
+
+            //play audio
+            playSound();
+
+            var notification = new Notification(obj.title, {
+                icon: "/data/images/logo.png",
+                body: obj.body
+            })
+            if (urlRedirect != "") {
+                notification.onclick = function () {
+                    window.open(urlRedirect);
+                };
+            }
+        });
+
+
+        function getLinkNotification(notification, getlink) {
+            var linkRedirect = "";
+            try {
+                var openNewtab = false;
+
+                if (notification.data.url && notification.data.url != '') {
+                    openNewtab = true;
+                    linkRedirect = notification.data.url;
+                }
+                else {
+                    if (roleId == roleConfig.Accounting || roleId == roleConfig.Warehouse) {
+                        //chỉ warehouse và accountant vào đây (tạm)
+                        if (notification.data.phone && notification.data.phone != '') {
+                            switch ($scope.roleId) {
+                                case roleConfig.UnitAdmin:
+                                    linkRedirect = '/ld/sale/sale-tac-nghiep?kw=' + notification.data.phone;
+                                    break;
+                                case roleConfig.ChiaSo:
+                                    linkRedirect = '/ld/sale/danh-sach-khach-hang?kw=' + notification.data.phone;
+                                    break;
+                                case roleConfig.Ceo:
+                                    linkRedirect = '/ld/sale/danh-sach-khach-hang?kw=' + notification.data.phone;
+                                    break;
+                                case roleConfig.Sale:
+                                    linkRedirect = '/ld/sale/sale-tac-nghiep?kw=' + notification.data.phone;
+                                    break;
+                                case roleConfig.Marketing:
+                                    linkRedirect = '/ld/sale/danh-sach-khach-hang?kw=' + notification.data.phone;
+                                    break;
+                                case roleConfig.Accounting:
+                                    linkRedirect = '/ld/accounting/accounting-tac-nghiep?kw=' + notification.data.phone;
+                                    break;
+                                case roleConfig.Warehouse:
+                                    linkRedirect = '/ld/warehouse/warehouse-tac-nghiep?kw=' + notification.data.phone;
+                                    break;
+                                default:
+                                    linkRedirect = '/ld/sale/danh-sach-khach-hang?kw=' + notification.data.phone;
+                                    break;
+                            }
+                        }
+                    }
+                    else {
+                        if (notification.data.contactId != "0") {
+
+                            //admin, ceo và sale, mkt thì sẽ đưa về trang này theo id 
+                            switch (roleId) {
+                                case roleConfig.UnitAdmin:
+                                    linkRedirect = '/ld/sale/sale-tac-nghiep?id=' + notification.data.contactId;
+                                    break;
+                                case roleConfig.ChiaSo:
+                                    linkRedirect = '/ld/sale/danh-sach-khach-hang?id=' + notification.data.contactId;
+                                    break;
+                                case roleConfig.Ceo:
+                                    linkRedirect = '/ld/sale/danh-sach-khach-hang?id=' + notification.data.contactId;
+                                    break;
+                                case roleConfig.Sale:
+                                    linkRedirect = '/ld/sale/sale-tac-nghiep?id=' + notification.data.contactId;
+                                    break;
+                                case roleConfig.Marketing:
+                                    linkRedirect = '/ld/sale/danh-sach-khach-hang?id=' + notification.data.contactId;
+                                    break;
+                                case roleConfig.Warehouse:
+                                    linkRedirect = '/ld/warehouse/warehouse-tac-nghiep?id=' + notification.data.contactId;
+                                    break;
+                                case roleConfig.Accounting:
+                                    linkRedirect = '/ld/accounting/accounting-tac-nghiep?id=' + notification.data.contactId;
+                                    break;
+                                default:
+                                    linkRedirect = '/ld/sale/danh-sach-khach-hang?id=' + notification.data.contactId;
+                                    break;
+                            }
+                        }
+                    }
+                }
+
+                if (!getlink) {
+                    if (linkRedirect != "") {
+                        if (openNewtab) {
+                            window.open(linkRedirect);
+                        } else {
+                            window.location.replace(linkRedirect);
+                        }
+                    }
+                    return "";
+                }
+                else {
+                    return linkRedirect;
+                }
+            } catch (err) {
+                console.log(err);
+            }
+            return linkRedirect;
+        }
+
+        function initFirebaseMessaging() {
+            // Get registration token. Initially this makes a network call, once retrieved
+            // subsequent calls to getToken will return from cache.
+            messaging.getToken({ vapidKey: 'BCUR7pcTPVy9XZw6_-VnMXL8T_WNA24EXgg5YgUKqruUr-jHhkM5qt8dJar191yzpKYUKjH7gMSZ3kILwPrhBr8' }).then((currentToken) => {
+                if (currentToken) {
+                    console.log(currentToken);
+                    sendTokenToServer(currentToken);
+                    //updateUIForPushEnabled(currentToken);
+                } else {
+                    // Show permission request.
+                    console.log('No registration token available. Request permission to generate one.');
+                    // Show permission UI.
+                    //updateUIForPushPermissionRequired();
+                    setTokenSentToServer("", "");
+                }
+            }).catch((err) => {
+                console.log('An error occurred while retrieving token. ', err);
+                setTokenSentToServer("", "");
+            });
+        }
+
+
+        // Send the registration token your application server, so that it can:
+        // - send messages back to this app
+        // - subscribe/unsubscribe the token from topics
+        function sendTokenToServer(currentToken) {
+            var userid = "1_80258";
+            if (!isTokenSentToServer(currentToken, userid)) {
+                console.log('Sending token to server...');
+                // TODO(developer): Send the current token to your server.
+
+                var objRequest = {
+                    "token": currentToken,
+                    "userId": "1_80258",
+                    "appId": "WEBSITE",
+                    "clientId": "1"
+                };
+                var url = 'https://notification.pushsale.vn/';
+
+                var settings = {
+                    "url": url + "/Notifications/registertokenWebsite",
+                    "method": "POST",
+                    "timeout": 0,
+                    "headers": {
+                        "Accept": "application/json",
+                        "Origin": "file://",
+                        "Authorization": "Bearer " + notiToken,
+                        "Sec-Fetch-Dest": "empty",
+                        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) ReactNativeDebugger/0.11.6 Chrome/80.0.3987.165 Electron/8.5.1 Safari/537.36",
+                        "Content-Type": "application/json"
+                    },
+                    "data": JSON.stringify(objRequest),
+                };
+
+                $.ajax(settings).done(function (response) {
+                    if (response.status == true) {
+                        setTokenSentToServer(currentToken, userid);
+                    }
+                });
+            } else {
+                console.log('Token already sent to server so won\'t send it again ' +
+                    'unless it changes');
+            }
+        }
+
+        function isTokenSentToServer(currentToken, userId) {
+            return window.localStorage.getItem('sentToServer') === currentToken + "_" + userId;
+        }
+
+        function setTokenSentToServer(currentToken, userId) {
+            if (currentToken != "") {
+                window.localStorage.setItem('sentToServer', currentToken + "_" + userId);
+            } else {
+                window.localStorage.setItem('sentToServer', "");
+            }
+        }
+
+        function requestPermission() {
+            console.log('Requesting permission...');
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    console.log('Notification permission granted.');
+                    // TODO(developer): Retrieve a registration token for use with FCM.
+                    // In many cases once an app has been granted notification permission,
+                    // it should update its UI reflecting this.
+                    initFirebaseMessaging();
+                } else {
+                    console.log('Unable to get permission to notify.');
+                }
+            });
+        }
+
+        function deleteToken() {
+            // Delete registration token.
+            messaging.getToken().then((currentToken) => {
+                messaging.deleteToken(currentToken).then(() => {
+                    console.log('Token deleted.');
+                    setTokenSentToServer(false);
+                    // Once token is deleted update UI.
+                    initFirebaseMessaging();
+                }).catch((err) => {
+                    console.log('Unable to delete token. ', err);
+                });
+            }).catch((err) => {
+                console.log('Error retrieving registration token. ', err);
+                showToken('Error retrieving registration token. ', err);
+            });
+        }
+
+        initFirebaseMessaging();
+    </script>
+</div>
+
+
+
+
+         
+<style type="text/css">
+    .main-sidebar, .left-side{min-height:2048px}
+</style>
+<aside class="left-side hidden-print left-none">
+    <section class="sidebar">
+        
+        <span id="dnn_MenuLeft_lblMenu"><ul class="sidebar-menu ul1"><li class="treeview li1 "><a class="a1" href="#"><i class="fa fa-cog"></i>1. Quản trị đơn vị<i class="i1 fa fa-plus pull-right"></i><i class="i1 fa fa-minus pull-right"></i></a><ul class="treeview-menu ul2"><li class="li2 "><a class="a2" href="#/ld/unit-admin/cau-hinh-don-vi">1.1 Thông tin đơn vị<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/unit-admin/cau-hinh-don-vi">1.1.1 Thông tin</a></li><li class="li3 "><a class="a3" href="/ld/unit-admin/lich-su-dang-ky-goi-dich-vu">1.1.2 Lịch sử đăng ký gói dịch vụ</a></li></ul></li><li class="li2 "><a class="a2" href="#/ld/unit-admin/quy-trinh-tac-nghiep">1.2 Nhân sự<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/unit-admin/danh-sach-nhan-vien">1. Danh sách nhân viên</a></li><li class="li3 "><a class="a3" href="/ld/unit-admin/quan-ly-doi-nhom">2. Quản lý đội nhóm</a></li><li class="li3 "><a class="a3" href="/ld/unit-admin/ca-lam-viec">3. Ca làm việc</a></li><li class="li3 "><a class="a3" href="/ld/unit-admin/danh-sach-cau-hinh-chia-so">4. Cấu hình chia số</a></li><li class="li3 "><a class="a3" href="/ld/unit-admin/cau-hinh-bao-cao">5. Cấu hình tài khoản xem báo cáo</a></li><li class="li3 "><a class="a3" href="/ld/unit-admin/cau-hinh-chia-so-caredon">6. Cấu hình chia số care đơn</a></li></ul></li><li class="li2 "><a class="a2" href="#">1.3 Sản phẩm<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/san-pham/danh-sach-san-pham">1. Danh sách sản phẩm</a></li><li class="li3 "><a class="a3" href="/ld/san-pham/danh-sach-combo">2. Quản lý combo</a></li></ul></li><li class="li2 "><a class="a2" href="/ld/unit-admin/cau-hinh-giao-hang?tid=0">1.4 Kết nối giao hàng</a></li><li class="li2 "><a class="a2" href="/ld/unit-admin/redistribute-contact">1.5 Phân bổ data</a></li><li class="li2 "><a class="a2" href="/ld/unit-admin/cau-hinh-chuc-nang">1.6 Cấu hình chức năng</a></li><li class="li2 "><a class="a2" href="#">1.7 Bảo mật<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/nguoi-dung/lich-su-dang-nhap">1. Lịch sử đăng nhập</a></li><li class="li3 "><a class="a3" href="/nguoi-dung/quan-ly-dang-nhap">2. Quản lý đăng nhập</a></li><li class="li3 "><a class="a3" href="/ld/unit-admin/lich-su-loc-data-chot-don">3. Lịch sử lọc data chốt đơn</a></li></ul></li><li class="li2 "><a class="a2" href="#">1.8 Thiết lập quy trình sale<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/unit-admin/danh-muc-tac-nghiep">1. Khai báo danh mục tác nghiệp</a></li><li class="li3 "><a class="a3" href="/ld/unit-admin/thiet-lap-tac-nghiep">2. Thiết lập luồng tác nghiệp</a></li></ul></li><li class="li2 "><a class="a2" href="/ld/unit-admin/thiet-lap-chiet-khau-cod">1.9 Thiết lập chiết khấu, COD</a></li><li class="li2 "><a class="a2" href="/ld/unit-admin/import-contact">1.10 Import excel</a></li><li class="li2 "><a class="a2" href="/ld/facebook/cau-hinh-don-vi">1.11 Cấu hình Facebook đơn vị</a></li><li class="li2 "><a class="a2" href="#">1.13 Tiện ích<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/unit-admin/phone-blacklist">1. Quản lý số blacklist</a></li></ul></li><li class="li2 "><a class="a2" href="#">1.14 Quản lý hóa đơn điện tử<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/unit-admin/danh-sach-cau-hinh-hddt">1. Danh sách cấu hình </a></li></ul></li><li class="li2 "><a class="a2" href="#">1.15 Thương mại điện tử<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/connect-shop-list">1. Danh sách kết nối cửa hàng</a></li><li class="li3 "><a class="a3" href="/connect-product-list">2. Danh sách kết nối sản phẩm</a></li><li class="li3 "><a class="a3" href="/error-order-list">3. Danh sách đơn hàng lỗi</a></li></ul></li></ul></li><li class="treeview li1 "><a class="a1" href="#"><i class="fa fa-trophy"></i>2. Marketing<i class="i1 fa fa-plus pull-right"></i><i class="i1 fa fa-minus pull-right"></i></a><ul class="treeview-menu ul2"><li class="li2 "><a class="a2" href="/ld/marketing/marketing-tac-nghiep">2.1 Marketing dashboard</a></li><li class="li2 "><a class="a2" href="/ld/marketing/bang-xep-hang">2.2 Bảng xếp hạng</a></li><li class="li2 "><a class="a2" href="/ld/marketing/danh-sach-khach-hang">2.3 Hồ sơ khách hàng</a></li><li class="li2 "><a class="a2" href="#/ld/unit-admin/ket-noi-landing-website?tid=2">2.4 Kết nối landing - website<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/unit-admin/ket-noi-landing-website?tid=2">1. Kết nối landing</a></li><li class="li3 "><a class="a3" href="/ld/marketing/cau-hinh-ket-noi-du-lieu?tid=3">2. Kết nối website</a></li></ul></li><li class="li2 "><a class="a2" href="#/ld/marketing/cau-hinh-ket-noi-du-lieu?tid=1">2.5 Kết nối facebook<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/marketing/cau-hinh-ket-noi-du-lieu?tid=1">1. Tạo nguồn dữ liệu</a></li><li class="li3 "><a class="a3" href="/ld/facebook/quan-ly">2. Kết nối Fanpage Facebook</a></li><li class="li3 "><a class="a3" href="/ld/facebook/danh-sach-post">3. Danh sách bài post Facebook</a></li></ul></li><li class="li2 "><a class="a2" href="#">2.6 Tiện ích<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/marketing/import-excel">1. Import excel</a></li><li class="li3 "><a class="a3" href="/ld/marketing/nhap-contact">2. Nhập data thủ công</a></li><li class="li3 "><a class="a3" href="/ld/marketing/ket-noi-doi-tac">3. Kết nối phần mềm thứ 3</a></li><li class="li3 "><a class="a3" href="/ld/marketing/danh-sach-seeding">4. Quản lý số seeding</a></li></ul></li><li class="li2 "><a class="a2" href="#">2.7 Báo cáo<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/marketing/bao-cao-doanh-so-chi-tiet-marketing">1. Báo cáo doanh số marketing</a></li><li class="li3 "><a class="a3" href="/ld/marketing/bao-cao/bao-cao-doanh-so">2. Báo cáo doanh số</a></li><li class="li3 "><a class="a3" href="/ld/marketing/bao-cao-doanh-so-v21">3. Báo cáo doanh số V2</a></li><li class="li3 "><a class="a3" href="/ld/marketing/ceo-dash-board-v2">4. CEO Dashboard V2</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-cong-viec-mkt">5. Báo cáo công việc</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-kinh-doanh-he-thong">6. Báo cáo kinh doanh hệ thống</a></li></ul></li><li class="li2 "><a class="a2" href="#">2.8. Marketing Leader<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/marketing/thong-ke-truong-nhom">1. Thống kê trưởng nhóm</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-cong-viec-mkt">2 . Báo cáo công việc </a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-up-sale">3. Báo cáo up sale </a></li></ul></li><li class="li2 "><a class="a2" href="#">2.9 Thương mại điện tử<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/connect-shop-list">1. Danh sách kết nối cửa hàng</a></li><li class="li3 "><a class="a3" href="/connect-product-list">2. Danh sách kết nối sản phẩm</a></li><li class="li3 "><a class="a3" href="/error-order-list">3. Danh sách đơn hàng lỗi</a></li></ul></li></ul></li><li class="treeview li1 "><a class="a1" href="#"><i class="fa fa-user"></i>3. Khách hàng 360<i class="i1 fa fa-plus pull-right"></i><i class="i1 fa fa-minus pull-right"></i></a><ul class="treeview-menu ul2"><li class="li2 "><a class="a2" href="/ld/customers/list-customers">3.1 Quản lý khách hàng</a></li><li class="li2 "><a class="a2" href="/ld/customers/events">3.2 Chiến dịch chăm sóc</a></li><li class="li2 "><a class="a2" href="#">3.3 Báo cáo<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/thong-ke/khach-hang-360-thong-ke-lan-mua-lai">1. Thống kê khách hàng đa chiều</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-khach-hang-chi-tra">2. Thống kê khách hàng chi trả</a></li></ul></li></ul></li><li class="treeview li1 "><a class="a1" href="#"><i class="fa fa-tty"></i>4. Telesale<i class="i1 fa fa-plus pull-right"></i><i class="i1 fa fa-minus pull-right"></i></a><ul class="treeview-menu ul2"><li class="li2 "><a class="a2" href="/ld/sale/sale-tac-nghiep">4.1 Tác nghiệp telesale</a></li><li class="li2 "><a class="a2" href="/ld/sale/danh-sach-khach-hang">4.2 Hồ sơ khách hàng </a></li><li class="li2 "><a class="a2" href="/ld/sale/dashboard-sale">4.3 Bảng xếp hạng</a></li><li class="li2 "><a class="a2" href="/ld/sale/kho-so">4.4 Kho số thả nổi</a></li><li class="li2 "><a class="a2" href="#">4.5 Báo cáo<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/sale/sale-kpi">1. Sale KPI</a></li><li class="li3 "><a class="a3" href="/ld/sale/bang-tong-hop-ban-hang">2. Bảng tổng hợp chốt đơn</a></li><li class="li3 "><a class="a3" href="/ld/sale/bao-cao/bao-cao-cong-viec-sale">3. Báo cáo công việc sale</a></li><li class="li3 "><a class="a3" href="/ld/sale/bao-cao-doanh-so-chi-tiet">4. Báo cáo doanh số sale</a></li><li class="li3 "><a class="a3" href="/ld/sale/bao-cao/bao-cao-doanh-so">5. Báo cáo doanh số</a></li><li class="li3 "><a class="a3" href="/ld/sale/bao-cao/bao-cao-doanh-so-v2">6. Báo cáo doanh số V2</a></li><li class="li3 "><a class="a3" href="/ld/sale/dash-board-v2">7. CEO dashboard V2</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-lich-hen-telesales">8. Báo cáo lịch hẹn telesales</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-kinh-doanh-he-thong">9. Báo cáo kinh doanh hệ thống</a></li></ul></li><li class="li2 "><a class="a2" href="#">4.6 Báo cáo Leader<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/thong-ke/ty-le-chot-don-theo-tac-nghiep">1. Thống kê tỉ lệ chốt đơn</a></li><li class="li3 "><a class="a3" href="/ld/sale/bao-cao-cong-viec-sale">2. Thống kê công việc sale</a></li><li class="li3 "><a class="a3" href="/ld/sale/thong-ke-truong-nhom-sale">3. Thống kê nhóm</a></li><li class="li3 "><a class="a3" href="/ld/sale/bao-cao-data-sale">4. Báo cáo data sale</a></li><li class="li3 "><a class="a3" href="/ld/sale/toi-uu-sale">5. Tối ưu sale</a></li></ul></li></ul></li><li class="treeview li1 "><a class="a1" href="#"><i class="fa fa-tags"></i>5. Kho<i class="i1 fa fa-plus pull-right"></i><i class="i1 fa fa-minus pull-right"></i></a><ul class="treeview-menu ul2"><li class="li2 "><a class="a2" href="/ld/warehouse/warehouse-tac-nghiep">5.1 Đăng đơn</a></li><li class="li2 "><a class="a2" href="#">5.2 Quản lý kho<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/warehouse/quan-ly-kho">1. Danh sách kho</a></li><li class="li3 "><a class="a3" href="/ld/warehouse/quan-ly-kho/danh-sach-san-pham-kho">2. Danh sách sản phẩm kho</a></li></ul></li><li class="li2 "><a class="a2" href="#">5.3 Nhập, xuất kho<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/warehouse/nhap-xuat-kho">1. Phiếu xuất / nhập kho</a></li><li class="li3 "><a class="a3" href="/ld/warehouse/danh-sach-phieu-xuat-nhap-kho">2. Danh sách phiếu xuất / nhập kho</a></li><li class="li3 "><a class="a3" href="/ld/warehouse/quan-ly-kho/lich-su-nhap-xuat-kho">3. Lịch sử nhập, xuất kho</a></li></ul></li><li class="li2 "><a class="a2" href="/ld/warehouse/bien-ban-giao-hang">5.4 Quản lý biên bản</a></li><li class="li2 "><a class="a2" href="#">5.5 Báo cáo<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/warehouse/bao-cao-xuat-nhap-theo-ngay1">1. Báo cáo nhập, xuất theo ngày</a></li><li class="li3 "><a class="a3" href="/ld/warehouse/quan-ly-kho/bao-cao-cho-xuat-theo-ngay">2. Bảng tổng hợp chờ xuất theo ngày</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-kinh-doanh-he-thong">3. Báo cáo kinh doanh hệ thống</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-tong-hop-phat-sinh-kho">4. Báo cáo tổng hợp phát sinh kho</a></li><li class="li3 "><a class="a3" href="/bao-cao/bao-cao-care-don">5. Báo cáo care đơn</a></li><li class="li3 "><a class="a3" href="/bao-cao/bao-cao-sua-so-giao-hang">6. Báo cáo sửa số giao hàng</a></li><li class="li3 "><a class="a3" href="/bao-cao/bao-cao-trang-thai-giao-hang-theo-van-don">7. Tổng hợp trạng thái giao hàng theo TK vận đơn</a></li><li class="li3 "><a class="a3" href="/bao-cao/bao-cao-care-don-tac-nghiep">8. Báo cáo care đơn tác nghiệp</a></li></ul></li><li class="li2 "><a class="a2" href="#">5.7 Thương mại điện tử<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/ecommerce/e-order-sync-error-list">1. Danh sách đơn hàng lỗi </a></li></ul></li><li class="li2 "><a class="a2" href="#">5.8 Cấu hình care đơn<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/unit-admin/cau-hinh-chia-so-caredon">1. Cấu hình chia số care đơn</a></li><li class="li3 "><a class="a3" href="/ld/warehouse/phan-bo">2. Phân bổ data care đơn</a></li></ul></li></ul></li><li class="treeview li1 "><a class="a1" href="#"><i class="fa fa-calculator"></i>6. Kế toán<i class="i1 fa fa-plus pull-right"></i><i class="i1 fa fa-minus pull-right"></i></a><ul class="treeview-menu ul2"><li class="li2 "><a class="a2" href="/ld/accounting/accounting-tac-nghiep">6.1 Đối soát đơn</a></li><li class="li2 "><a class="a2" href="#/ld/accounting/quan-ly-chi-phi">6.2 Quản lý chi phí đơn vị<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/accounting/quan-ly-chi-phi">1. Nhập chi phí</a></li><li class="li3 "><a class="a3" href="/ld/accounting/danh-muc-chi-phi">2. Khai báo danh mục chi phí</a></li><li class="li3 "><a class="a3" href="/ld/accounting/nhom-chi-phi">3. Khai báo  nhóm chi phí</a></li><li class="li3 "><a class="a3" href="/ld/accounting/danh-muc-don-vi-tinh">4. Khai báo đơn vị tính</a></li></ul></li><li class="li2 "><a class="a2" href="#">6.3 Báo cáo<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/ceo/dash-board">1. CEO dashboard</a></li><li class="li3 "><a class="a3" href="/ld/accounting/bao-cao/bao-cao-doanh-so">2. Báo cáo doanh số</a></li><li class="li3 "><a class="a3" href="/ld/warehouse/bao-cao/bao-cao-doanh-so-v2">3. Báo cáo doanh số V2</a></li><li class="li3 "><a class="a3" href="/ld/accounting/bao-cao-kinh-doanh">4. Báo cáo kinh doanh</a></li><li class="li3 "><a class="a3" href="/ld/accounting/tong-ket-ke-hoach-thang">5. Tổng kết lương tháng</a></li><li class="li3 "><a class="a3" href="/ld/accounting/bao-cao/bao-cao-doanh-so-chi-tiet">6. Báo cáo doanh số chi tiết</a></li><li class="li3 "><a class="a3" href="/bao-cao/ceo-dash-board-v2">7. CEO dashboard V2</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-kinh-doanh-he-thong">8. Báo cáo kinh doanh hệ thống</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-ti-le-chot-don-san-pham">9. Báo cáo tỉ lệ chốt đơn sản phẩm</a></li></ul></li><li class="li2 "><a class="a2" href="/ld/accounting/danh-sach-hddt">6.4 Danh sách xử lý HĐĐT</a></li></ul></li><li class="treeview li1 "><a class="a1" href="#"><i class="fa fa-user-secret"></i>7. CEO<i class="i1 fa fa-plus pull-right"></i><i class="i1 fa fa-minus pull-right"></i></a><ul class="treeview-menu ul2"><li class="li2 "><a class="a2" href="#">7.1 Kế hoạch kinh doanh<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/unit-admin/thiet-lap-kpi">1. Kế hoạch kinh doanh tháng</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/lap-ke-hoach-kinh-doanh">2. Lập kế hoạch kinh doanh năm</a></li><li class="li3 "><a class="a3" href="/ld/unit-admin/danh-muc-kpi">3. Danh mục KPI </a></li><li class="li3 "><a class="a3" href="/ld/unit-admin/thiet-lap-thuong-theo-doanh-so">4. Khai báo thưởng</a></li></ul></li></ul></li><li class="treeview li1 "><a class="a1" href="#"><i class="fa fa fa-dashboard"></i>8. Báo cáo thống kê<i class="i1 fa fa-plus pull-right"></i><i class="i1 fa fa-minus pull-right"></i></a><ul class="treeview-menu ul2"><li class="li2 "><a class="a2" href="#">8.1 Marketing<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/thong-ke">1. Biểu đồ thống kê theo khung giờ</a></li><li class="li3 "><a class="a3" href="/bao-cao/bao-cao-doanh-so-chi-tiet-marketing">2. Báo cáo doanh số marketing</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-up-sale">3. Báo cáo up sale </a></li></ul></li><li class="li2 "><a class="a2" href="#">8.2 Sale<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-cong-viec-sale">1. Báo cáo công việc sale</a></li><li class="li3 "><a class="a3" href="/bao-cao/bao-cao-doanh-so-chi-tiet">2. Báo cáo doanh số sale</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-lich-hen-telesales">3. Báo cáo lịch hẹn telesales</a></li></ul></li><li class="li2 "><a class="a2" href="#">8.3 Kho<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/warehouse/quan-ly-kho/bao-cao-xuat-nhap-theo-ngay">1. Báo cáo nhập, xuất theo ngày</a></li><li class="li3 "><a class="a3" href="/bao-cao/bao-cao-cho-xuat-theo-ngay">2. Bảng tổng hợp chờ xuất theo ngày</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-gia-von-san-pham">3. Báo cáo giá vốn sản phẩm</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-kinh-doanh-he-thong">4. Báo cáo kinh doanh hệ thống</a></li></ul></li><li class="li2 "><a class="a2" href="#">8.4 Kế toán<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/bao-cao/bao-cao-kinh-doanh-accounting">1. Báo cáo kinh doanh</a></li></ul></li><li class="li2 "><a class="a2" href="#">8.5 Quản trị<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/bao-cao/ceo-dash-board">1. CEO dashboard</a></li><li class="li3 "><a class="a3" href="/bao-cao/ceo-dash-board-v2">2. CEO dashboard V2</a></li><li class="li3 "><a class="a3" href="/ld/ceo/phong-than-bang">3. Phong thần bảng</a></li><li class="li3 "><a class="a3" href="/ld/ceo/xu-huong">4. Biểu đồ xu hướng</a></li><li class="li3 "><a class="a3" href="/ld/ceo/bang-tong-hop-chia-so">5. Bảng tổng hợp chia data</a></li><li class="li3 "><a class="a3" href="/ld/ceo/chartdetail-dashboard">6. Báo cáo biểu đồ</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-doanh-so">7. Báo cáo doanh số</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-doanh-so-v2">8. Báo cáo doanh số V2</a></li><li class="li3 "><a class="a3" href="/ld/ceo/power-dashboard">9. Power dashboard</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/thong-ke-khach-hang-mua-lai">10. Thống kê khách hàng mua lại</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/thong-ke-khach-hang-mua-lai-theo-so-sp">11. Thống kê KH mua lại theo số sp</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/thong-ke-khach-hang-mua-lai-theo-san-pham">12. Thống kê KH mua lại theo sản phẩm</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-thao-tac-nhap-so">13. Báo cáo thao tác nhập số</a></li><li class="li3 "><a class="a3" href="/ld/thong-ke/bao-cao-ti-le-chot-don-san-pham">14. Báo cáo tỉ lệ chốt đơn sản phẩm</a></li><li class="li3 "><a class="a3" href="/ld/ceo/bang-tong-hop-chia-so2">15. Bảng tổng hợp chia data V2</a></li><li class="li3 "><a class="a3" href="/bao-cao/bao-cao-care-don">16. Báo cáo care đơn</a></li><li class="li3 "><a class="a3" href="/ld/ceo/bang-tong-hop-chia-so-kho">17. Báo cáo chia số care đơn</a></li></ul></li><li class="li2 "><a class="a2" href="#">8.6 Số liệu nâng cao</a></li><li class="li2 "><a class="a2" href="#">8.7 Khách hàng 360<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/thong-ke/khach-hang-360-thong-ke-lan-mua-lai">1. Thống kê khách hàng đa chiều</a></li></ul></li></ul></li><li class="treeview li1 "><a class="a1" href="#"><i class="fa fa-credit-card"></i>9. Dịch vụ trả phí<i class="i1 fa fa-plus pull-right"></i><i class="i1 fa fa-minus pull-right"></i></a><ul class="treeview-menu ul2"><li class="li2 "><a class="a2" href="#">9.1 Tổng đài <i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/tong-dai/tong-dai-user">3. Tổng đài user</a></li><li class="li3 "><a class="a3" href="/ld/tong-dai/lich-su-cuoc-goi">4. Quản lý lịch sử cuộc gọi</a></li><li class="li3 "><a class="a3" href="/ld/tong-dai/dash-board">5. Thống kê</a></li><li class="li3 "><a class="a3" href="/ld/tong-dai/tong-dai-don-vi-khach-hang">6. Cài đặt tổng đài</a></li><li class="li3 "><a class="a3" href="https://test.pushsale.vn/data/mobile_app/app-release-pushcall-56.apk">7. Download App Pushcall</a></li><li class="li3 "><a class="a3" href="/ld/tong-dai/danh-sach-sim">8. Quản lý sim push call</a></li></ul></li><li class="li2 "><a class="a2" href="#">9.2 Quản lý notification<i class="fa fa-angle-right pull-right"></i></a><ul class="ul3"><li class="li3 "><a class="a3" href="/ld/quan-ly-thong-bao/cau-hinh-thong-bao">2. Cấu hình thông báo</a></li><li class="li3 "><a class="a3" href="/ld/quan-ly-thong-bao/tin-nhan-mau">3. Quản lý tin nhắn mẫu</a></li><li class="li3 "><a class="a3" href="/ld/quan-ly-thong-bao/quan-ly-sms">4. Quản lý SMS</a></li></ul></li></ul></li></ul></span> 
+    </section>
+</aside>   
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        setTimeout(function () {
+            $('.left-none').removeClass('left-none');
+        }, 500);
+    });
+</script>
+
+        <div class="content-wrapper">
+            <div id="dnn_ContentPane" class="contentPane"><div class="DnnModule DnnModule-ModuleLoader DnnModule-1479"><a name="1479"></a><div id="dnn_ctr1479_ContentPane"><!-- Start_Module_1479 --><div id="dnn_ctr1479_ModuleContent">
+	
+
+<style type="text/css">
+   /*body{overflow:hidden;}*/
+  
+    a.link1:visited,.link1{font-size:12px;padding:3px;color:#0d9cd6;display:block;cursor:pointer;}
+    .link1 i{font-size:12px;padding-right:5px;}
+    a.link1:hover{color:darkorange;}
+
+    .img-header{width:100%;height:auto;}
+    .box-menu { width: 15.1%; height: auto; display: inline-block; margin-left: 3.9%; margin-top: 40px; position: relative; height: 220px; background-size: 100%; background-repeat: no-repeat; background-color: #e9e9ee; border-radius: 0 0 10px 10px;float:left; }
+    .box-menu img{width:100%;height:auto;}
+    .menu-container {   width: 100%;   padding-top: 20%; padding-left:10%;}
+    .line1{height:220px}
+    .line2{height:245px}
+
+    .square { position: relative; width: 100%;}
+    .square:after { content: ""; display: block; padding-bottom: 200%; }
+    .content1 { position: absolute; width: 100%; height: 100%; }
+
+    .da-mark{position: absolute;width: 6.6%;height: 12%;/*opacity: 0.90;background: white*/;display:block;}
+    .da-source{position: absolute;width: 4.6%;height: 12%;/*opacity: 0.90;background: white*/;display:block;}
+    .da-gh{position: absolute;width: 5%;height: 10%;/*opacity: 0.90;background: white*/;display:block;}
+
+    .ss1{opacity:1;background:none;}
+    .ss:hover {opacity:1;background:none;}
+    .ss:hover i{opacity:1;}
+    .ss i,.ss1 i{display:none;opacity:0;transition:all ease 0.5s;}
+
+    @media (max-width: 1024px) {
+        .link1{font-size:11px;}
+        .line1 { height: 190px }
+        .line2 { height: 250px }
+    }
+
+    @media (max-width: 767px) {
+        .link1{font-size:9px;}
+        .line1 { height: 230px }
+        .line2 { height: 280px }
+    }
+   
+</style>
+<div id="dnn_ctr1479_Main_DashBoard2_up">
+		
+        
+        <div class="row">
+            <div style="max-width:1900px;">
+                <div class="square">
+                    <div class="content1">
+                        <div style="position: relative;" class="">
+                            <a style="position:absolute;right:10px;top:10px;cursor:pointer;display: inline-block;width: 25px;height: 25px;text-align: center;line-height: 25px;" class="btn-default" onclick="if(1==1){parent.closeModal(false)};return false;">
+                                <i class="fa fa-close"></i> 
+                            </a>
+
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark1" class="da-mark ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark1&#39;,&#39;&#39;)" style="top: 18.8%; left: 9%;">
+                                <i class="fa fa-check-circle-o"></i>
+                                <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark2" class="da-mark ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark2&#39;,&#39;&#39;)" style="top: 35%; left: 9%;">
+                                <i class="fa fa-check-circle-o"></i>
+                                <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark3" class="da-mark ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark3&#39;,&#39;&#39;)" style="top: 51%; left: 9%;">
+                                <i class="fa fa-check-circle-o"></i>
+                                <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark4" class="da-mark ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark4&#39;,&#39;&#39;)" style="top: 67.5%; left: 9%;">
+                                <i class="fa fa-check-circle-o"></i>
+                                <i class="fa fa-circle-o"></i>
+                            </a>
+
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark5" class="da-source ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark5&#39;,&#39;&#39;)" style="top: 4.2%; left: 18.6%;">
+                            <i class="fa fa-check-circle-o"></i>
+                            <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark6" class="da-source ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark6&#39;,&#39;&#39;)" style="top: 20.4%; left: 18.6%;">
+                            <i class="fa fa-check-circle-o"></i>
+                            <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark7" class="da-source ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark7&#39;,&#39;&#39;)" style="top: 36.5%; left: 18.6%;">
+                            <i class="fa fa-check-circle-o"></i>
+                            <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark8" class="da-source ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark8&#39;,&#39;&#39;)" style="top: 51%; left: 18.6%;">
+                            <i class="fa fa-check-circle-o"></i>
+                            <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark9" class="da-source ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark9&#39;,&#39;&#39;)" style="top: 65.5%; left: 18.6%;">
+                            <i class="fa fa-check-circle-o"></i>
+                            <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark10" class="da-source ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark10&#39;,&#39;&#39;)" style="top: 82%; left: 18.6%;">
+                            <i class="fa fa-check-circle-o"></i>
+                            <i class="fa fa-circle-o"></i>
+                            </a>
+
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark11" class="da-gh ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark11&#39;,&#39;&#39;)" style="top: 12%; left: 82.8%;">
+                            <i class="fa fa-check-circle-o"></i>
+                            <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark12" class="da-gh ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark12&#39;,&#39;&#39;)" style="top: 25%; left: 82.8%;">
+                            <i class="fa fa-check-circle-o"></i>
+                            <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark13" class="da-gh ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark13&#39;,&#39;&#39;)" style="top: 37%; left: 82.8%;">
+                            <i class="fa fa-check-circle-o"></i>
+                            <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark14" class="da-gh ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark14&#39;,&#39;&#39;)" style="top: 49%; left: 82.8%;">
+                            <i class="fa fa-check-circle-o"></i>
+                            <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark15" class="da-gh ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark15&#39;,&#39;&#39;)" style="top: 61%; left: 82.8%;text-align:center;">
+                                <img class="login-logo-ps" src="/data/images/hola_logo.png" style="text-align:center; margin:0 auto;width:100%; height: 110%;background-color:#fff;" alt="holaship">
+                            <i class="fa fa-check-circle-o"></i>
+                            <i class="fa fa-circle-o"></i>
+                            </a>
+                            <a onclick="showLoader();" id="dnn_ctr1479_Main_DashBoard2__Mark16" class="da-gh ss" href="javascript:__doPostBack(&#39;dnn$ctr1479$Main$DashBoard2$_Mark16&#39;,&#39;&#39;)" style="top: 73%; left: 82.8%;">
+                            <i class="fa fa-check-circle-o"></i>
+                            <i class="fa fa-circle-o"></i>
+                            </a>
+                            <img class="img-header" src="/Portals/_default/Skins/APP/images/dashboard/db1.png?v=2" />
+                        </div>
+
+                        <div class="box-menu line1" style="background-image:url('/Portals/_default/Skins/APP/images/dashboard/db2.png?v=2');">
+                            <div class="menu-container">
+                                <a href="/ld/san-pham/danh-sach-san-pham" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Khai báo sản phẩm</a>
+                            </div>
+                        </div>
+                        <div class="box-menu line1" style="background-image:url('/Portals/_default/Skins/APP/images/dashboard/db3.png?v=2');">
+                            <div class="menu-container">
+                                <a href="/ld/marketing/marketing-tac-nghiep" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Marketing dashboard</a>
+                                <a href="/ld/marketing/cau-hinh-ket-noi-du-lieu" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Kết nối facebook</a>
+                                <a href="/ld/marketing/cau-hinh-ket-noi-du-lieu" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Kết nối laddipage</a>
+                                <a href="/ld/marketing/cau-hinh-ket-noi-du-lieu" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Kết nối website</a>
+                                
+                                <a href="/ld/unit-admin/import-contact" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Import excel</a>
+                            </div>
+                        </div>
+                        <div class="box-menu line1" style="background-image:url('/Portals/_default/Skins/APP/images/dashboard/db4.png?v=2');">
+                            <div class="menu-container">
+                                <a href="/ld/sale/sale-tac-nghiep" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Tác nghiệp telesale</a>
+                                <a href="/ld/sale/danh-sach-khach-hang" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Hồ sơ khách hàng</a>
+                                <a href="/ld/sale/dashboard-sale" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Bảng xếp hạng doanh số</a>
+                                <a href="/ld/sale/danh-sach-san-pham" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Đăng ký bán hàng</a> 
+                                <a href="https://docs.pushsale.vn/3.telesale/5.-app-di-dong" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>App di động</a>
+                            </div>
+                        </div>
+                        <div class="box-menu line1" style="background-image:url('/Portals/_default/Skins/APP/images/dashboard/db5.png?v=2');">
+                            <div class="menu-container">
+                                <a href="/ld/thong-ke/ty-le-chot-don-theo-tac-nghiep" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Thống kê tỉ lệ chốt</a>
+                                <a href="/ld/thong-ke/bao-cao-cong-viec-sale" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Thống kê công việc</a>
+                                <a href="/ld/sale/thong-ke-truong-nhom-sale" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Thống kê doanh số nhóm</a>
+                            </div>
+                        </div>
+                        <div class="box-menu line1" style="background-image:url('/Portals/_default/Skins/APP/images/dashboard/db6.png?v=2');">
+                            <div class="menu-container">
+                                <a href="/ld/warehouse/warehouse-tac-nghiep" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Đăng đơn</a>
+                                <a href="/ld/warehouse/quan-ly-kho" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Danh sách kho</a>
+                                <a href="/ld/warehouse/quan-ly-kho/danh-sach-san-pham-kho" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Sản phẩm trong kho</a>
+                                <a href="/ld/warehouse/quan-ly-kho/lich-su-nhap-xuat-kho" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Lịch sử xuất nhập</a>
+                                <a href="/ld/warehouse/quan-ly-kho/bao-cao-xuat-nhap-theo-ngay" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Báo cáo xuất nhập</a>
+                            </div>
+                        </div>
+
+                        <div class="box-menu line2" style="background-image: url('/Portals/_default/Skins/APP/images/dashboard/db7.png?v=2');">
+                            <div class="menu-container">
+                                <a href="/ld/unit-admin/ket-noi-giao-hang?tid=0" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Kết nối VN Post</a>
+                                <a href="/ld/unit-admin/ket-noi-giao-hang?tid=0" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Kết nối Viettel Post</a>
+                                <a href="/ld/unit-admin/ket-noi-giao-hang?tid=0" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Kết nối Giao hàng tiết kiệm</a>
+                                <a href="/ld/unit-admin/ket-noi-giao-hang?tid=0" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Kết nối Giao hàng nhanh</a>
+                                <a href="/ld/unit-admin/ket-noi-giao-hang?tid=0" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Kết nối J&T</a>
+                                <a href="/ld/unit-admin/ket-noi-giao-hang?tid=0" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Kết nối Hola Ship</a>
+                                
+                                <a href="/ld/unit-admin/ket-noi-giao-hang?tid=0" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Tự vận chuyển</a>
+                            </div>
+                        </div>
+                        <div class="box-menu line2" style="background-image: url('/Portals/_default/Skins/APP/images/dashboard/db8.png?v=2');">
+                            <div class="menu-container">
+                                <a href="/ld/accounting/accounting-tac-nghiep" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Đối soát đơn</a>
+                                <a href="/ld/accounting/tong-ket-ke-hoach-thang" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Tổng kết lương thưởng</a>
+                                <a href="/ld/accounting/bao-cao-kinh-doanh" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Báo cáo kinh doanh</a>
+                                <a href="/ld/accounting/quan-ly-chi-phi" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Khai báo chi phí đơn vị</a>
+                                <a href="/ld/accounting/nhom-chi-phi" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Khai báo nhóm chi phí</a>
+                                <a href="/ld/accounting/danh-muc-chi-phi" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Khai báo danh mục chi phí</a>
+                                <a href="/ld/accounting/danh-muc-don-vi-tinh" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Khai báo đơn vị tính</a>
+                            </div>
+                        </div>
+                        <div class="box-menu line2" style="background-image: url('/Portals/_default/Skins/APP/images/dashboard/db9.png?v=2');">
+                            <div class="menu-container">
+                                <a href="/ld/ceo/dash-board" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>CEO dashboard</a>
+                                <a href="/ld/ceo/power-dashboard" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Power dashboard</a>
+                                <a href="/ld/thong-ke" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Thống kê tỉ lệ chốt theo khung giờ</a>
+                                <a href="/ld/ceo/xu-huong" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Báo cáo biểu đồ</a>
+                            </div>
+                        </div>
+                        <div class="box-menu line2" style="background-image: url('/Portals/_default/Skins/APP/images/dashboard/db10.png?v=2');">
+                            <div class="menu-container">
+                                <a href="/ld/unit-admin/danh-muc-kpi" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Khai báo KPIs</a>
+                                <a href="/ld/unit-admin/thiet-lap-thuong-theo-doanh-so" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Khai báo thưởng</a>
+                                <a href="/ld/unit-admin/thiet-lap-kpi" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Kế hoạch doanh số tháng</a>
+                                <a href="/ld/thong-ke/lap-ke-hoach-kinh-doanh" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Kế hoạch kinh doanh năm</a>
+                            </div>
+                        </div>
+                        <div class="box-menu line2" style="background-image: url('/Portals/_default/Skins/APP/images/dashboard/db11.png?v=2');">
+                            <div class="menu-container">
+                                <a href="/ld/unit-admin/quy-trinh-tac-nghiep" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Thiết lập mô hình công ty</a>
+                                <a href="/ld/unit-admin/danh-sach-nhan-vien" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Danh sách nhân viên</a>
+                                <a href="/ld/unit-admin/quan-ly-doi-nhom" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Quản lý nhóm sale</a>
+                                <a href="/ld/unit-admin/danh-muc-tac-nghiep" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Khai báo danh mục tác nghiệp</a>
+                                <a href="/ld/unit-admin/thiet-lap-tac-nghiep" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Thiết lập luồng tác nghiệp</a>
+                                <a href="/ld/unit-admin/thiet-lap-chiet-khau-cod" class="link1" onclick="return parent_go_to_url(this);"><i class="fa  fa-play-circle-o"></i>Thiết lập chiết khấu, COD</a>
+                            </div>
+                        </div>
+                        <div class="col-xs-12"></div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    
+	</div> 
+
+<script type="text/javascript">   
+    $(document).ready(function () {
+        
+    });
+    function parent_go_to_url(element) {
+        var url = $(element).attr('href');
+        if (parent.showLoader != undefined) {
+            parent.document.location.href = url;
+        } else {
+            document.location.href = url;
+        }
+        return false;
+    }
+</script>
+
+
+</div><!-- End_Module_1479 --></div>
+ </div></div>
+        </div>
+    </div>
+</div>
+
+<div class="mloading hidden-print">
+    <div class="progress progress-xxs">
+        <div class="progress-bar progress-bar-red" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%; transition: ease 30s all;">
+            <span class="sr-only"></span>
+        </div>
+    </div>
+    <div class="background"></div>
+    <div class="mrocket" style="width: 100%; text-align: center;">
+        <img src="/Portals/_default/Skins/APP/images/rocket.svg" width="80">
+    </div>
+</div>
+
+
+<div class="modal fade modal-loading hidden-print" data-backdrop="static" data-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div style="width: 100%; text-align: center;">
+            <img src="/Portals/_default/Skins/APP/images/rocket.svg" width="80">
+        </div>
+    </div>
+</div>
+
+
+
+<input type="hidden" name="dnn$CommonAllLayout$_LogoInChimWebsite" id="dnn_CommonAllLayout__LogoInChimWebsite" />
+
+<style>
+      .background-img-watermark {
+        z-index: 999;
+        opacity: 0.1;
+        position: fixed;
+        height: 100%;
+        overflow: hidden;
+        top: 0;
+        right: 0;
+        left: 0;
+        pointer-events:none;
+        background-image:url('') ;
+        background-position:center center;
+        background-repeat:no-repeat;
+        /*background-size:cover;*/
+        background-size:contain;
+    }
+</style>
+
+<div class="background-img-watermark hidden-print" ></div>
+
+<script>
+    function setLogoInChimWebsiteBG() {
+
+    }
+</script>
+
+
+
+
+<div class="modal fade modal-common" style="margin-top: 10px; padding-right: 0;" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="margin-top: 0;">
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <h4 class="modal-title" style="text-transform: uppercase;"></h4>
+            </div>
+            <iframe class="pif" src="" style="width: 100%;" frameborder="0"></iframe>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade modal-alert" style="margin-top: 10px; padding-right: 0;" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="margin-top: 0;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" style="text-transform: uppercase;"></h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-body-alert">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 3.3.5 -->
+
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/bootstrap/js/bootstrap.min.js"></script>
+
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/datepicker/bootstrap-datepicker.js"></script>
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/datepicker/locales/bootstrap-datepicker.vi.js"></script>
+<!-- AdminLTE App -->
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/dist/js/app.js"></script>
+
+
+
+<!--Plugin--->
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/ionslider/ion.rangeSlider.min.js"></script>
+
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/toastr-master/build/toastr.min.js"></script>
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/toastr-master/build/notify.js"></script>
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/dragscroll-master/dragscroll.js"></script>
+
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/select2-3.5.2/select2.min.js"></script>
+
+
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/input-mask/jquery.inputmask.js"></script>
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/input-mask/jquery.inputmask.regex.extensions.js"></script>
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/input-mask/jquery.inputmask.numeric.extensions.js"></script>
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/autoNumeric.js"></script>
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/jquery.livequery.min.js"></script>
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/jquery-validator/jquery.validationEngine-vi.js?v=1.1.1"></script>
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/jquery-validator/jquery.validationEngine.js"></script>
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/popover/jquery.webui-popover.js"></script>
+
+
+<!-- Slimscroll -->
+<script src="/Portals/_default/Skins/APP/AdminLTE-2.3.0/plugins/slimScroll/jquery.slimscroll.min.js"></script>
+<script src="/Portals/_default/Skins/APP/custom.js?v=2.7.0"></script>
+
+<script src="/Portals/_default/Skins/APP/js/jscolor/jscolor.js"></script>
+
+<script type="text/javascript">     
+    var mode = 'normal';
+
+    $(document).ready(function () {
+        $(document).keyup(function (event) {
+            disable_drag_croll();
+        });
+        $(document).keydown(function (event) {
+            //if (event.which == 65 || event.which == 83 || event.which == 68 || event.which == 70) {
+            enable_drag_croll();
+            //}
+        });
+
+        //Tawk CSS widget mobile
+        setTimeout(function () {
+            $($('#tawkchat-container iframe')[0]).css({ "right": "10px", "bottom": "10px" });
+            $($('#tawkchat-container iframe')[0]).contents().find('#tawkchat-minified-wrapper').css({ "width": "55px", "height": "55px", "bottom": "0px", "right": "0px" });
+            $($('#tawkchat-container iframe')[0]).contents().find('#tawkchat-status-text-container').css({ "width": "55px", "height": "55px" });
+            $($('#tawkchat-container iframe')[0]).contents().find('#tawkchat-status-icon').css({ "line-height": "55px" });
+
+        }, 1500);
+
+        //check length textarea
+        $('textarea').on('change keyup paste', function () {
+            //console.log(this);
+            var maxLength = $(this).attr("data-length");
+
+            if (maxLength != undefined) {
+                if (this.value.length > maxLength) {
+                    var validStr = this.value.substring(0, maxLength);
+                    this.value = validStr;
+                    //$("#yourBtnID").show();
+                }
+            }
+        });
+    });
+
+    //global init
+    var globalInit = function () {
+        $(document).ready(function () {
+            //console.log('globalInit');
+            fix_header();
+            init_chosen();
+            init_number_format();
+            init_table_check_all();
+            //init_tiny_mce();
+            init_file_upload();
+
+            $('[data-toggle="popover"]').popover();
+            //applySlimScroll('.islim');
+            //applyFullScreenView();
+            init_daterange();
+
+            //drag scroll
+            var ds = $('.dragscroll1');
+            var da = ds.find('.drags-area');
+            da.mouseenter(function () {
+                enable_drag_croll();
+            });
+            da.mouseleave(function () {
+                disable_drag_croll();
+            });
+        });
+    };
+    Sys.Application.add_load(globalInit);
+
+    function fix_header() {
+        $(window).scroll(function () {
+            var wt = $(this).scrollTop();
+            var target = $('.m-header');
+            if (target.length == 0) return;
+            var lim = wt - 50;
+            if (lim < 0) lim = 0;
+            target.css('top', lim + 'px');
+        });
+    }
+    function init_chosen() {
+        $(".chosen").select2({
+            //shouldFocusInput: function () {return false;}
+        });
+        //$(".chosen-container").css("width", "100%");
+        $('.ddlpb').change(function () { showLoader(); });
+    }
+    function init_table_check_all() {
+        var checkAll = $('.table-multi-select .chk-all input');
+        var checkboxes = $('.table-multi-select .chk-item input');
+        checkboxes.click(function () {
+            var cb = $(this);
+            var allcheck = $('.table-multi-select .chk-item input:checked').length == checkboxes.length;
+            checkAll.attr("checked", allcheck);
+            var is_check = cb.is(':checked');
+            if (is_check)
+                cb.parents('tr').addClass('row-selected');
+            else
+                cb.parents('tr').removeClass('row-selected');
+        });
+        checkAll.click(function () {
+            var is_check_all = checkAll.is(':checked');
+            checkboxes.attr("checked", is_check_all);
+            if (is_check_all)
+                checkboxes.parents('tr').addClass('row-selected');
+            else
+                checkboxes.parents('tr').removeClass('row-selected');
+        });
+    }
+    function init_number_format() {
+        // Thanks to github.com
+        // Format money (jquery autonumeric)
+        $('.numberonly').keypress(function (e) {
+            if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) { return false; }
+        });
+        money_auto_numeric('money-vnd', ' VNĐ', 0);
+        money_auto_numeric('money', ' ', 0);
+        money_auto_numeric('money-percent', ' %', 0);
+        money_auto_numeric('money-percent1', ' %', 1);
+        money_auto_numeric('money-percent2', ' %', 2);
+        money_auto_numeric('money-float', '', 0);
+        money_auto_numeric('money-float1', '', 1);
+        money_auto_numeric('money-float2', '', 2);
+        money_auto_numeric('money-float3', '', 3);
+    }
+
+    function money_auto_numeric(class_name, asign_val, mdec_val) {
+        $('.' + class_name).each(function () {
+            var _this = $(this);
+            var _label = _this.clone();
+
+            _this.removeClass("validate[required]").hide();
+            _label.insertAfter(_this).removeClass(class_name).removeAttr('id name').show();
+            _label.autoNumeric('init', {
+                aSep: ',', aDec: '.', pSign: 's', aSign: asign_val
+                , vMin: '-9999999999999999', vMax: '99999999999999999', mDec: mdec_val
+            }).css("text-left", "right").bind("change", function () {
+                _this.val(_label.autoNumeric('get'));
+            });
+        });
+    }
+
+    //popup function
+    //Cập nhật lại chiều cao iframe, code bên trong iframe sẽ gọi hàm này bằng câu lệnh : parent.updateIFHeight()
+    function updateIFHeight(pu_height) {
+        if (pu_height == '100%') {
+            pu_height = 'full';
+        }
+        pu_height = 'full';
+
+        if (pu_height == '' || pu_height == undefined || pu_height == null) {
+            pu_height = 'auto';
+        }
+        var self = $('.modal:visible .pif')
+        self.show();
+
+        var wh = $(window).height();
+
+        if (pu_height == 'full') {
+            $('.modal-common .modal-dialog').css('margin-top', '5px');
+            self.height(wh - 15);
+            return;
+        }
+
+        if (pu_height != 'full' && pu_height != 'auto') {
+            self.height(pu_height.replace('px', ''));
+            $('.modal-common .modal-dialog').css('margin-top', '60px');
+        }
+
+        //15 để pu cách đều trên dưới 5px
+        //120 để pu cách trên 60, cách dưới > 60
+        //Nếu chiều cau của iframe không vượt quá chiều cao window thì giữ nguyên, còn không thì set bằng chiều cao window + độ dãn cách
+        var ifH = self.contents().find('body').height();
+        if (pu_height == 'auto') {
+            //chỗ này không hiểu
+            if (wh - 15 - 120 <= ifH) {
+                self.height(wh - 15);
+            } else {
+                self.height(ifH + 15);
+            }
+            $('.modal-common .modal-dialog').css('margin-top', '5px');
+        }
+    }
+
+    //Đóng các popup đang mở
+    function closeModal(refresh) {
+        console.log('closeModal - NONE');
+        $('.modal:visible').modal('hide');
+        $('.modal .pif').attr('src', '');
+        if ($('.btn-reload').length <= 0) return;
+        if (refresh == true) {
+            showLoader();
+            eval($('.btn-reload').attr('href'));
+        }
+    }
+    function reloadData() {
+        if ($('.btn-reload').length <= 0) return;
+        showLoader();
+        eval($('.btn-reload').attr('href'));
+    }
+    function ensure_protocol(url) {
+        //console.log('url=' + url);
+
+        if (url == undefined || url == null || url == '') return '';
+        if (url.startsWith('https:')) return url;
+        if (window.location.protocol != 'https:') return url;
+        if (url.startsWith('http:')) {
+            var re = url.replace('http:', 'https:');
+            console.log('result=' + re);
+            return re;
+        }
+
+        //console.log('hostname=' + window.location.hostname);
+        //console.log('protocol=' + window.location.protocol);
+
+        var result = 'https://' + window.location.hostname + url;
+        //console.log('result=' + result);
+        return result;
+    }
+    function showPopupCommon(url, title, pu_with, pu_height) {
+        url = ensure_protocol(url);
+        var domain = document.location.href;
+        if (domain.startsWith('https://') && url.startsWith('http://')) { url = url.replace("http://", "https://") };
+        var pop = $('.modal-common');
+
+        //set height
+        $('.modal .pif').unbind('load');
+        $('.modal .pif').on('load', function () {
+            var self = $(this);
+            self.show();
+            setTimeout(function () { updateIFHeight(pu_height); }, 200);
+        });
+
+        //set with
+        if (pu_with == '' || pu_with == undefined || pu_with == null) {
+            pu_with = 'calc(100% - 20px)';
+        }
+        var window_width = $(window).width();
+        var tmp_width = parseInt(pu_with);
+        if (!isNaN(tmp_width)) {
+            if (window_width < tmp_width + 20) { pu_with = (window_width - 20) + 'px'; }
+        }
+        pop.find('.modal-dialog').css('width', pu_with);
+
+        //set title
+        pop.find('.modal-header').show();
+        if (title != '' && title != undefined && title != null)
+            pop.find('.modal-title').text(title);
+        else {
+            pop.find('.modal-header').hide();
+        }
+
+        pop.modal('show');
+        pop.find('.pif').attr('src', url);
+    }
+    function showPopupAlert(title, message, pu_with, pu_height) {
+        var pop = $('.modal-alert');
+
+        //set height
+        $('.modal .pif').unbind('load');
+        $('.modal .pif').on('load', function () {
+            var self = $(this);
+            self.show();
+            setTimeout(function () { updateIFHeight(pu_height); }, 200);
+        });
+
+        //set with
+        if (pu_with == '' || pu_with == undefined || pu_with == null) {
+            pu_with = 'calc(100% - 20px)';
+        }
+        var window_width = $(window).width();
+        var tmp_width = parseInt(pu_with);
+        if (!isNaN(tmp_width)) {
+            if (window_width < tmp_width + 20) { pu_with = (window_width - 20) + 'px'; }
+        }
+        pop.find('.modal-dialog').css('width', pu_with);
+
+        //set title
+        pop.find('.modal-header').show();
+        if (title != '' && title != undefined && title != null)
+            pop.find('.modal-title').text(title);
+        else {
+            pop.find('.modal-header').hide();
+        }
+
+        pop.find('.modal-body').html(message);
+
+        pop.modal('show');
+        pop.find('.pif').attr('src', url);
+
+    }
+    //function showImportLoi(id) {
+    //    var url = '/doi-tuong/ra-soat-ho-ngheo/c1565/ImportRaSoatLoi?id=' + id + '&mode=' + mode + '&skinsrc=[g]%2fskins%2fapp%2fpopup&containersrc=%2fportals%2f_default%2fcontainers%2fncc%2fno-title';
+    //    showPopupCommon(url, 'Import lỗi');
+    //}
+</script>
+
+<!--Start of Tawk.to Script-->
+
+<!--End of Tawk.to Script-->
+
+
+
+
+<div id="fb-root"></div>
+
+<div id="fb-customer-chat" class="fb-customerchat">
+</div>
+
+<!--Start of vchat.vn Script-->
+<script lang="javascript">
+    if (isTimeInWork) {
+        //load FB Chat
+        var chatbox = document.getElementById('fb-customer-chat');
+        chatbox.setAttribute("page_id", "101704375959407");
+        chatbox.setAttribute("attribution", "biz_inbox");
+
+        window.fbAsyncInit = function () {
+            FB.init({
+                xfbml: true,
+                version: 'v14.0'
+            });
+        };
+
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = 'https://connect.facebook.net/vi_VN/sdk/xfbml.customerchat.js';
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    }
+    else {
+        //load VChat
+        var __vnp = { code: 8715, key: '', secret: '96bc74788b907d6bf9a58572256aea47' };
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.defer = true;
+            ga.src = 'https://core.vchat.vn/code/tracking.js';
+            var s = document.getElementsByTagName('script');
+            s[0].parentNode.insertBefore(ga, s[0]);
+        })();
+    }
+</script>
+<!--End of vchat.vn Script-->
+
+        <input name="ScrollTop" type="hidden" id="ScrollTop" />
+        <input name="__dnnVariable" type="hidden" id="__dnnVariable" autocomplete="off" />
+        
+    
+<script type="text/javascript" src="/Resources/Shared/scripts/initWidgets.js" ></script>
+<script type="text/javascript">
+//<![CDATA[
+window.__TsmHiddenField = $get('ScriptManager_TSM');//]]>
+</script>
+<script>showControlBar(false);</script><script>hideLoader();</script></form>
+    
+    
+
+    <!-- Histats.com  (div with counter) --><div id="histats_counter" class="hidden" style="display:none;"></div>
+       <!-- Histats.com  START  (aync)-->
+   
+    <!-- Histats.com  END  -->
+
+    <p></p>
+</body>
+   
+</html>

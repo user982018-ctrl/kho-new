@@ -66,7 +66,8 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $list = $this->getListProductByPermisson(Auth::user()->role)->paginate(50);
+        $list = $this->getListProductByPermisson(Auth::user()->role)
+            ->orderBy('status', 'desc')->paginate(50);
         return view('pages.product.index')->with('list', $list);
     }
 
@@ -203,7 +204,7 @@ class ProductController extends Controller
     }
 
     public  function getListProductByPermisson($roles) {
-        $list       = Product::orderBy('orderBy', 'desc');
+        $list       = Product::query();
 
         $checkAll   = false;
         $listRole   = [];

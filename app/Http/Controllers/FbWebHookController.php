@@ -186,7 +186,7 @@ class FbWebHookController extends Controller
             foreach ($input['entry'] as $entry) {
                 // Log::channel('daily')->info('$entry ', $entry );
                 $webhookEvent = $entry['messaging'][0];
-    Log::channel('a')->info('Webhook $senderPsid: ', $webhookEvent);
+    // Log::channel('a')->info('Webhook $senderPsid: ', $webhookEvent);
                 // Lấy ID người gửi
                 $senderPsid = $webhookEvent['sender']['id'];
                 

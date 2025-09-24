@@ -29,6 +29,65 @@ setlocale(LC_TIME, 'vi_VN.utf8');
 
 class Helper
 {
+    public static function isFPage($idPage)
+    {
+        $result = false;
+        $page = SrcPage::where('id_page', $idPage)->first();
+        if ($page && $page->id_page == $idPage && $page->type == 'pc') {
+            $result = true;
+        }
+        return $result;
+    }
+
+    public static function isHotlinePage($idPage)
+    {
+        $result = false;
+        $page = SrcPage::where('id_page', $idPage)->first();
+        if ($page && $page->id_page == $idPage && $page->type == 'hotline') {
+            $result = true;
+        }
+        return $result;
+    }
+
+    public static function printGHN($token)
+    {
+        $result = false;
+        $endpoint = "https://online-gateway.ghn.vn/a5/public-api/print80x80?token=$token";
+        $response = Http::timeout(30)->get($endpoint);
+
+        if ($response->status() == 200) {
+            $result = true;
+        }
+
+        return $result; 
+    }
+
+    public static function getTokenPrintGHN($orderCode)
+    {
+        $result = [];
+        $token = '180d1134-e9fa-11ee-8529-6a2e06bbae55';
+        $endpoint = "https://online-gateway.ghn.vn/shiip/public-api/v2/a5/gen-token?order_codes=$orderCode";
+        $response = Http::timeout(30)->withHeaders(['token' => $token])->get($endpoint);
+        if ($response->status() == 200) {
+            $content = json_decode($response->body(), true);
+            $result = $content["data"];
+        }
+        return $result; 
+    }
+
+    public static function getDetailOrderGHN($orderCode)
+    {
+        $result = [];
+        $token = '180d1134-e9fa-11ee-8529-6a2e06bbae55';
+        $endpoint = "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/detail?order_code=$orderCode";
+        $response = Http::timeout(30)->withHeaders(['token' => $token])->get($endpoint);
+        if ($response->status() == 200) {
+            $content = json_decode($response->body(), true);
+            $result = $content["data"];
+        }
+        return $result; 
+    }
+
     public static function getGroupOfLeadSale($user)
     {
         $result = [];
@@ -326,6 +385,10 @@ class Helper
             || $phone == '0973414636'
             || $phone == '0345170389'
             || $phone == '0918141814'
+            || $phone == '0966252669'
+            || $phone == '0984774585'
+
+            
             
         ) {
             return true;

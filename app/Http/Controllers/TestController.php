@@ -20,11 +20,66 @@ use Illuminate\Support\Facades\Log;
 use function PHPUnit\Framework\assertFalse;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\UsersExport;
+use Google\Service\AndroidPublisher\Order;
+
 // setlocale(LC_TIME, 'vi_VN.utf8');
 // setlocale(LC_TIME, "vi_VN");
 class TestController extends Controller
 {
   use WithoutMiddleware;
+
+  public function updatePrintStatusGHN2()
+  {
+    /** orders chưa giao vận và trạng thái usu là đã in */
+    $dateBegin  = date('Y-m-d',strtotime("01/09/2025"));
+    $listOrder = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
+      ->where('orders.status', 1)->where('shipping_order.print_status', 1)->where('shipping_order.vendor_ship', 'GHN')
+      ->whereDate('orders.created_at', '>=', $dateBegin)
+      ->where('shipping_order.check_cron', 0)
+      // ->where('orders.id', 20062)
+      ->select('orders.*','shipping_order.order_code as order_code')
+      ->limit(100)
+      ->get();
+
+    foreach ($listOrder as $order) {
+      $code = $order->order_code;
+      $data = Helper::getTokenPrintGHN($order->order_code);
+      if (isset($data['token'])) {
+        $print = Helper::printGHN($data['token']);
+        if ($print) {
+          /**update print status GHN */
+          $orderCTL = new OrdersController();
+          $checkCron = $print;
+          $orderCTL->updatePrintStatus($code, 'GHN', $checkCron);
+        }
+        
+      }
+    }
+  }
+
+  public function updatePrintStatusGHN()
+  {
+    /** orders chưa giao vận và trạng thái usu là chưa in */
+    $dateBegin  = date('Y-m-d',strtotime("01/08/2025"));
+    $listOrder = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
+      ->where('orders.status', 1)->where('shipping_order.print_status', 0)->where('shipping_order.vendor_ship', 'GHN')
+      ->whereDate('orders.created_at', '>=', $dateBegin)
+      // ->where('orders.id', 20062)
+      ->select('orders.*','shipping_order.order_code as order_code')
+      ->limit(100)
+      ->get();
+
+    foreach ($listOrder as $order) {
+      $code = $order->order_code;
+      $data = Helper::getDetailOrderGHN($order->order_code);
+      if (isset($data['data']) && isset($data['data']['print_by_user_id'])) {
+        /**update print status GHN */
+        $orderCTL = new OrdersController();
+        $orderCTL->updatePrintStatus($code, 'GHN');
+      }
+    }
+  }
+
   public function updateStatusOrderGHTK() 
   {
     
@@ -833,9 +888,9 @@ class TestController extends Controller
 
       $pages = $group->srcs;
       foreach ($pages as $page) {
-        //  if ($page->id_page != '681883838346200') {
+        //  if ($page->id_page != '729162340281810') {
         //   continue;
-        //}
+        // }
         if ($page->type == 'pc' ) {
           $this->crawlerPancakePage($page, $group);
         }
@@ -961,7 +1016,7 @@ class TestController extends Controller
     }
   }
 
-    public function updateStatusOrderGhnV2() 
+  public function updateStatusOrderGhnV2() 
   {
     $orders = Orders::has('shippingOrder')->whereNotIn('status', [0,3])->get();
 
@@ -1103,11 +1158,41 @@ class TestController extends Controller
     }
   }
 
+  public function done()
+  {
+    $orderCTL = new OrdersController();
+    $req = new Request();
+    $req['daterange'] = ['01/06/2025', '30/09/2025'];
+    // $req['sale'] = '77';
+    // $req['typeDate'] = '2';
+    // $sales = ['50','74'];
+    $req['status'] = 3;
+    $req['group'] = 11;
+
+    $list = $orderCTL->getListOrderByPermisson(Auth::user(), $req);
+    $dataExport[] = [
+      'STT', 'Tên', 'địa chỉ',
+    ];
+
+    $i = 1;
+    foreach ($list->get() as $data) {
+      // dd($data);
+      $dataExport[] = [
+        $i,
+        $data->name,
+        $data->address,
+      ];
+      $i++;
+    }
+
+    return Excel::download(new UsersExport($dataExport), 'thuysan.xlsx');
+  }
+
   public function export()
   {
     $sale = new SaleController();
     $req = new Request();
-    $req['daterange'] = ['01/09/2025', '15/09/2025'];
+    $req['daterange'] = ['01/08/2025', '31/08/2025'];
     // $req['sale'] = '77';
     // $req['typeDate'] = '2';
     // $sales = ['50','74'];

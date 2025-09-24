@@ -26,6 +26,111 @@ use Illuminate\Validation\Rule;
 
 class OrdersController extends Controller
 {
+    public function printOrderByOrderAll(Request $r)
+    {
+        $result = [];
+        $listJson = $r->q;
+        $list = json_decode($listJson, true);
+        if ($list && count($list) > 0) {
+            foreach ($list as $orderId ) {
+                $order = Orders::find($orderId);
+                if ($order) {
+                    $shippingOrder    = $order->shippingOrder()->get()->first();
+                    $orderCode        = $shippingOrder->order_code;
+                    if (!$orderCode) {
+                        continue;
+                    }
+                    $vendorShip = $shippingOrder->vendor_ship;
+                    if (!$vendorShip) {
+                        continue;
+                    }
+
+                    $result[] = $this->getDataPrintOrder($orderCode, $vendorShip);
+                }
+            }
+        }
+
+        if (!$result) {
+            return redirect()->route('home');
+        }
+
+        return view('pages.orders.shipping.print')->with('list', $result);
+    }
+
+    public function getDataPrintOrderGHN($orderCode) 
+    {
+        $data = [];
+        $token = '180d1134-e9fa-11ee-8529-6a2e06bbae55';
+        $endpoint = "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/detail?order_code=$orderCode";
+        $response = Http::timeout(30)->withHeaders(['token' => $token])->get($endpoint);
+
+        if ($response->status() == 200) {
+            $content = json_decode($response->body(), true);
+            $data = $content["data"];
+            
+            if (count($data["items"]) == 0) {
+                return false;
+            }    
+            /** cập nhật trạng thái đã in vào đơn hàng của usu */
+            $this->updatePrintStatus($orderCode, 'GHN');
+        }
+
+        return $data;
+    }
+
+    public function getDataPrintOrder($orderCode, $vendor)
+    {
+        if ($vendor == 'GHN') {
+            return $this->getDataPrintOrderGHN($orderCode);
+        }
+
+        return false;
+    }
+
+    public function printOrderByOrderCodeGHTK($orderCode)
+    {
+
+    }
+
+    public function printOrderByOrderCodeGHN($orderCode)
+    {
+        $result = [];
+        $token = '180d1134-e9fa-11ee-8529-6a2e06bbae55';
+        $endpoint = "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/detail?order_code=$orderCode";
+        $response = Http::timeout(30)->withHeaders(['token' => $token])->get($endpoint);
+
+        if ($response->status() == 200) {
+            $content = json_decode($response->body(), true);
+            
+            if (count($content["data"]["items"]) == 0) {
+                notify()->error('Đã xảy ra lỗi!', 'Thất bại!');
+                return redirect()->back();
+            }
+    
+            $result[] = $content["data"];
+
+            /** cập nhật trạng thái đã in vào đơn hàng của usu */
+            $this->updatePrintStatus($orderCode, 'GHN');
+        }
+
+        return view('pages.orders.shipping.print')->with('list', $result);
+    }
+
+    public function updatePrintStatus($orderCode, $vendor, $checkCron = false)
+    {
+        $order = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
+            ->where('shipping_order.order_code', $orderCode)
+            ->where('shipping_order.vendor_ship', $vendor)
+            ->select('orders.*')->first();
+        if ($order) {
+            $shippingOrder = $order->shippingOrder()->get()->first();
+            $shippingOrder->print_status = 1;
+            $shippingOrder->check_cron = $checkCron;
+            $shippingOrder->save();
+        }
+    }
+
+
     public function reportProductByOrder(Request $req)
     {
         $rs = [];
@@ -124,6 +229,36 @@ class OrdersController extends Controller
             ->with('listAttribute', $listAttribute)->with('lastData', $lastData)
             ->with('search', $req->search);
     }
+
+    public function getDetailProductsByIdOrder($order)
+    {
+        $result = '';
+        foreach (json_decode($order->id_product) as $product)
+        {
+            $productModel = getProductByIdHelper($product->id);
+            $price = $productModel->price;
+            $name = $productModel->name;
+            if ($productModel->type == 2 && !empty($product->variantId)) {
+                $variantId = $product->variantId;
+                $variant = HelperProduct::getProductVariantById($variantId);
+                $price = $variant->price;
+                $name .= HelperProduct::getNameAttributeByVariantId($variantId);  
+            }
+
+            $strGift = '';
+            if (isset($product->gift) && $product->gift == 'true') {
+                $strGift = ' <span style="font-style:italic;">(tặng) </span>';
+            }
+
+            if ($productModel) {
+                $result .= '<p class="sp-p" style="text-overflow:ellipsis"><span class="ten-sp">' . $name . $strGift . ' </span>'
+                    .'<span class="qty-span">' . $product->val . '</span></p>';
+            }
+        }
+
+        return $result;
+    }
+
     public function getOrderByIdSalecare(Request $req)
     {
         $result = '';
@@ -181,7 +316,7 @@ class OrdersController extends Controller
         if (count($req->all())) {
             return $this->filterOrderByDate($req);
         }
-       
+
         $today = date("d/m/Y", time());
         $p['daterange'] = [$today, $today];
         $category = Category::where('status', 1)->get();
@@ -241,6 +376,14 @@ class OrdersController extends Controller
                 $ids = $list->pluck('id')->toArray();
                 $list = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
                     ->where('shipping_order.vendor_ship', $dataFilter['dvvc'])
+                    ->whereIn('orders.id', $ids)
+                    ->select('orders.*');
+            }
+
+            if (isset($dataFilter['print_status'])) {
+                $ids = $list->pluck('id')->toArray();
+                $list = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
+                    ->where('shipping_order.print_status', $dataFilter['print_status'])
                     ->whereIn('orders.id', $ids)
                     ->select('orders.*');
             }

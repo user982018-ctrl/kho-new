@@ -8,8 +8,8 @@ use App\Models\SaleCare;
 use App\Models\Orders;
 use Illuminate\Support\Facades\Http;
 use App\Helpers\Helper;
-use App\Http\Controllers\SaleController;
 use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\SaleController;
 use Illuminate\Support\Facades\Log;
 use App\Models\Group;
 use App\Models\SrcPage;
@@ -34,18 +34,21 @@ class Kernel extends ConsoleKernel
 
       $schedule->call(function() {
         $this->wakeUp();
-      })->cron('* * * * *');
+      })->everyMinute();
 
       $schedule->call(function() {
         $this->updatePrintStatusGHN2();
         $this->updatePrintStatusGHN();
-        // $this->testCron();
+      })->everyMinute();
+
+      $schedule->call(function() {
+         $this->testCron();
       })->everyMinute();
     }
 
     public static function testCron()
     {
-      Log::channel('d')->info('Welcome cron');
+    Log::channel('d')->info('Welcome cron');
     }
 
   /**
@@ -60,9 +63,8 @@ class Kernel extends ConsoleKernel
 
   public function updatePrintStatusGHN2()
   {
-    // Log::channel('d')->info('print status cron');
     /** orders chưa giao vận và trạng thái usu là đã in */
-    $dateBegin  = date('Y-m-d',strtotime("01/09/2025"));
+    $dateBegin  = date('Y-m-d',strtotime("01/08/2025"));
     $listOrder = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->where('orders.status', 1)->where('shipping_order.print_status', 1)->where('shipping_order.vendor_ship', 'GHN')
       ->whereDate('orders.created_at', '>=', $dateBegin)
@@ -75,6 +77,7 @@ class Kernel extends ConsoleKernel
     foreach ($listOrder as $order) {
       $code = $order->order_code;
       $data = Helper::getTokenPrintGHN($order->order_code);
+      // dd($data);
       if (isset($data['token'])) {
         $print = Helper::printGHN($data['token']);
         if ($print) {
@@ -91,7 +94,7 @@ class Kernel extends ConsoleKernel
   public function updatePrintStatusGHN()
   {
     /** orders chưa giao vận và trạng thái usu là chưa in */
-    $dateBegin  = date('Y-m-d',strtotime("01/09/2025"));
+    $dateBegin  = date('Y-m-d',strtotime("01/08/2025"));
     $listOrder = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->where('orders.status', 1)->where('shipping_order.print_status', 0)->where('shipping_order.vendor_ship', 'GHN')
       ->whereDate('orders.created_at', '>=', $dateBegin)
@@ -113,7 +116,6 @@ class Kernel extends ConsoleKernel
 
   public function updateStatusOrderGHTK() 
   {
-    // Log::channel('d')->info('run updateStatusOrderGHTK');
     $orders = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->where('orders.status', 2) //dang giao
       ->where('shipping_order.vendor_ship', 'GHTK')
@@ -261,7 +263,6 @@ class Kernel extends ConsoleKernel
 
   public function ghtkToShipping() 
   {
-    // Log::channel('d')->info('run ghtkToShipping');
     $orders = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->where('orders.status', 1) //chua giao
       ->where('shipping_order.vendor_ship', 'GHTK')
@@ -408,20 +409,21 @@ class Kernel extends ConsoleKernel
     }
   }
 
-  public function wakeUp()
+public function wakeUp()
   {
-    // Log::channel('d')->info('run wakeUp');
     $listSc = SaleCare::whereNotNull('result_call')
       ->whereNotNull('type_TN')
       ->where('result_call', '!=', 0)
       ->where('result_call', '!=', -1)
       ->where('has_TN', 1)
       ->where('created_at', '>' , '2025-06-01')
-      ->limit(1000)
+      // ->limit(1000)
       // ->where('id', '44520')
       ->orderBy('id', 'DESC')
       ->get();
-    
+
+    // dd($listSc);
+     Log::channel('d')->info(json_encode($listSc));
     foreach ($listSc as $sc) {
 
       $call = $sc->call;
@@ -748,7 +750,6 @@ class Kernel extends ConsoleKernel
   
   public function crawlerGroup()
   {
-    // Log::channel('d')->info('run crawlerGroup');
     $groups = Group::where('status', 1);
     foreach ($groups->get() as $group) {
 
@@ -871,7 +872,6 @@ class Kernel extends ConsoleKernel
 
   public function updateStatusOrderGhnV2() 
   {
-    // Log::channel('d')->info('run updateStatusOrderGhnV2');
     // $orders = Orders::has('shippingOrder')->whereNotIn('status', [0,3])->get();
     $orders = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->whereNotIn('orders.status', [0,3])

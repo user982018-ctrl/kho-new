@@ -105,11 +105,146 @@
 <?php $checkAll = isFullAccess(Auth::user()->role);
   $isLeadSale = Helper::isLeadSale(Auth::user()->role);
   $enableSale = ($checkAll || $isLeadSale || Auth::user()->is_CSKH || Auth::user()->is_sale);
-  $enableDigital = ($checkAll || Auth::user()->is_digital);
   $isCskhDt = Helper::isCskhDt(Auth::user());
-  $isDigital = Auth::user()->is_digital;
   $isLeadDigital = Helper::isLeadDigital(Auth::user()->role);
 ?>
+
+{{-- begin --}}
+<style>
+  /* Honor Bar */
+  .honor-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    z-index: 9999;
+  }
+
+  .scroll-text {
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    animation: scrollLeft 36s linear infinite;
+    font-size: 18px;
+  }
+
+  .rank {
+    margin: 0 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .rankBadge {
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+    font-weight: bold;
+    padding: 8px 14px;
+    border-radius: 25px;
+    font-size: 16px;
+    animation: pulse 1.5s infinite;
+  }
+
+  .rankBadge.gold { background: gold; color: black; }
+  .rankBadge.silver { background: silver; color: black; }
+  .rankBadge.bronze { background: #cd7f32; color: white; }
+
+  .info {
+    line-height: 1.4;
+  }
+
+  .info span {
+    display: block;
+  }
+
+  @keyframes scrollLeft {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(-100%); }
+  }
+
+  @keyframes pulse {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  /* --- Confetti --- */
+  .confetti-piece {
+    position: fixed;
+    width: 8px;
+    height: 14px;
+    opacity: 0.9;
+    animation: fall linear forwards;
+    z-index: 9999;
+  }
+  @keyframes fall {
+    to {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  /* --- Tim bay lên --- */
+  .heart {
+    position: fixed;
+    bottom: -20px;
+    font-size: 24px;
+    animation: rise 5s linear forwards;
+    z-index: 5000;
+    pointer-events: none;
+  }
+  @keyframes rise {
+    to {
+      transform: translateY(-100vh);
+      opacity: 0;
+    }
+  }
+
+  /* --- Avatar rơi xuống --- */
+img.avatar {
+    position: fixed;
+    top: -60px;
+    width: 80px;
+    height: 80px;
+    /* border-radius: 50%; */
+    pointer-events: none;
+    z-index: 1000;
+}
+.explosion {
+    position: fixed;
+    font-size: 28px;
+    pointer-events: none;
+    z-index: 1001;
+    animation: explode 1.2s ease-out forwards;
+  }
+@keyframes explode {
+    to {
+      transform: translate(var(--dx), var(--dy)) scale(0.6);
+      opacity: 0;
+    }
+  }
+
+  /* --- Icon nổ ra --- */
+   /* Icon nổ ra */
+  .burst {
+    position: fixed;
+    font-size: 32px;
+    animation: burstUp 1.2s ease-out forwards;
+    z-index: 6001;
+  }
+  @keyframes burstUp {
+    0%   { transform: scale(0.5) translateY(0); opacity:1; }
+    60%  { transform: scale(1.3) translateY(-40px); opacity:1; }
+    100% { transform: scale(0.8) translateY(-80px); opacity:0; }
+  }
+</style>
+
 <div class="container-lg">
   <div class="row mb-1 filter-order">
     <div class="col-xs-12 col-sm-6 col-md-4 form-group daterange mb-1">
@@ -172,19 +307,6 @@
         @endif
       </select>
     </div>
-
-    @if ($checkAll)
-    <div class="col-xs-12 col-sm-6 col-md-2 form-group mb-1">
-      <select name="groupDigital" id="group-digital-filter" class="form-select">
-        <option value="999">--Nhóm digital--</option>  
-          @if (isset($groupDigital))
-              @foreach($groupDigital as $group)
-              <option value="{{$group->id}}">{{$group->name}}</option>
-              @endforeach
-          @endif
-      </select>
-    </div>
-    @endif
   </div>
   <div class="row mb-1">
     <div class="col-xs-12 col-sm-6 col-md-2 form-group mb-1">
@@ -199,7 +321,7 @@
   <div class="row">
     <div class="box-body" style="padding-top: 0px;">
       <div style="clear: both;"></div>
-      <?php if (($isCskhDt && !$isDigital) || $checkAll) {?> 
+      <?php if (($isCskhDt) || $checkAll) {?> 
       <div style="clear: both; margin-bottom: 15px;"></div>
       <div class="dragscroll1 tableFixHead table_cskh_DT table_sale">
         <span class="loader hidden">
@@ -283,7 +405,7 @@
     <div class="row">
       <div class="box-body" style="padding-top: 0px;">
         <div style="clear: both;"></div>
-        <?php if ((!$isCskhDt && !$isDigital) || $checkAll) { ?>
+        <?php if ((!$isCskhDt) || $checkAll) { ?>
         <div style="clear: both; margin-bottom: 15px;"></div>
         <div class="dragscroll1 tableFixHead table_sale">
           <span class="loader hidden">
@@ -361,75 +483,6 @@
         <?php } ?>
         <div style="height: 15px; clear: both;"></div>
         <span class="loader hidden"></span>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="box-body" style="padding-top: 0px;">
-        <div style="clear: both;"></div>
-        <?php if ($isDigital || $checkAll) { ?> 
-        <div class="dragscroll1 tableFixHead table_digital">
-          <span class="loader hidden">
-          </span>
-          <table class="table table-bordered table-multi-select" id="tableReportMarketing">
-            <thead>
-              <tr style="cursor: grab;" class="drags-area">
-                <th class="text-center" style="width: 35px;"></th>
-                <th class="text-center no-wrap" style="min-width: 10%"></th>
-                <th class="text-center" rowspan="1" colspan="6">KHÁCH HÀNG MỚI</th>
-                <th class="text-center" rowspan="1" colspan="4">KHÁCH HÀNG CŨ</th>
-                <th class="text-center" rowspan="1" colspan="3">DOANH SỐ TỔNG</th>
-              </tr>
-              <tr style="cursor: grab;" class="drags-area t28">
-                  <th class="text-center" style="width: 35px;">STT</th>
-                  <th class="text-center">MARKETING</th>
-                  <th class="text-center">Contact</th>
-                  <th class="text-center">Đơn chốt</th>
-                  <th class="text-center">Tỉ lệ chốt đơn (%)</th>
-                  <th class="text-center">Số sản phẩm</th>
-                  <th class="text-center">Doanh số</th>
-                  <th class="text-center">Giá trị đơn</th>
-
-                  <th class="text-center">Contact</th>
-                  <th class="text-center">Đơn chốt</th>
-                  <th class="text-center">Doanh số</th>
-                  <th class="text-center">Giá trị đơn</th>
-
-                  <th class="text-center">Tỉ lệ chốt đơn</th>
-                  <th class="text-center">Doanh số</th>
-                  <th class="text-center">Giá trị đơn</th>
-                  
-              </tr>
-              <tr class="rowsum t72" id="tr-sum-digital" style="cursor: grab;">
-              </tr> 
-            </thead>
-            
-            <tbody id="body-digital">
-              
-                <?php $i = 1; ?>
-              @foreach ($dataDigital as $digital)
-                <tr>
-                  <td class="text-center">{{$i}}</td>
-                  <td>{{ $digital->real_name }}</td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                </tr>
-                <?php $i++; ?>
-              @endforeach
-            </tbody>
-          </table>
-        </div>
-        <?php } ?>
       </div>
     </div>
   </div>
@@ -648,132 +701,6 @@
     }
     number = number.toLocaleString('vi-VN');
     return number.replace(/,/g, '.').replace(/\./g, ',');
-  }
-
-  function ajaxGetListDigital(dataInput)
-  {
-    if ($('.table_digital').length > 0) {
-      $('.table_digital .loader').show();
-      $('.table_digital .table-multi-select').css("opacity", "0.5");
-      $('.table_digital .table-multi-select').css("position", "relative");
-        $.ajax({
-          url: "{{ route('filter-total-digital') }}",
-          type: 'GET',
-          data: dataInput,
-          success: function(data) {
-            $('.table_digital .loader').hide();
-            $('.table_digital .table-multi-select').css("opacity", "1");
-            $('.table_digital .table-multi-select').css("position", "relative");
-
-            if (data.length == 0) {
-              $("#body-digital").html('');
-            } else if (data.data.length > 0) {
-              /* lọc data digital*/
-              var str = '';
-              console.log('data', data.data)
-              var newCusomerTrSum = data.trSum.new_customer;
-              var oldCusomerTrSum = data.trSum.old_customer;
-              var summaryCusomerTrSum = data.trSum.sumary_total;
-              var maxAvcElem = data.data[0].summary_total.avg;
-
-              /** lấy ra trung bình đơn lớn nhất của trong list sale**/
-              data.data.forEach((element, k) => {
-                  if (element.summary_total.avg > maxAvcElem) {
-                      maxAvcElem = element.summary_total.avg;
-                  }
-              });
-
-              var strTdSum = '';
-              strTdSum += '<td colspan="2" class="text-center font-weight-bold">Tổng: </td>'
-                + '<td class="text-center font-weight-bold"><span>' + newCusomerTrSum.contact + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + newCusomerTrSum.count_order + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + newCusomerTrSum.rate + '%</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + newCusomerTrSum.product + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + number_format_js(newCusomerTrSum.total) + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + number_format_js(newCusomerTrSum.avg) + '</span></td>';
-                        
-              strTdSum += '<td class="text-center font-weight-bold"><span>' + oldCusomerTrSum.contact+ '</span></td>'
-               + '<td class="text-center font-weight-bold"><span>' + oldCusomerTrSum.count_order + '</span></td>'
-                +'<td class="text-center font-weight-bold"><span>' + number_format_js(oldCusomerTrSum.total) + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + number_format_js(oldCusomerTrSum.avg) + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + (summaryCusomerTrSum.rate) + '%</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + number_format_js(summaryCusomerTrSum.total) + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + number_format_js(summaryCusomerTrSum.avg) + '</span></td>';
-
-              $("#tr-sum-digital").html(strTdSum);
-
-              data.data.forEach((element, k) => {
-                perCentContactNew = (newCusomerTrSum.contact != 0) ? (element.new_customer.contact / newCusomerTrSum.contact * 100) : 0;
-                perCentOrderNew =  (newCusomerTrSum.count_order != 0) ? (element.new_customer.count_order / newCusomerTrSum.count_order * 100) : 0;
-                perCentProductNew = (newCusomerTrSum.product != 0) ? (element.new_customer.product / newCusomerTrSum.product * 100) : 0;
-                perCentTotalNew = (newCusomerTrSum.total != 0) ? (element.new_customer.total / newCusomerTrSum.total * 100) : 0;
-                perCentAvgNew = (newCusomerTrSum.avg != 0) ? (element.new_customer.avg / newCusomerTrSum.avg * 100) : 0;
-
-                perCentContactOld = (oldCusomerTrSum.contact != 0) ? (element.old_customer.contact / oldCusomerTrSum.contact * 100) : 0;
-                perCentOrderOld =  (oldCusomerTrSum.count_order != 0) ? (element.old_customer.count_order / oldCusomerTrSum.count_order * 100) : 0;
-                perCentProductOld = (oldCusomerTrSum.product != 0) ? (element.old_customer.product / oldCusomerTrSum.product * 100) : 0;
-                perCentTotalOld = (oldCusomerTrSum.total != 0) ? (element.old_customer.total / oldCusomerTrSum.total * 100) : 0;
-                perCentAvgOld = (oldCusomerTrSum.avg != 0) ? (element.old_customer.avg / oldCusomerTrSum.avg * 100) : 0;
-
-                perCentTotalSum = (summaryCusomerTrSum.total != 0) ? (element.summary_total.total / summaryCusomerTrSum.total * 100) : 0;
-                perCentAvgSum = (maxAvcElem.avg != 0) ? (element.summary_total.avg / maxAvcElem * 100) : 0;
-                       
-                str += '<tr>'
-                  + '<td class="text-center">' + (k+1) + '</td>'
-                  + '<td>' + element.name + '</td>'
-                  + '<td class="tdProgress tdSoContact"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' + perCentContactNew + '%"></div>'
-                  + '</div><span class="progress-text">' +  element.new_customer.contact + '</span></div></td>'
-                  + '<td class="tdProgress tdSoChotDon"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' + perCentOrderNew + '%"></div>'
-                  + '</div><span class="progress-text">' +  element.new_customer.count_order + '</span></div></td>'
-                  + '<td class="tdProgress tdTyLeChotDon"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' +  element.new_customer.rate + '%"></div>'
-                  + '</div><span class="progress-text">' +  element.new_customer.rate + '%</span></div></td>'
-                  + '<td class="tdProgress tdSoSanPham"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' + perCentProductNew + '%"></div>'
-                  + '</div><span class="progress-text">' +  element.new_customer.product + '</span></div></td>'
-                  + '<td class="tdProgress tdDoanhSo"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' + perCentTotalNew + '%"></div>'
-                  + '</div><span class="progress-text">' +  number_format_js(element.new_customer.total) + '</span></div></td>'
-                  + '<td class="tdProgress tdGiaTriDon"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' + perCentAvgNew + '%"></div>'
-                  + '</div><span class="progress-text">' + number_format_js(element.new_customer.avg) + '</span></div></td>';
-                          
-                str += '<td class="tdProgress tdSoContact"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' + perCentContactOld + '%"></div>'
-                  + '</div><span class="progress-text">' +  element.old_customer.contact + '</span></div></td>'
-                  + '</div><span class="progress-text">' + element.old_customer.product + '</span></div></td>'
-                  + '<td class="tdProgress tdSoChotDon"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' + perCentOrderOld + '%"></div>'
-                  + '</div><span class="progress-text">' + element.old_customer.count_order + '</span></div></td>'
-                  + '<td class="tdProgress tdDoanhSo"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' + perCentTotalOld + '%"></div>'
-                  + '</div><span class="progress-text">' + number_format_js(element.old_customer.total) + '</span></div></td>'
-                  
-                  + '<td class="tdProgress tdGiaTriDon"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' + perCentAvgOld + '%"></div>'
-                  + '</div><span class="progress-text">' + number_format_js(element.old_customer.avg) + '</span></div></td>';
-
-                str += '<td class="tdProgress tdTyLeChotDon"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' +  element.summary_total.rate + '%"></div>'
-                  + '</div><span class="progress-text">' +  element.summary_total.rate + '%</span></div></td>'
-                  + '<td class="tdProgress tdDoanhSoTong"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' + perCentTotalSum + '%"></div>'
-                  + '</div><span class="progress-text">' + number_format_js(element.summary_total.total) + '</span></div></td>'
-                  + '<td class="tdProgress tdGiaTriDon"><div class="box-progress"><div class="progress">'
-                  + '<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: ' + perCentAvgSum + '%"></div>'
-                  + '</div><span class="progress-text">' + number_format_js(element.summary_total.avg) + '</span></div></td></tr>';           
-                  $("#body-digital").html(str);
-                });
-
-              // $("#body-digital").text(str);
-            }
-
-          
-          }
-      });
-    }
   }
 
   function ajaxGetListCskhDt(dataInput)
@@ -1087,90 +1014,5 @@
     ajaxGetListDigital(data);
   }
 </script>
-
-
-{{-- begin --}}
-
-<script>
-/* --- Confetti rơi full màn hình --- */
-function launchConfetti() {
-  const numPieces = 100;
-  for (let i = 0; i < numPieces; i++) {
-    const piece = document.createElement("div");
-    piece.className = "confetti-piece";
-    piece.style.left = Math.random() * window.innerWidth + "px";
-    piece.style.top = "-10px";
-    piece.style.backgroundColor = ["#ff0", "#0f0", "#f0f", "#0ff", "#f00", "#00f"][Math.floor(Math.random() * 6)];
-    piece.style.animationDuration = (Math.random() * 3 + 2) + "s";
-    document.body.appendChild(piece);
-    setTimeout(() => piece.remove(), 5000);
-  }
-}
-launchConfetti();
-setInterval(launchConfetti, 6000);
-
-/* --- Tim bay lên liên tục --- */
-function spawnHeart() {
-  const heart = document.createElement("div");
-  heart.className = "heart";
-  heart.textContent = "❤️";
-  heart.style.left = Math.random() * (window.innerWidth - 30) + "px";
-  document.body.appendChild(heart);
-  setTimeout(() => heart.remove(), 5000);
-}
-setInterval(spawnHeart, 800);
-
-/* --- Avatar rơi xuống rồi nổ --- */
-const avatars = [
-  "https://i.pravatar.cc/50?img=1",
-  "https://i.pravatar.cc/50?img=2",
-  "https://i.pravatar.cc/50?img=3"
-];
-const icons = ["❤️","👍","😂"];
-
- function dropAvatar() {
-        const img = document.createElement("img");
-    img.src = "https://i.pravatar.cc/50?u=" + Math.random(); // avatar random
-    img.className = "avatar";
-    img.style.left = Math.random() * (window.innerWidth - 60) + "px";
-    document.body.appendChild(img);
-
-    let y = -60;
-    const speed = 1.5 + Math.random() * 1.2; // tốc độ rơi
-    const fall = setInterval(() => {
-      y += speed;
-      img.style.top = y + "px";
-
-      if (y > window.innerHeight - 60) {
-        clearInterval(fall);
-        img.remove();
-        explodeAt(parseInt(img.style.left), window.innerHeight - 60);
-      }
-    }, 16);
-  }
-
-  function explodeAt(x, y) {
-    const count = 12 + Math.floor(Math.random()*5); // 12–16 icon
-    for (let i = 0; i < count; i++) {
-      const icon = document.createElement("div");
-      icon.className = "explosion";
-      icon.textContent = icons[Math.floor(Math.random()*icons.length)];
-      icon.style.left = x + "px";
-      icon.style.top = y + "px";
-
-      // phạm vi nổ rộng hơn (ngẫu nhiên)
-      const dx = (Math.random() - 0.5) * 400 + "px"; 
-      const dy = (Math.random() - 1) * 300 + "px";  
-
-      icon.style.setProperty("--dx", dx);
-      icon.style.setProperty("--dy", dy);
-
-      document.body.appendChild(icon);
-      setTimeout(() => icon.remove(), 1200);
-    }
-  }
-setInterval(dropAvatar, 5000);
-</script>
-{{-- end --}}
 
 @stop

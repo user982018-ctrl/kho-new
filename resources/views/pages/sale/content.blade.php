@@ -6,6 +6,7 @@
     $isLeadDigital = Helper::isLeadDigital(Auth::user()->role);     
     $flag = false;
     $flagAccess = false;
+    $isDigital = Auth::user()->is_digital;
     $listSaleJson = '';
 
     if ($checkAll || $isLeadSale && $listSale) {
@@ -447,7 +448,24 @@
                             @endif  
                         </td>
                         <td class="text-center" style= "max-width: 200px">
-                            <span><a target="_blank" href="{{$item->page_link}}">{{$item->page_name}}</a></span>
+                            <?php
+                            $pageName = $linkPage = "";
+                            if (Helper::isFPage($item->page_id)) {
+                                $linkPage = "https://pancake.vn/" . $item->page_id;
+                            } else {
+                                $linkPage = $item->page_link;
+                            }
+                            if ($checkAll || $isLeadSale || $isDigital || Helper::isHotlinePage($item->page_id)
+                                || !$item->group) {
+                                $pageName = $item->page_name;
+                            } else {
+                                $pageName = $item->group->label_name_src;
+                            } 
+                               
+                            ?>
+                            <span><a target="_blank" href="{{$linkPage}}">
+                                {{$pageName}}
+                            </a></span>
                             <br>
                             <span class="small-tip">(<span>{{date_format($item->created_at,"H:i d-m-Y ")}}</span>)</span>
                         </td>

@@ -4,13 +4,13 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
 <style>
-    .gift {
+    .gift-td {
         /* display: flex;
         padding: 8px !important;
         height: 35px;
         justify-content: space-around; */
     }
-    .gift input[type=checkbox], input[type=radio] {
+    .gift-td input[type=checkbox], input[type=radio] {
         opacity: 1; 
         width: auto;
         width: 18px;
@@ -68,7 +68,7 @@
 
     #final-total[readonly] {
       background-color: #eee;
-      color: #999;
+      color: #07b021;
     }
     .row {
         margin: unset;
@@ -292,8 +292,8 @@ if (isset($saleCare)) {
 
                                                 ?>
                                             </td>
-                                            <td class="text-center gift">
-                                                <input {{ (isset($item->gift) && $item->gift == 'true') ? 'checked' : '' }} class="row-check gift-checkbox" type="checkbox" />
+                                            <td class="text-center gift-td">
+                                                <input {{ (isset($item->gift) && $item->gift == 'true') ? 'checked' : '' }} class="row-check gift gift-checkbox" type="checkbox" />
                                             </td>
                                             <td class="no-wrap unit-price text-center" style="width: 80px">{{number_format($price)}}</td>
                                             <td style="text-align: left;" class="number">
@@ -925,15 +925,22 @@ function validatePhone() {
       let total = 0;
       let totalQty = 0;
       const rows = cartBody.querySelectorAll('tr');
-
+        
+      console.log('tesst')
       rows.forEach(row => {
+        const checkbox = row.querySelector(".gift");
         const price = parseInt(row.dataset.price);
         const qty = parseInt(row.querySelector('.qty').value) || 0;
         const lineTotal = price * qty;
 
-        row.querySelector('.line-total').textContent = formatVND(lineTotal);
-        total += lineTotal;
-        totalQty += qty;
+        if (checkbox.checked) {
+            console.log(checkbox);
+            row.querySelector('.line-total').textContent = "0";
+        } else {
+            row.querySelector('.line-total').textContent = formatVND(lineTotal);
+            total += lineTotal;
+            totalQty += qty;
+        }
       });
 
       subTotal.textContent = formatVND(total);
@@ -976,6 +983,11 @@ function validatePhone() {
         input.addEventListener('input', updateSubtotal);
       });
     }
+
+    function bindGiftInputs() {
+      document.querySelectorAll(".gift").forEach(cb => cb.addEventListener("change", updateSubtotal));
+    }
+    
 
     promoCheckbox.addEventListener('change', function () {
       const isChecked = this.checked;
@@ -1028,7 +1040,8 @@ function validatePhone() {
     updateSubtotal();
     bindDeleteButtons();
     bindQtyInputs();
-    bindSelectAttr()
+    bindSelectAttr();
+    bindGiftInputs();
 </script>
 <script>
     $('#product-select').on('select2:select', function (e) {
@@ -1092,8 +1105,8 @@ function validatePhone() {
            
             tr.innerHTML = `
             <td class="text-left ${rowClass}"><h5 class="name-product">${name}</h5>${strVariants}</td>
-            <td class="text-center gift"> 
-                <input class="row-check gift-checkbox" type="checkbox" />
+            <td class="text-center gift-td"> 
+                <input class="row-check gift-checkbox gift" type="checkbox" />
             </td>
             <td class="price unit-price text-center">${formatVND(priceInt)}</td>
             <td class="number"><input data-product_id="${productId}" type="number" class="qty" value="1" min="0"></td>
@@ -1102,6 +1115,7 @@ function validatePhone() {
             `;
             cartBody.appendChild(tr);
             bindQtyInputs();
+            bindGiftInputs();
             bindDeleteButtons();
             
             // if (values != '') {

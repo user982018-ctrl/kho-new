@@ -42,6 +42,10 @@
             {{-- <li class="nav-item"><a class="nav-link" href="{{route('view-spam')}}"><span class="nav-icon"></span>Spam</a></li> --}}
             <li class="nav-item"><a class="nav-link" href="{{route('view-sale-report-effect-TN')}}"><span class="nav-icon"></span>Báo cáo Sale TN</a></li>
             @endif
+
+            @if ($checkAll || $isLeadSale)
+            <li class="nav-item"><a class="nav-link" href="{{route('view-sale-report')}}"><span class="nav-icon"></span>Báo cáo Doanh số Sale</a></li>
+            @endif
         </ul>
     </li>
 
@@ -53,6 +57,7 @@
         <ul class="nav-group-items">
             <li class="nav-item"><a class="nav-link" href="{{route('marketing-TN')}}"><span class="nav-icon"></span>Marketing Dashboard</a></li>
             <li class="nav-item"><a class="nav-link" href="{{route('marketing-src')}}"><span class="nav-icon"></span>QL nguồn</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{route('view-mkt-report')}}"><span class="nav-icon"></span>Báo cáo Doanh số MKT</a></li>
         </ul>
     </li>
     @endif

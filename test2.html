@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Mask số tiền</title>
+</head>
+<body>
+  <p class="mask">1950000</p>
+  <p class="mask">750000</p>
+  <p class="mask">123456789</p>
+
+  <script>
+    function maskNumber(num) {
+      let str = num.toString();
+      // lấy 2 số đầu rồi che phần còn lại
+      return str.substring(0, 2) + "****";
+    }
+
+    // lấy tất cả element có class "mask"
+    document.querySelectorAll(".mask").forEach(el => {
+      el.textContent = maskNumber(el.textContent.trim());
+    });
+  </script>
+</body>
+</html>

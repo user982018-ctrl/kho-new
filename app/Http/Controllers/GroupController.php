@@ -177,6 +177,7 @@ class GroupController extends Controller
                 /** lưu thông tin nhóm */
                 $gr->name   = $req->name;
                 $gr->status = $req->status; 
+                $gr->label_name_src = $req->label_name_src; 
                 $gr->tele_bot_token = $req->teleBotToken; 
                 $gr->tele_hot_data = $req->teleHotData;         
                 $gr->tele_create_order = $req->teleCreateOrder;

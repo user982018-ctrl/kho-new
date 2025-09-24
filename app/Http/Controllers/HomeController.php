@@ -20,6 +20,85 @@ use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
+    public function viewReportMkt()
+    {
+        $isDigital = Auth::user()->is_digital;
+        $checkAll = isFullAccess(Auth::user()->role);
+        $isLeadDigital = Helper::isLeadDigital(Auth::user()->role);
+        $dataDigital = [];       
+
+        if ($isDigital) {
+            if (($checkAll || $isLeadDigital)) {
+                $dataDigital = Helper::getListDigital()->get();
+                $isLeadDigital = Helper::isLeadDigital(Auth::user()->role);
+                if ($isLeadDigital) {
+                    $groupDi = GroupUser::where('lead_team', Auth::user()->id)->first();
+                    if ($groupDi) {
+                        $dataDigital = $groupDi->users;
+                    }
+                }
+                
+            } else {
+                $dataDigital[] = User::find(Auth::user()->id);   
+            }
+        }
+
+        $category = Category::where('status', 1)->get();
+        $groups = Group::orderBy('id', 'desc')->get();
+        $groupDigital = GroupUser::orderBy('id', 'desc')->where('type', 'mkt')->get();
+
+        return view('pages.marketing.reportMkt')->with('category', $category)
+            ->with('groups', $groups)
+            ->with('groupDigital', $groupDigital)
+            ->with('dataDigital', $dataDigital);
+    }
+    
+    public function viewReportSale()
+    {
+        $isLeadSale = Helper::isLeadSale(Auth::user()->role);
+        $isCskhDt = Helper::isCskhDt(Auth::user());
+        $isDigital = Auth::user()->is_digital;
+        $checkAll = isFullAccess(Auth::user()->role);
+
+        $dataSale = $dataSaleCSKH = [];
+        $groupSale = GroupUser::where('status', 1)
+            ->where('type', 'sale')->get();
+        if (!$isCskhDt && !$isDigital) {
+            if (($checkAll || $isLeadSale)) {
+                foreach ($groupSale as $gr) {
+                    if ($gr->id != 5) {
+                        $listIdSale[] = $gr->users->pluck('id')->toArray();
+                    }
+                }
+                $listIdSale = array_merge(...$listIdSale);
+                foreach ($listIdSale as $sale) {
+                    $dataSale[] = User::find($sale);
+                }
+
+            } else {
+                $dataSale[] = User::find(Auth::user()->id);   
+            }
+        }        
+
+        if ($checkAll || ($isLeadSale && $isCskhDt)) {
+                // id cskh đạm tôm - team Trinh
+            $dataSaleCSKH = GroupUser::find(5)->users;
+        } else if ($isCskhDt) {
+            $dataSaleCSKH[] = User::find(Auth::user()->id);   
+        }
+
+        $category = Category::where('status', 1)->get();
+        $sales = User::where('status', 1)->where('is_sale', 1)->orWhere('is_cskh', 1)->get();
+        $groups = Group::orderBy('id', 'desc')->get();
+        $groupUser = GroupUser::orderBy('id', 'desc')->where('type', 'sale')->get();
+
+        return view('pages.sale.reportSale')->with('category', $category)->with('sales', $sales)
+            ->with('dataSale', $dataSale)
+            ->with('groups', $groups)
+            ->with('groupUser', $groupUser)
+            ->with('dataSaleCSKH', $dataSaleCSKH);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -93,6 +172,11 @@ class HomeController extends Controller
             ->with('dataSaleCSKH', $dataSaleCSKH)
             ->with('dataDigital', $dataDigital);
     }
+
+    // public function index()
+    // {
+    //     return view('pages.home');
+    // }
 
     public function getReportCskhDamTom($time, $checkAll = false, $isLeadSale = false)
     {

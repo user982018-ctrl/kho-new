@@ -111,6 +111,142 @@
   $isLeadDigital = Helper::isLeadDigital(Auth::user()->role);
 ?>
 
+{{-- begin --}}
+<style>
+  /* Honor Bar */
+  .honor-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    z-index: 9999;
+  }
+
+  .scroll-text {
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    animation: scrollLeft 36s linear infinite;
+    font-size: 18px;
+  }
+
+  .rank {
+    margin: 0 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .rankBadge {
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+    font-weight: bold;
+    padding: 8px 14px;
+    border-radius: 25px;
+    font-size: 16px;
+    animation: pulse 1.5s infinite;
+  }
+
+  .rankBadge.gold { background: gold; color: black; }
+  .rankBadge.silver { background: silver; color: black; }
+  .rankBadge.bronze { background: #cd7f32; color: white; }
+
+  .info {
+    line-height: 1.4;
+  }
+
+  .info span {
+    display: block;
+  }
+
+  @keyframes scrollLeft {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(-100%); }
+  }
+
+  @keyframes pulse {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  /* --- Confetti --- */
+  .confetti-piece {
+    position: fixed;
+    width: 8px;
+    height: 14px;
+    opacity: 0.9;
+    animation: fall linear forwards;
+    z-index: 9999;
+  }
+  @keyframes fall {
+    to {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  /* --- Tim bay lên --- */
+  .heart {
+    position: fixed;
+    bottom: -20px;
+    font-size: 24px;
+    animation: rise 5s linear forwards;
+    z-index: 5000;
+    pointer-events: none;
+  }
+  @keyframes rise {
+    to {
+      transform: translateY(-100vh);
+      opacity: 0;
+    }
+  }
+
+  /* --- Avatar rơi xuống --- */
+img.avatar {
+    position: fixed;
+    top: -60px;
+    width: 80px;
+    height: 80px;
+    /* border-radius: 50%; */
+    pointer-events: none;
+    z-index: 1000;
+}
+.explosion {
+    position: fixed;
+    font-size: 28px;
+    pointer-events: none;
+    z-index: 1001;
+    animation: explode 1.2s ease-out forwards;
+  }
+@keyframes explode {
+    to {
+      transform: translate(var(--dx), var(--dy)) scale(0.6);
+      opacity: 0;
+    }
+  }
+
+  /* --- Icon nổ ra --- */
+   /* Icon nổ ra */
+  .burst {
+    position: fixed;
+    font-size: 32px;
+    animation: burstUp 1.2s ease-out forwards;
+    z-index: 6001;
+  }
+  @keyframes burstUp {
+    0%   { transform: scale(0.5) translateY(0); opacity:1; }
+    60%  { transform: scale(1.3) translateY(-40px); opacity:1; }
+    100% { transform: scale(0.8) translateY(-80px); opacity:0; }
+  }
+</style>
+
 <div class="container-lg">
   <div class="row mb-1 filter-order">
     <div class="col-xs-12 col-sm-6 col-md-4 form-group daterange mb-1">
