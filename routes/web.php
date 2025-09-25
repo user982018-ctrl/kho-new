@@ -232,7 +232,7 @@ Route::get('/ghtk',  [TestController::class, 'ghtkToShipping'])->name('toShippin
 
 Route::get('/hiep',  [TestController::class, 'saveDataHiep'])->name('hiep');
 Route::get('/hieu',  [TestController::class, 'hieu'])->name('hieu');
-
+Route::get('/trang',  [TestController::class, 'trang'])->name('trang');
 
 Route::get('/xuat-file', [TestController::class, 'export']);
 Route::get('/tax', [TestController::class, 'exportTaxV2']);

@@ -388,7 +388,18 @@ class TestController extends Controller
     }
   }
 
-    public function hieu()
+  public function trang()
+  {
+    $pageOfHieu = SrcPage::where('user_digital', 115)->where('type', 'pc')->get();
+    $group = Group::find(10); //npk
+    foreach ($pageOfHieu as $page) {
+      if ($page->type == 'pc') {
+        $this->crawlerPancakePage($page, $group);
+      }
+    }
+  }
+
+  public function hieu()
   {
     $pageOfHieu = SrcPage::where('user_digital', 117)->where('type', 'pc')->get();
     $group = Group::find(10); //npk

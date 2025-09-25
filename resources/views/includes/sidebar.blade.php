@@ -43,7 +43,7 @@
             <li class="nav-item"><a class="nav-link" href="{{route('view-sale-report-effect-TN')}}"><span class="nav-icon"></span>Báo cáo Sale TN</a></li>
             @endif
 
-            @if ($checkAll || $isLeadSale)
+            @if ($checkAll || $isLeadSale || $isSale)
             <li class="nav-item"><a class="nav-link" href="{{route('view-sale-report')}}"><span class="nav-icon"></span>Báo cáo Doanh số Sale</a></li>
             @endif
         </ul>

@@ -112,6 +112,16 @@ class HomeController extends Controller
         $isDigital = Auth::user()->is_digital;
         $checkAll = isFullAccess(Auth::user()->role);
         $isLeadDigital = Helper::isLeadDigital(Auth::user()->role);
+
+        $isSale = Auth::user()->is_sale || Auth::user()->is_cskh;
+        $isDigital = Auth::user()->is_digital;
+        if ($isSale) {
+            return redirect()->route('view-sale-report');
+        }
+
+        if ($isDigital) {
+            return redirect()->route('view-mkt-report');
+        }
         /**set tmp */
         // $toMonth = '10/05/2025';
 
