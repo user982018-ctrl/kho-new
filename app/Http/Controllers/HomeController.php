@@ -88,7 +88,13 @@ class HomeController extends Controller
         }
 
         $category = Category::where('status', 1)->get();
-        $sales = User::where('status', 1)->where('is_sale', 1)->orWhere('is_cskh', 1)->get();
+        // $sales = User::where('status', 1)->where('is_sale', 1)->orWhere('is_cskh', 1)->get();
+        $sales = [];
+        if ($checkAll) {
+            $sales      = Helper::getListSale()->get();
+        } else if (!$checkAll && $isLeadSale) {
+            $sales = Helper::getListSaleOfLeader()->get();
+        }
         $groups = Group::orderBy('id', 'desc')->get();
         $groupUser = GroupUser::orderBy('id', 'desc')->where('type', 'sale')->get();
 

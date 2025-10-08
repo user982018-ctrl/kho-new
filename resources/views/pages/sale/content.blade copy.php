@@ -13,11 +13,10 @@
     if ($checkAll || $isLeadSale && $listSale) {
         // $listSaleJson = $listSale->get()->select('id', 'real_name')->toJson();
         $listSaleJson = $sales->select('id', 'real_name')->toJson();
-        if (($listSale->count() > 0 && $checkAll) || $isLeadSale ) {
+        if (($listSale->count() > 0 &&  $checkAll) || $isLeadSale) {
             $flag = true;
         }
     }
-
     $groupIdOfLeadSale = Helper::getGroupOfLeadSale(Auth::user());
     $listStatus = Helper::getListStatus();
     $styleStatus = [
@@ -477,29 +476,19 @@
                         
                         {{-- $checkAll: xoá data, đổi người
                         $isLeadSale: đổi người --}}
-                        <?php
-                        $isSaleOfLeadSale = false;
-                        if ($isLeadSale) {
-                            $isSaleOfLeadSale = Helper::isSaleOfLeadSale($item->assign_user, Auth::user()->id);
-                        }
-                        ?>
-
                         <td class="text-center result-TN-col">
                             <div class="text-right">
                                 @if ($checkAll)
                                 <a data-id="{{$item->id}}" title="Xóa data" class="btn-icon aoh removeBtn"><i class="fa fa-trash"></i></a>
                                 @endif
-                                @if ($checkAll || ($isLeadSale && $isSaleOfLeadSale))
+                                @if ($checkAll || $isLeadSale)
                                 <a data-id="{{$item->id}}" id="update-save-{{$item->id}}" class="update-assign-TN-sale btn-icon aoh">
                                     <i class="fa fa-save"></i>
                                 </a>
                                 @endif
                             </div>
                             <div id="assign-single-{{$item->id}}">{{($item->user) ? $item->user->real_name : ''}}</div>
-                            <?php 
-                            // dd(Helper::isSaleGroup($item->group, $item->user));
-                            ?>
-                            @if ($checkAll || ($isLeadSale && $isSaleOfLeadSale))
+                            @if ($checkAll || $isLeadSale)
                             <select id="assign-list-{{$item->id}}" class="select-assign hidden" name="assignTNSale_{{$item->id}}" data-sale_id="{{$item->id}}"
                                 data-group_id={{$item->group_id}}
                                 data-assign_id='<?php echo ($item->assign_user) ? $item->assign_user : -1;?>'>

@@ -615,7 +615,7 @@ class Helper
             }
 
             $listSaleId = array_merge(...$listSaleId);
-            return User::whereIn('id', $listSaleId);
+            return User::whereIn('id', $listSaleId)->where('status', 1);
         }
     }
 
@@ -1050,6 +1050,19 @@ class Helper
         }
 
         return $sale;
+    }
+
+    public static function isSaleOfLeadSale($saleAssignID, $leadSaleID)
+    {
+        $groupUser = GroupUser::where('lead_team', $leadSaleID)->first();
+        if (!empty($groupUser->users)) {
+            foreach ($groupUser->users as $user) {
+                if ($user->id == $saleAssignID) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static function isSaleGroup($group, $sale)

@@ -389,15 +389,15 @@
                                     <label class="form-label">Sale</label>
                                     <div class="form-check">
                                         <input checked  class="form-check-input" type="radio" name="is_sale" value="1"
-                                            id="flexRadioDefault1">
-                                        <label class="form-check-label" for="flexRadioDefault1">
+                                            id="isSaleTrueIP">
+                                        <label class="form-check-label" for="isSaleTrueIP">
                                             Có
                                         </label>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="is_sale" value="0"
-                                            id="flexRadioDefault2" >
-                                        <label  class="form-check-label" for="flexRadioDefault2">
+                                            id="isSaleFalseIP" >
+                                        <label  class="form-check-label" for="isSaleFalseIP">
                                             Không
                                         </label>
                                     </div>
