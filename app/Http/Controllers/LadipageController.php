@@ -91,9 +91,10 @@ class LadipageController  extends Controller
         return response()->json(['success' => 'oke'], 200);
     }
     
-        public function index(Request $r) 
+    public function index(Request $r) 
     {
         $all = json_encode($r->all());
+        // dd($all);
         // Log::info($all);
 
         $phone = ($r->phone) ? $r->phone : $r->phone_number;
@@ -125,12 +126,12 @@ class LadipageController  extends Controller
 
         // Lấy phần cuối cùng của path
         $slug = basename($path);
-        // dd($slug);
         foreach ($listSrcLadi as $src) {
             if ($slug && $slug == $src->id_page) {
                 $group = $src->group;
                 // Log::info(json_encode($src));
                 break;
+                
             }
         }
 
@@ -178,6 +179,7 @@ class LadipageController  extends Controller
                 $chatId = '-4286962864';
             }      
 
+            // dd($src->id_page);
             $assgin_user = $assignSale->id;
             $pageNameLadi = 'Ladi Page. Link: ' . $linkPage;
             $sale = new SaleController();
@@ -212,115 +214,5 @@ class LadipageController  extends Controller
 
        return response()->json(['success' => true, 'isSpam' => $flagSpam], 200);
         
-    }
-
-    public function index_21_0_2025(Request $r) 
-    {
-        $all = json_encode($r->all());
-Log::channel('ladi')->info($all);
-        Log::channel('ladi')->info($all);
-        $phone = ($r->phone) ? $r->phone : $r->phone_number;
-        $name = ($r->name) ?? 'Không để tên';
-
-        $item = $r->form_item3209;
-        $address = $r->address;
-        $linkPage = $r->link;
-        
-        $messages = $item;
-        if ( $address) {
-            $messages .= "\n" . $address;
-        }
-
-        // $all = json_encode($r->all());
-        $str = $all;
-        $arr = json_decode($str, true);
-        $linkPage = $arr['link'];
-
-        $assgin_user = 0;
-        $is_duplicate = 0;
-
-        /** lấy list token của nguồn ladi (token = tricho-bacillus-km ....) */
-        $listSrcLadi = SrcPage::where('type', 'ladi')
-            ->whereNotNull("id_page")->get();
-        
-        // Lấy phần path từ URL
-        $path = parse_url($linkPage, PHP_URL_PATH);
-
-        // Lấy phần cuối cùng của path
-        $slug = basename($path);
-        // dd($slug);
-        Log::channel('ladi')->info($slug);
-        foreach ($listSrcLadi as $src) {
-            if ($slug && $slug == $src->id_page) {
-            // if (str_contains($linkPage, $src->id_page)) {
-                $group = $src->group;
-                break;
-            }
-        }
-
-
-        if (!$src || !$group) {
-            return;
-        }
-        
-        $blockPhone = ['0963339609','0344999668', '0344411068', '0841111116', '0841265116', '0986987791', '0332783056', '0985767791',
-            '0918352409', '0841265117', '0348684430', '0777399687'];
-
-        if ($group && !in_array($phone, $blockPhone)) {
-            $chatId = $group->tele_hot_data;
-            $phone = Helper::getCustomPhoneNum($phone);
-            $hasOldOrder = $isOldOrder = 0;
-            $typeCSKH = 1;
-            $isOldDataLadi = Helper::isOldDataLadi($phone, $assgin_user, $group, $hasOldOrder, $is_duplicate, $isOldOrder);
-            
-            if (Helper::isSeeding($phone)) {
-                Log::channel('ladi')->info('Số điện thoại đã nằm trong danh sách spam/seeding ladi..' . $phone);
-                return;
-              }
-            if (!$isOldDataLadi || $assgin_user == 0) {
-                /** khách mới hoàn toàn */
-                $assignSale = Helper::getAssignSaleByGroup($group)->user;
-                
-            } else {
-                /** khách cũ */
-                $assignSale = Helper::assignSaleFB($hasOldOrder, $group, $phone, $typeCSKH, $isOldOrder);
-            }
-
-            if (!$assignSale) {
-                return;
-            }
-Log::channel('ladi')->info('pass gr');
-            $assgin_user = $assignSale->id;
-            $pageNameLadi = 'Ladi Page. Link: ' . $linkPage;
-            $sale = new SaleController();
-            $data = [
-                'page_link' => $linkPage,
-                'page_name' => $pageNameLadi,
-                'sex'       => 0,
-                'old_customer' => $isOldOrder,
-                'address'   => '',
-                'messages'  => $messages,
-                'name'      => $name,
-                'phone'     => $phone,
-                'page_id'   => $src->id_page,
-                'text'      => $pageNameLadi,
-                'chat_id'   => $chatId,
-                'm_id'      => 'mId',
-                'assgin' => $assgin_user,
-                'is_duplicate' => $is_duplicate,
-                'group_id'  => $group->id,
-                'has_old_order'  => $hasOldOrder,
-                'src_id' => $src->id,
-                'type_TN' => $typeCSKH, 
-            ];
-
-            // dd($data);
-Log::channel('ladi')->info(json_encode($data));
-            $request = new \Illuminate\Http\Request();
-            $request->replace($data);
-            $sale->save($request);
-        }
-        
-        return response()->json(['success' => 'oke'], 200);
     }
 }

@@ -156,7 +156,7 @@ function updateStatus(id) {
       if (!$.isEmptyObject(data.error)) {
         toastr.error("Cập nhật thất bại!");
       } else if ($.isEmptyObject(data.errors)) {
-          toastr.success("Cập nhật trạng thái thành công!");
+        toastr.success("Cập nhật trạng thái thành công!");
       } 
     }
     });

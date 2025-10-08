@@ -4,6 +4,9 @@
     <script src="{{asset('public/vendors/simplebar/js/simplebar.min.js')}}"></script>
     <script src="{{asset('public/js/customOld.js')}}"></script>
     <script src="{{asset('public/js/drag.js')}}"></script>
+    
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
       $(document).ready(function () {
         //drag scroll
@@ -15,6 +18,31 @@
         da.mouseleave(function () {
             disable_drag_croll();
         });
+
+        // Toastr configuration
+        toastr.options = {
+          "closeButton": true,
+          "progressBar": true,
+          "positionClass": "toast-top-right",
+          "timeOut": "5000"
+        };
+
+        // Display toastr notifications from session
+        @if(Session::has('success'))
+          toastr.success("{{ Session::get('success') }}");
+        @endif
+
+        @if(Session::has('error'))
+          toastr.error("{{ Session::get('error') }}");
+        @endif
+
+        @if(Session::has('warning'))
+          toastr.warning("{{ Session::get('warning') }}");
+        @endif
+
+        @if(Session::has('info'))
+          toastr.info("{{ Session::get('info') }}");
+        @endif
       });
     </script>
     <!-- Plugins and scripts required by this view-->

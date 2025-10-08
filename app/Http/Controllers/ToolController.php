@@ -22,45 +22,64 @@ class ToolController extends Controller
         return redirect()->route('home');
     }
 
-    public function getPhonePc($phoneSearch)
+    public function getPhonePc(Request $request, $phoneSearch)
     {
         $srcs = [];
+        $pageId = $request->page_id;
+        if ($pageId != "") {
+            $src = Helper::getPageSrcByPageId($pageId);
+            $srcs[] = $src;
+        } else {
+            $groups = Group::where('status', 1)->get();
+            foreach ($groups as $group) {
+                $srcs[] = $group->srcs->toArray();
+            }
+            $srcs = array_merge(...$srcs);
+        }
 
         $phoneSearch = Helper::getCustomPhoneNum($phoneSearch);
         if (Helper::isSeeding($phoneSearch)) {
             return response()->json(['error' => 'true', 'text' => 'Data này đang nằm danh sách đen.']);
         }
 
-        $groups = Group::where('status', 1)->get();
+        /*$groups = Group::where('status', 1)->get();
         foreach ($groups as $group) {
             $srcs[] = $group->srcs->toArray();
         }
 
-        $srcs = array_merge(...$srcs);
+        $srcs = array_merge(...$srcs);*/
+        
         foreach ($srcs as $src) {
-            if ($src['type'] != 'pc' || $src['id_page'] != '721796524354888') {
+            if ($src['type'] != 'pc') {
                 continue;
             } 
+            
+            // if ($src['id_page'] != '689087570959486') {
+            //     continue;
+            // }
 
+            $group = $src->group;
             $srcId = $src['id'];
             $pIdPan = $src['id_page'];
             $token  = $src['token'];
             $namePage = $src['name'];
             $linkPage = $src['link'];
             $endpoint = "https://pancake.vn/api/v1/pages/$pIdPan/conversations";
-            $today    = strtotime(date("Y/m/d H:i"));
-            $before   = strtotime ( '-4 hour' , strtotime( date("Y/m/d H:i"))) ;
-            $before   = date ( 'Y/m/d H:i' , $before );
-            $before   = strtotime($before);
+            // $today    = strtotime(date("Y/m/d H:i"));
+            // $before   = strtotime ( '-10 hour' , strtotime( date("Y/m/d H:i"))) ;
+            // $before   = date ( 'Y/m/d H:i' , $before );
+            // $before   = strtotime($before);
 
-            $endpoint = "$endpoint?DATE:$before+-+$today&access_token=$token";
+            // $endpoint = "$endpoint?DATE:$before+-+$today&access_token=$token";
+            $endpoint = "$endpoint/search?q=$phoneSearch&access_token=$token&cursor_mode=true";
             $response = Http::withHeaders(['access_token' => $token])->get($endpoint);
-            
+            // dd($endpoint);
             if ($response->status() == 200) {
                 $content  = json_decode($response->body());
-                if ($content->success) {
+                // dd($content);
+                if (isset($content->conversations) && count($content->conversations) > 0) {
                     $data     = $content->conversations;
-                    
+                    // dd($data);
                     foreach ($data as $item) {
                         // dd($item->recent_phone_numbers);
                         if (empty($item->recent_phone_numbers)) {

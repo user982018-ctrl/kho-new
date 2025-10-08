@@ -59,6 +59,7 @@
     <h2>Nạp dữ liệu từ pancake</h2>
     <p>*ở pancake đã tìm thấy hoặc lọc được sđt nhưng data chưa về.</p>
     <input type="text" id="phone" placeholder="Nhập số điện thoại...">
+    <input type="text" id="page_id" placeholder="Page ID">
     <button onclick="checkPhone()">Gửi</button>
     <div id="result" class="result"></div>
   </div>
@@ -67,6 +68,7 @@
     async function checkPhone() {
         $('#loader-overlay').css('display', 'flex');
         const phone = document.getElementById('phone').value.trim();
+        const page_id = document.getElementById('page_id').value.trim();
         const resultBox = document.getElementById('result');
 
         if (!phone || phone.length > 10) {
@@ -78,11 +80,15 @@
         }
 
         try {
-            // Gọi API (ví dụ API giả định)
-            
+           
             let url = "{{ url('api/nap-du-lieu-pc/') }}" + "/" + encodeURIComponent(phone);
+             // Gọi API (ví dụ API giả định)
+            if (page_id != "") {
+                url += "?page_id=" + page_id;
+            }
             let res = await fetch(url);
             let data = await res.json();
+            console.log(url);
 
             if (data.error) {
                 resultBox.style.display = 'block';

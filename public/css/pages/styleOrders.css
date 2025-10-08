@@ -1,6 +1,7 @@
 
 .create-bill {
-    padding: 20px;
+    width: 105px;
+    padding: 10px;
     font-size: 14px;
     font-weight: bold;
 }

@@ -125,9 +125,11 @@ class Helper
                 }
             });
         } else if ($isLeadSale) {
+            // dd($isLeadSale);
             $groups = Group::get();
             $saleIds = $listLeaderSale = [];
             $userID = $user->id;
+            // $groups->where('id', 11);
             foreach ($groups as $gr) {
                 $listLeaderJson = $gr->lead_sale;
                 if ($listLeaderJson && $listLeader = json_decode($listLeaderJson,true)) {
@@ -136,6 +138,7 @@ class Helper
                     }
                 }
             }
+
             $listLeaderSale = array_merge(...$listLeaderSale);
             $listLeaderSale = array_unique($listLeaderSale);
 

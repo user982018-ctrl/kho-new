@@ -1,6 +1,6 @@
 
   .daterangepicker .ranges li {
-    min-width: 100px;
+    min-width: 150px;
   }
   input#daterange:hover {
     background-color: #fff;
@@ -73,7 +73,7 @@
   }
   
   input, span.mini-text, .status-tracking, .select2-results__option, .daterangepicker .ranges li {
-    font-size: 14px;
+    font-size: 16px !important;
   }
   .ten-sp {
     padding: 5px;
@@ -234,3 +234,10 @@
   .btn-outline-primary:hover a{
     color: aliceblue;
   }
+
+
+  @media (min-width: 564px) {
+    .daterangepicker .ranges ul {
+        width: 100% !important;
+    }
+}

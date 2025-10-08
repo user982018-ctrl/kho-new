@@ -9,8 +9,11 @@
     $isDigital = Auth::user()->is_digital;
     $listSaleJson = '';
 
+    // dd($listSale);
     if ($checkAll || $isLeadSale && $listSale) {
-        $listSaleJson = $listSale->get()->select('id', 'real_name')->toJson();
+        // $listSaleJson = $listSale->get()->select('id', 'real_name')->toJson();
+        $listSaleJson = $sales->select('id', 'real_name')->toJson();
+
         if (($listSale->count() > 0 &&  $checkAll) || $isLeadSale) {
             $flag = true;
         }
@@ -23,6 +26,8 @@
         2 => 'orange',
         3 => 'green',
     ];
+
+    // dd($listSaleJson);
 ?>
 <style>
     .hidden {
@@ -459,7 +464,7 @@
                                 || !$item->group) {
                                 $pageName = $item->page_name;
                             } else {
-                                $pageName = $item->group->label_name_src;
+                                $pageName = '#' . $item->id . '_' . $item->group->label_name_src;
                             } 
                                
                             ?>

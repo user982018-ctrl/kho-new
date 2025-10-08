@@ -96,7 +96,7 @@ use App\Http\Controllers\OrdersController;
     <hr>
     <div class="row" style="justify-content:space-between;">
       
-      <div class="col-12 col-sm-6 col-md-4">
+      <div class="col-xs-12 col-sm-6 col-md-4" style="padding-bottom:10px;">
         @if (isset($list))
         <?php $activeBtnOrder = $activeBtnProduct = '';
           $hrefOrder = $hrefProduct = url()->full();

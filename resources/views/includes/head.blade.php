@@ -28,6 +28,8 @@
     <link rel="stylesheet" href="{{ asset('public/font-awesome/css/all.css')}}">
     <script src="{{asset('public/js/jquery.min.js')}}"></script>
     
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
    
     <style type="text/css">
     .avatar-img {

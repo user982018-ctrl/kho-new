@@ -102,7 +102,10 @@ Route::middleware('admin-auth')->group(function () {
     Route::get('/in-don-le-GHN/{order_code}',  [OrdersController::class, 'printOrderByOrderCodeGHN'])->name('print-order-code-GHN');
     Route::get('/in-tat-ca-van-don',  [OrdersController::class, 'printOrderByOrderAll'])->name('print-order-all');
     // Route::get('/in-tat-ca-van-don',  [OrdersController::class, 'printOrderByOrderAll'])->name('print-order-all');
-    
+    Route::get('/in-don-GHTK',  [OrdersController::class, 'printOrderGHTK'])->name('print-order-GHTK');
+    Route::get('/in-don-GHN',  [OrdersController::class, 'printOrderGHN'])->name('print-order-all');
+    Route::get('/cancel-order/{id}', [OrdersController::class, 'cancelOrder'])->name('cancel-order');
+
 
     Route::get('/cap-nhat-thanh-vien/{id}',[UserController::class,'viewUpdate'])->name('update-user');
     Route::get('/delete-user/{id}',  [UserController::class, 'delete'])->name('delete-user');
@@ -248,4 +251,10 @@ Route::get('/nga', [TestController::class, 'nga']);
 Route::get('/get', [SheetDbController::class, 'get']);
 Route::get('/ghn', [TestController::class, 'updatePrintStatusGHN2']);
 Route::get('/done', [TestController::class, 'done']);
+Route::get('/ghtk', [TestController::class, 'updatePrintStatusGHTK']);
+
+// Route::get('/pdf', [TestController::class, 'pdf']);
+Route::get('/fix', [TestController::class, 'thuySanCSKH']);
+
+
 

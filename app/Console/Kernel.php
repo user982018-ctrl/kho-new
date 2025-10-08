@@ -17,6 +17,7 @@ use App\Models\User;
 use DateTime;
 use PHPUnit\TextUI\Help;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
+use App\Http\Controllers\ShippingOrderController;
 
 class Kernel extends ConsoleKernel
 {
@@ -41,6 +42,11 @@ class Kernel extends ConsoleKernel
         $this->updatePrintStatusGHN();
         // $this->testCron();
       })->everyMinute();
+
+      $schedule->call(function() {
+        $this->updatePrintStatusGHTK();
+        // $this->testCron();
+      })->everyMinute();
     }
 
     public static function testCron()
@@ -56,6 +62,31 @@ class Kernel extends ConsoleKernel
       $this->load(__DIR__.'/Commands');
 
       require base_path('routes/console.php');
+  }
+
+  public function updatePrintStatusGHTK()
+  {
+    /** orders chưa giao vận và trạng thái usu là chưa in */
+    $dateBegin  = date('Y-m-d',strtotime("01/10/2025"));
+    $listOrder = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
+      ->where('orders.status', 1)->where('shipping_order.print_status', 0)->where('shipping_order.vendor_ship', 'GHTK')
+      ->whereDate('orders.created_at', '>=', $dateBegin)
+      // ->where('orders.id', 20062)
+      ->select('orders.*','shipping_order.order_code as order_code')
+      ->limit(100)
+      ->get();
+
+    foreach ($listOrder as $order) {
+      $code = $order->order_code;
+      $shippingCTL = new ShippingOrderController();
+      $data = $shippingCTL->detailDataGHTK($order->order_code);
+      // dd($code);
+      if (isset($data['printLog']) && count($data['printLog']) > 0) {
+        /**update print status GHN */
+        $orderCTL = new OrdersController();
+        $orderCTL->updatePrintStatus($code, 'GHTK');
+      }
+    }
   }
 
   public function updatePrintStatusGHN2()
@@ -774,7 +805,7 @@ class Kernel extends ConsoleKernel
 
       $endpoint = "https://pancake.vn/api/v1/pages/$pIdPan/conversations";
       $today    = strtotime(date("Y/m/d H:i"));
-      $before   = strtotime ( '-5 hour' , strtotime ( date("Y/m/d H:i") ) ) ;
+      $before   = strtotime ( '-10 hour' , strtotime ( date("Y/m/d H:i") ) ) ;
       $before   = date ( 'Y/m/d H:i' , $before );
       $before   = strtotime($before);
 

@@ -8,7 +8,6 @@ use App\Models\Orders;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AddressController;
-use App\Http\Controllers\ShippingOrderController;
 use App\Models\SaleCare;
 use App\Models\User;
 use App\Helpers\Helper;
@@ -22,77 +21,41 @@ use function PHPUnit\Framework\assertFalse;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\UsersExport;
 use Google\Service\AndroidPublisher\Order;
-
+use Spatie\PdfToText\Pdf;
 // setlocale(LC_TIME, 'vi_VN.utf8');
 // setlocale(LC_TIME, "vi_VN");
 class TestController extends Controller
 {
   use WithoutMiddleware;
 
-  public function thuySanCSKH()
+  public function pdf()
   {
-    $sale = new SaleController();
-    $req = new Request();
-    $req['daterange'] = ['01/08/2025', '01/10/2025'];
-    // $req['sale'] = '59';
-    // $req['typeDate'] = '2';
-    // $sales = ['171','70'];
+    $token = '1L0DDGVPfiJwazxVW0s7AQiUhRH1hb7E1s63rtd';
+    $endpoint = "https://services.giaohangtietkiem.vn/services/label/1181299215?original=landscape";
+    $response = Http::withHeaders([
+        'token' => $token,
+        'X-Client-Source' => 'S21178843',
+        'Content-Type' => 'application/json'
+    ])->get($endpoint);
 
-    $list = $sale->getListSalesByPermisson(Auth::user(), $req);
-    // $list->whereNull('id_order_new');
-    // $list->whereNull('id_order');
-    $list->where('group_id', '11');
-    $list->where('old_customer', 1);
-    // $list->paginate(10, ['*'], 'page', 1);
-    // dd($list->get());
-    $listSaleAssign = [193,194];
-    $assignIndex = 0; // Index để duyệt qua array $listSaleAssign
-    
-    foreach ($list->get() as $data) {
-      // Check nếu assign_user đã có trong $listSaleAssign thì bỏ qua
-      if (in_array($data->assign_user, $listSaleAssign)) {
-        continue; // Bỏ qua record này
-      }
-      
-      // Set assign_user tuần tự từ array $listSaleAssign
-      $data->assign_user = $listSaleAssign[$assignIndex];
-      
-      // Tăng index, nếu vượt quá array thì reset về 0 (vòng lặp)
-      $assignIndex++;
-      if ($assignIndex >= count($listSaleAssign)) {
-        $assignIndex = 0;
-      }
-      
-      // Save data nếu cần
-      $data->save();
-      
-      // dd($data);
-    }
-  }
+    $path = response($response->body(), 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="file.pdf"');
+    // dd($response->body());
+    // dd($text);
+    // $text = Pdf::getText($text);
+    $text = (new Pdf('/opt/homebrew/bin/pdftotext')) // chỉnh theo kết quả "which pdftotext"
+      ->setPdf(storage_path('/a.pdf'))
+      ->text();
+    $html = nl2br(e($text)); // convert xuống dòng thành <br>
 
-  public function updatePrintStatusGHTK()
-  {
-    /** orders chưa giao vận và trạng thái usu là chưa in */
-    $dateBegin  = date('Y-m-d',strtotime("01/10/2025"));
-    $listOrder = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
-      ->where('orders.status', 1)->where('shipping_order.print_status', 0)->where('shipping_order.vendor_ship', 'GHTK')
-      ->whereDate('orders.created_at', '>=', $dateBegin)
-      // ->where('orders.id', 20062)
-      ->select('orders.*','shipping_order.order_code as order_code')
-      ->limit(100)
-      ->get();
-
-    foreach ($listOrder as $order) {
-      $code = $order->order_code;
-      $shippingCTL = new ShippingOrderController();
-      $data = $shippingCTL->detailDataGHTK($order->order_code);
-      // dd($code);
-      if (isset($data['printLog']) && count($data['printLog']) > 0) {
-        /**update print status GHN */
-        $orderCTL = new OrdersController();
-        $orderCTL->updatePrintStatus($code, 'GHTK');
-      }
-    }
+    // dd('no');
+    // dd($html); 
+    // trả về view
+    return view('pages.orders.print.ghtk', ['html' => $html]);
+    return response($response->body(), 200)
+      ->header('Content-Type', 'application/pdf')
+      ->header('Content-Disposition', 'inline; filename="sample.pdf"');
   }
 
   public function updatePrintStatusGHN2()
@@ -966,7 +929,7 @@ class TestController extends Controller
 
       $pages = $group->srcs;
       foreach ($pages as $page) {
-        // if ($page->id_page != '689087570959486') {
+        //  if ($page->id_page != '729162340281810') {
         //   continue;
         // }
         if ($page->type == 'pc' ) {
@@ -995,7 +958,7 @@ class TestController extends Controller
 
       $endpoint = "https://pancake.vn/api/v1/pages/$pIdPan/conversations";
       $today    = strtotime(date("Y/m/d H:i"));
-      $before   = strtotime ( '-10 hour' , strtotime ( date("Y/m/d H:i") ) ) ;
+      $before   = strtotime ( '-4 hour' , strtotime ( date("Y/m/d H:i") ) ) ;
       $before   = date ( 'Y/m/d H:i' , $before );
       $before   = strtotime($before);
 
@@ -1270,22 +1233,22 @@ class TestController extends Controller
   {
     $sale = new SaleController();
     $req = new Request();
-    $req['daterange'] = ['02/09/2025', '01/10/2025'];
-    $req['sale'] = '59';
+    $req['daterange'] = ['01/08/2025', '31/08/2025'];
+    // $req['sale'] = '77';
     // $req['typeDate'] = '2';
-    // $sales = ['171','70'];
+    // $sales = ['50','74'];
 
     $list = $sale->getListSalesByPermisson(Auth::user(), $req);
     $list->whereNull('id_order_new');
     $list->whereNull('id_order');
     $list->where('old_customer', 0);
     // $list->where('is_duplicate', 0);
-    // $list->where('group_id', '11');
-    // $list->paginate(1000, ['*'], 'page', 4);
+    $list->where('group_id', '11');
+    // $list->paginate(300, ['*'], 'page', 3);
     // $list->whereIn('assign_user', $sales);
     // dd($list->get());
     $dataExport[] = [
-      'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách', 'CSKH'
+      'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách',
     ];
 
     $i = 1;
@@ -1304,12 +1267,11 @@ class TestController extends Controller
         date_format($data->created_at,"d-m-Y "),
         $data->phone,
         $data->full_name,
-        $data->user->real_name,
       ];
       $i++;
     }
 
-    return Excel::download(new UsersExport($dataExport), 'My-tháng-9.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'minhanh.xlsx');
   }
   
   public function wakeUp()

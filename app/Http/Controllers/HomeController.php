@@ -1147,6 +1147,13 @@ class HomeController extends Controller
             $dataFilter['group'] = $group;
         }
 
+        $show = $req->show;
+        if ($show) {
+            $dataFilter['show'] = $show;
+        } else {
+            $show = 20;
+        }
+
         $groupUser = $req->groupUser;
         $list = [];
         if ($groupUser && $groupUser != 999) {
@@ -1154,6 +1161,8 @@ class HomeController extends Controller
             
             if ($groupUs) {
                 $listSale = $groupUs->users;
+
+                $listSale = array_slice($listSale, 0, $show);
                 foreach ($listSale as $sale) {
                     $data = $this->getReportUserSaleV2($sale, $dataFilter);
                     if ($data) {
@@ -1176,7 +1185,6 @@ class HomeController extends Controller
             $checkAll = isFullAccess(Auth::user()->role);
             $isLeadSale = Helper::isLeadSale(Auth::user()->role);
             if ($checkAll || $isLeadSale) {
-
                 $listGroup = GroupUser::where('status', 1)->where('type', 'sale')->get();
                 $listSaleAllow = [];
                 foreach ($listGroup as $gr) {
@@ -1189,6 +1197,8 @@ class HomeController extends Controller
                 }
 
                 $listSaleAllow = array_merge(...$listSaleAllow);
+                // Chỉ lấy 20 phần tử đầu tiên
+                $listSaleAllow = array_slice($listSaleAllow, 0, $show);
                 foreach ($listSaleAllow as $sale) {
                     $data = $this->getReportUserSaleV2($sale, $dataFilter);
 
@@ -1196,7 +1206,6 @@ class HomeController extends Controller
                         $list[] = $data;
                     }
                 }
-
             } else if ((Auth::user()->is_CSKH || Auth::user()->is_sale) && !Helper::isCskhDt(Auth::user())) {
 
                 /**sale đang xem thông tin */
@@ -1309,7 +1318,7 @@ class HomeController extends Controller
         $group = $req->group;
         $groupUser = $req->groupUser;
         $groupDigital = $req->groupDigital;
-
+        $show = $req->show;
         if (isset($status) && $status != 999) {
             $dataFilter['status'] = $status;
         } if ($category && $category != 999) {
@@ -1327,6 +1336,10 @@ class HomeController extends Controller
             $dataFilter['group'] = $group;
         } if ($req->groupUser && $groupUser != 999) {
             $dataFilter['groupUser'] = $groupUser;
+        } if ($show && $show != 20) {
+            $dataFilter['show'] = $show;
+        } else {
+            $show = 20;
         }
         // if ($groupDigital && $groupDigital != 999) {
         //     $groupDi = GroupUser::find($groupDigital);
@@ -1370,9 +1383,20 @@ class HomeController extends Controller
                     $newTotal += ($data['new_customer']['total']);
                 }
             } if (isset($data['old_customer'])) {
-                $oldContact += $data['old_customer']['contact'];
-                $oldOrder += $data['old_customer']['count_order'];
-                if ($data['old_customer']['contact'] > 0 || $data['old_customer']['count_order'] > 0) {
+
+                if (isset($data['old_customer']['contact'])) { 
+                    $oldContact += $data['old_customer']['contact'];
+                } else {
+                    $oldContact += 0;
+                }
+               
+                if (isset($data['old_customer']['count_order'])) {
+                    $oldOrder += $data['old_customer']['count_order'];
+                } else {
+                    $oldOrder += 0;
+                }
+
+                if (isset($data['old_customer']['contact']) && isset($data['old_customer']['count_order']) && $data['old_customer']['contact'] > 0 && $data['old_customer']['count_order'] > 0) {
                     $oldRate += $data['old_customer']['rate'];
                     $oldProduct += $data['old_customer']['product'];
                     $oldTotal += ($data['old_customer']['total']);
@@ -1455,13 +1479,14 @@ class HomeController extends Controller
                 $srcId = $srcPageOfOrder->id;
                 $digitalSrc = $srcPageOfOrder->userDigital;
                 if (isset($listSrc[$digitalSrc->id])) {
-                    if ($sc->old_customer == 0 || $sc->old_customer == 2) {
+                    if (($sc->old_customer == 0 || $sc->old_customer == 2) && isset($listSrc[$digitalSrc->id]['new_customer'])) {
                         $listSrc[$digitalSrc->id]['new_customer']['total'] += $order->total;
                         $listSrc[$digitalSrc->id]['new_customer']['product'] += $order->qty;
                         
                         $listSrc[$digitalSrc->id]['new_customer']['count_order'] ++;
                         // $listSrc[$srcPageOfOrder->id]['old_customer']['total'] += $order->total;
-                    } else {
+                    } else if (isset($listSrc[$digitalSrc->id]['old_customer'])) {
+
                         $listSrc[$digitalSrc->id]['old_customer']['total'] += $order->total;
                         $listSrc[$digitalSrc->id]['old_customer']['product'] += $order->qty;
                         $listSrc[$digitalSrc->id]['old_customer']['count_order'] ++;
@@ -1500,7 +1525,12 @@ class HomeController extends Controller
             }
 
         }
-
+ 
+        if (isset($req['show']) && $req['show'] && $req['show'] != 20) {
+            $listSrc = array_slice($listSrc, 0, $req['show']);
+        } else {
+            $listSrc = array_slice($listSrc, 0, 20);
+        }
         foreach ($listSrc as $k => $data) {
             $orderNew = $totalNew = $contactNew = $avgNew = $rateNew = 0;
             $orderOld = $totalOld = $contactOld = $avgOld = $rateOld = 0;
@@ -1531,10 +1561,10 @@ class HomeController extends Controller
             $listSrc[$k]['new_customer']['rate'] = round($rateNew, 2);
 
             /** old */
-            $old = $data['old_customer'];
-            $orderOld = $old['count_order'];
-            $totalOld = $old['total'];
-            $contactOld = $old['contact'];
+            $old = (isset($data['old_customer'])) ? $data['old_customer'] : [];
+            $orderOld = $old['count_order'] ?? 0;
+            $totalOld = $old['total'] ?? 0;
+            $contactOld = $old['contact'] ?? 0;
             if ($orderOld > 0) {
                 $avgOld =  $totalOld / $orderOld;
             }

@@ -8,6 +8,9 @@
 <link rel="stylesheet" type="text/css" href="{{asset('public/css/daterangepicker.css')}}" /> 
 
 <style>
+  .form-group, .mb12 {
+    margin-bottom: 12px !important;
+  }
   .header.header-sticky {
     position: unset;
   }
@@ -186,6 +189,15 @@
       </select>
     </div>
     @endif
+
+    <div class="col-xs-12 col-sm-6 col-md-2 form-group mb-1">
+      <select name="show" id="show-filter" class="form-select">
+        <option value="20">Hiển thị 20 dòng</option>  
+        <option value="40">Hiển thị 40 dòng</option>
+        <option value="60">Hiển thị 60 dòng</option>
+        <option value="80">Hiển thị 80 dòng</option>
+      </select>
+    </div>
   </div>
   <div class="row mb-1">
     <div class="col-xs-12 col-sm-6 col-md-2 form-group mb-1">
@@ -528,6 +540,7 @@
       var group     = $("select[name='group']").val();
       var groupUser = $("select[name='groupUser']").val();
       var groupDigital = $("select[name='groupDigital']").val();
+      var show = $("select[name='show']").val();
       
       data = {
         _token : _token,
@@ -551,6 +564,8 @@
         data.group = group;
       } if (groupUser != '999' && groupUser != undefined) {
         data.groupUser = groupUser;
+      } if (show != '20' && show != undefined) { 
+        data.show = show;
       }
 
       ajaxGetListCskhDt(data);
@@ -641,6 +656,7 @@
   if (src) {
     $('#src-filter option[value=' + src +']').attr('selected','selected');
   }
+
 </script>
 <script>
   function number_format_js(number) {

@@ -26,9 +26,57 @@ use Illuminate\Validation\Rule;
 
 class OrdersController extends Controller
 {
+    const bearTokenGHTK = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzaG9wX2NvZGUiOiJTMjExNzg4NDMiLCJzaG9wX2lkIjoiNjIyODc1ZTktNjMyMC00ZTlhLTljY2MtNGJlYzBhNmU0ZDU5Iiwic2hvcF9vcmRlciI6MjExNzg4NDMsInN0YWZmX2lkIjoxNzY2Nzg0LCJzb3VyY2UiOiJwbGF0Zm9ybSIsInJvbGUiOiJhZG1pbiIsInNob3Bfc3RhdHVzX2lkIjoxLCJzaG9wX3R5cGUiOjEsImFjY2Vzc190b2tlbiI6IjRhMzk5YTUxLTUwMDgtNDM4NC05ZmI0LTM0NmNmOGI3NzQyZSIsImp3dCI6bnVsbCwiaW52YWxpZF9hdCI6eyJkYXRlIjoiMjAyNS0xMS0wMyAwOTo1NzoyMS43NjEzNjQiLCJ0aW1lem9uZV90eXBlIjozLCJ0aW1lem9uZSI6IkFzaWFcL0hvX0NoaV9NaW5oIn0sImxvZ2luX2FzX2lkIjpudWxsLCJsb2dpbl9hc19zZXNzaW9uX2lkIjpudWxsLCJsb2dpbl9hc190eXBlIjpudWxsLCJzZXNzaW9uIjpudWxsLCJtb3Nob3BfdXNlcl9pZCI6bnVsbCwic2hvcF90b2tlbiI6ImJkMTkzRTkyMGI3RTQwM2U4ZDVFNUI3Qzk5YkFiQWJjY2MyMjQzQ2YiLCJjcmVhdGVkX2F0Ijp7ImRhdGUiOiIyMDI1LTEwLTA0IDA5OjU3OjIxLjc1ODY2MSIsInRpbWV6b25lX3R5cGUiOjMsInRpbWV6b25lIjoiQXNpYVwvSG9fQ2hpX01pbmgifSwic2NvcGVzIjpbInNob3AudmlldyIsInNob3AudGVsLnZpZXcuIiwic2hvcC5lbWFpbC52aWV3Iiwic2hvcC5pZF9jYXJkLnZpZXciLCJzaG9wLnBpY2tfYWRkcmVzc2VzLnZpZXciLCJzaG9wLmJhbmtfYWNjb3VudC52aWV3Iiwic2hvcC51cGRhdGUiLCJzaG9wLmJhc2ljX2luZm8udXBkYXRlIiwic2hvcC5hdmF0YXIudXBkYXRlIiwic2hvcC5waWNrX2FkZHJlc3Nlcy51cGRhdGUiLCJzaG9wLnRlbC51cGRhdGUiLCJzaG9wLmVtYWlsLnVwZGF0ZSIsInNob3AuYmFua19hY2NvdW50LnVwZGF0ZSIsInNob3AuaWRfY2FyZC51cGRhdGUiLCJzaG9wLnN0YWZmLnZpZXciLCJzaG9wLnN0YWZmLmNyZWF0ZSIsInNob3Auc3RhZmYudXBkYXRlIiwic2hvcC5zdGFmZi5kZWxldGUiLCJzaG9wLmJyYW5jaC52aWV3Iiwic2hvcC5icmFuY2gubGlzdCIsInNob3AuYnJhbmNoLmNyZWF0ZSIsInNob3AuYnJhbmNoLnVwZGF0ZSIsInNob3AuYnJhbmNoLmRlbGV0ZSIsImNvbmZpZy5hcGlfdG9rZW4udmlldyIsImNvbmZpZy5hcGlfdG9rZW4ucmVxdWVzdCIsImNvbmZpZy5zeXN0ZW0udXBkYXRlIiwiY29uZmlnLmF1ZGl0X3RpbWUudmlldyIsImNvbmZpZy5hdWRpdF90aW1lLnVwZGF0ZSIsImNvbmZpZy5zaG9wLnVwZGF0ZSIsInNob3AuZGFzaGJvYXJkIiwic2hvcC5yZXBvcnQubW9uZXlfZmxvdyIsInNob3AucmVwb3J0LmRhaWx5LnZpZXciLCJzaG9wLnJlcG9ydC5kYWlseS5kb3dubG9hZCIsIm9yZGVyLmxpc3QiLCJvcmRlci5leHBvcnRfZmlsZSIsIm9yZGVyLmRldGFpbCIsIm9yZGVyLmNyZWF0ZSIsIm9yZGVyLmV4Y2hhbmdlLmNyZWF0ZSIsIm9yZGVyLmRlbGl2ZXJ5LmNyZWF0ZSIsIm9yZGVyLnVwZGF0ZSIsIm9yZGVyLnJlcXVlc3RfY2FuY2VsIiwib3JkZXIucHJpbnQiLCJvcmRlci5kcmFmdC52aWV3Iiwib3JkZXIuZHJhZnQubGlzdCIsIm9yZGVyLmRyYWZ0LmNyZWF0ZSIsIm9yZGVyLmRyYWZ0LnVwZGF0ZSIsIm9yZGVyLmRyYWZ0LmRlbGV0ZSIsInRpY2tldC5hZGQiLCJ0aWNrZXQub3JkZXIucGlja190ZWwudXBkYXRlIiwidGlja2V0Lm9yZGVyLnBpY2tfYWRkcmVzcy51cGRhdGUiLCJ0aWNrZXQub3JkZXIuY3VzdG9tZXJfdGVsLnVwZGF0ZSIsInRpY2tldC5vcmRlci5jdXN0b21lcl9hZGRyZXNzLnVwZGF0ZSIsInRpY2tldC5vcmRlci5waWNrX21vbmV5LnVwZGF0ZSIsImN1c3RvbWVyLnZpZXciLCJjdXN0b21lci51cGRhdGUiLCJjdXN0b21lci5uYW1lLnZpZXciLCJjdXN0b21lci50ZWwudmlldyIsInByb2R1Y3Quc2VhcmNoIiwicHJvZHVjdC52aWV3IiwicHJvZHVjdC5jcmVhdGUiLCJwcm9kdWN0LnVwZGF0ZSIsInByb2R1Y3QuZGVsZXRlIiwid2FsbGV0LmxvZ2luIiwicmV2aWV3LnZpZXciLCJyZXZpZXcudXBkYXRlIiwiY2hhdC5jdXN0b21lciIsInNob3AuZGlzYWJsZSJdLCJkZXZpY2UiOiJjYmM5ZTI1N2RjNzE3OTQ2YjQ0ZTk2MGMwMjIxZWRmOCIsImlzX3dlYWtfcHciOmZhbHNlLCJ1bmlxX2RldmljZSI6ImRkNTA0NzY5ODg0ZDhkNDdlZmM0NjZmNmEyYzY0NTdhIiwibG9naW5fbWV0aG9kIjpudWxsfQ.Ifhg1xWyTu22fsWHwMCIbU3gH9mId_ZzhPPJ17bxh0U';
+    
+    public function cancelOrder($id)
+    {
+        $order = Orders::find($id);
+        if ($order) {
+            $order->status = 0;
+            $order->save();
+            return redirect()->route('update-order', $id)->with('success', 'Đơn hàng đã hủy thành công!');
+        } else {
+            return redirect()->route('update-order', $id)->with('error', 'Đơn hàng không tồn tại!');
+        }
+    }
+    /**
+     * GHTK input list ordercode => output pdf tổng
+     * GHN for cho từng ordercode
+     */
+    public function printOrderGHTK(Request $r)
+    {
+        $listCodeStr = "";
+        $listJson = $r->q;
+        if ($listJson != '') {
+            $listOrderCode = json_decode($listJson);
+            $listCodeStr = implode(",", $listOrderCode);
+        }
+
+        return $this->getDataPrintOrderGHTK($listCodeStr);
+    }
+
+    public function printOrderGHN(Request $r)
+    {
+        $result = $listPackage = [];
+        $listJson = $r->q;
+        $list = json_decode($listJson, true);
+        if ($list && count($list) > 0) {
+            foreach ($list as $orderCode ) {
+                $result[] = $this->getDataPrintOrder($orderCode, 'GHN');
+            }
+        }
+
+        if (!$result) {
+            return redirect()->route('home');
+        }
+        
+        return view('pages.orders.print.ghn')->with('list', $result);
+
+    }
+
     public function printOrderByOrderAll(Request $r)
     {
-        $result = [];
+        $result = $listPackage = [];
         $listJson = $r->q;
         $list = json_decode($listJson, true);
         if ($list && count($list) > 0) {
@@ -40,21 +88,28 @@ class OrdersController extends Controller
                     if (!$orderCode) {
                         continue;
                     }
+
                     $vendorShip = $shippingOrder->vendor_ship;
                     if (!$vendorShip) {
                         continue;
                     }
 
-                    $result[] = $this->getDataPrintOrder($orderCode, $vendorShip);
+                    if (isset($listPackage[$vendorShip])) {
+                        $listPackage[$vendorShip][] = $orderCode;
+                    } else {
+                        $listPackage[$vendorShip][] = $orderCode;
+                    }
+
+                    // $result[] = $this->getDataPrintOrder($orderCode, $vendorShip);
                 }
             }
         }
 
-        if (!$result) {
+        if (!$listPackage) {
             return redirect()->route('home');
         }
 
-        return view('pages.orders.shipping.print')->with('list', $result);
+        return view('pages.orders.print.index')->with('list', $listPackage);
     }
 
     public function getDataPrintOrderGHN($orderCode) 
@@ -78,10 +133,57 @@ class OrdersController extends Controller
         return $data;
     }
 
+    public function getDataPrintOrderGHTK($orderCode) 
+    {
+        $params = ['pkg_orders' => $orderCode];
+        $html = $cipher = "";
+        $bearToken = self::bearTokenGHTK;
+        $link = "https://web.giaohangtietkiem.vn/api/v2/package/pkg-print-encrypt?pkg_orders=$orderCode";
+        $response = Http::withToken($bearToken)->withBody(json_encode($params))->post($link);
+
+        if ($response->status() == 200) {
+            $dataApiJson = $response->body();
+            $dataAPi = json_decode($dataApiJson, true);
+            if (isset($dataAPi["data"]) && isset($dataAPi["data"]["cipher"])) {
+                $cipher = $dataAPi["data"]["cipher"];
+            }
+
+            $linkPrintGHTK = "https://print-service.ghtk.vn/print-order?shop_code=S21178843&cipher=";
+            
+            $response = Http::get($linkPrintGHTK . $cipher);
+            $html = $response->body();
+            // $data = file_get_contents($linkPrintGHTK . $cipher);
+            // Sửa đường dẫn CSS
+            $html = str_replace(
+                'href="/_next/static/css/',
+                'href="https://print-service.ghtk.vn/_next/static/css/',
+                $html
+            );
+
+            // $html = str_replace(
+            //     '7eaca4802729a7c9',
+            //     '_',
+            //     $html
+            // );
+ 
+            /** cập nhật trạng thái đã in vào đơn hàng của usu */
+            $array = explode(",", $orderCode);
+            foreach ($array as $val) {
+                $this->updatePrintStatus($val, 'GHTK');
+            }
+            
+            return view('pages.orders.print.ghtk')->with('html', $html);
+        } else {
+            return view('pages.noti.ghtk');
+        }
+    }
+
     public function getDataPrintOrder($orderCode, $vendor)
     {
         if ($vendor == 'GHN') {
             return $this->getDataPrintOrderGHN($orderCode);
+        } else if ($vendor == 'GHTK') {
+            return $this->getDataPrintOrderGHTK($orderCode);
         }
 
         return false;
@@ -89,7 +191,44 @@ class OrdersController extends Controller
 
     public function printOrderByOrderCodeGHTK($orderCode)
     {
+        $params = ['pkg_orders' => $orderCode];
+        $html = $cipher = "";
+        $bearToken = self::bearTokenGHTK;
+        $link = "https://web.giaohangtietkiem.vn/api/v2/package/pkg-print-encrypt?pkg_orders=$orderCode";
+        $response = Http::withToken($bearToken)->withBody(json_encode($params))->post($link);
 
+        if ($response->status() == 200) {
+            $dataApiJson = $response->body();
+            $dataAPi = json_decode($dataApiJson, true);
+            if (isset($dataAPi["data"]) && isset($dataAPi["data"]["cipher"])) {
+                $cipher = $dataAPi["data"]["cipher"];
+            }
+
+            $linkPrintGHTK = "https://print-service.ghtk.vn/print-order?shop_code=S21178843&cipher=";
+            
+            $response = Http::get($linkPrintGHTK . $cipher);
+            $html = $response->body();
+            // $data = file_get_contents($linkPrintGHTK . $cipher);
+            // Sửa đường dẫn CSS
+            $html = str_replace(
+                'href="/_next/static/css/',
+                'href="https://print-service.ghtk.vn/_next/static/css/',
+                $html
+            );
+
+            // $html = str_replace(
+            //     '7eaca4802729a7c9',
+            //     '_',
+            //     $html
+            // );
+ 
+            /** cập nhật trạng thái đã in vào đơn hàng của usu */
+            $this->updatePrintStatus($orderCode, 'GHTK');
+
+            return view('pages.orders.print.ghtk')->with('html', $html);
+        } else {
+            return view('pages.noti.ghtk');
+        }
     }
 
     public function printOrderByOrderCodeGHN($orderCode)
@@ -129,7 +268,6 @@ class OrdersController extends Controller
             $shippingOrder->save();
         }
     }
-
 
     public function reportProductByOrder(Request $req)
     {
@@ -660,7 +798,6 @@ class OrdersController extends Controller
      */
     public function save(Request $request)
     {
-                    // dd($request->all());
         $validator      = Validator::make($request->all(), [
             'name'      => 'required',
             'price'     => 'required',
@@ -722,7 +859,7 @@ class OrdersController extends Controller
 
             } else {
                 $order = new Orders();
-                $text = 'đã tạo đơn hàng.';
+                $text = 'Tạo đơn hàng thành công.';
 
                 $listProductName = $tProduct = '';
 

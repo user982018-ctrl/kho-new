@@ -86,9 +86,28 @@
     .error_msg {color: red;}
     .btn-submit {
         position: relative;
-        margin: 10px 0;
+        /* margin: 10px 0; */
     }
 
+    .row.btn-submit {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background: #fff;
+        padding: 15px;
+        border-top: 1px solid #ddd;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    }
+    
+    /* Tạo khoảng trống ở cuối body để tránh bị che khuất nội dung */
+    body {
+        padding-bottom: 80px;
+    }
+    .create-bill {
+        margin-left: 10px;
+    }
 </style>
 <?php 
 use App\Helpers\HelperProduct;
@@ -98,9 +117,21 @@ $checkAll = isFullAccess(Auth::user()->role);
 $flagAccess = false;
 $listAttribute = Helper::getListAttributes();
 $name = $phone = '';
+$flagAccessDis = 'disabled';
+$isDisableTotal = false;
+$id = 0;
 if (isset($saleCare)) {
     $name = $saleCare->full_name;
     $phone = $saleCare->phone;
+}
+if ($checkAll) {
+    $flagAccessDis = '';
+}
+if (isset($order) && ($order->status != 1 || $order->shippingOrder) && !$checkAll) {
+    $isDisableTotal = true;
+}
+if (isset($order)) {
+    $id = $order->id;
 }
 ?>
 
@@ -187,24 +218,23 @@ if (isset($saleCare)) {
                                 </select>
                             </div>
                             @endif
+                            <div class="col-12">
+                                <label for="note" class="form-label">Ghi chú:</label>
+                                <textarea name="note" class="form-control" id="note" rows="4">{{$order->note}} </textarea>
+                            </div>
+                            <div class="col-6 pb-1">
+                                <label class="form-label" for="status">Trạng thái:</label>
+                                <select {{$flagAccessDis}} name="status" id="status" class="form-control">
+                                    @foreach ($listStatus as $k => $val)
+                                    <option <?= (int)$order->status == (int)$k ? 'selected' : ''; ?> value="{{$k}}">{{$val}}</option>
+                                    @endforeach
+                                </select>
+                                <p class="error_msg" id="sex"></p>
+                            </div>
                         </div>
-                        <div class="col-12">
-                            <label for="note" class="form-label">Ghi chú:</label>
-                            <textarea name="note" class="form-control" id="note" rows="4">{{$order->note}} </textarea>
-                        </div>
-                        <div class="col-6 pb-1">
-                            <label class="form-label" for="status">Trạng thái:</label>
-                            <select name="status" id="status" class="form-control">
-                            
-                                @foreach ($listStatus as $k => $val)
-                                <option <?= (int)$order->status == (int)$k ? 'selected' : ''; ?> value="{{$k}}">{{$val}}</option>
-                                @endforeach
-
-                            </select>
-                            <p class="error_msg" id="sex"></p>
-                        </div>
+                        
                     </div>
-                    <div class="col-sm-12 col-lg-8">
+                    <div class="col-sm-12 col-lg-8" style="padding: 20px 0;">
                         <div class="row product-list-order">
                             <div class="col-xs-12 col-sm-6 col-md-4 form-group" style="text-align:center; margin-bottom: 20px;">
                                 <select id="product-select" style="display: none;">
@@ -318,11 +348,13 @@ if (isset($saleCare)) {
                                         </tr>
                                         <tr>
                                             <td class="no-wrap text-right promo-option" colspan="4">Tổng đơn: <br>
-                                                <input {{ $order->is_price_sale ? 'checked' : '' }} name="priceSale" type="checkbox" id="promo-checkbox" class="form-check-input">
+                                                <input {{$isDisableTotal ? 'disabled' : ''}}
+                                                 {{ $order->is_price_sale ? 'checked' : '' }} name="priceSale" type="checkbox" id="promo-checkbox" class="form-check-input">
                                                 <label class="form-label" for="promo-checkbox">Khuyến mãi</label>
                                             </td>
                                             <td class="no-wrap text-center" colspan="1">
                                                 <input {{ $order->is_price_sale ? '' : 'readonly' }}
+                                                {{$isDisableTotal ? 'disabled' : ''}}
                                                 data-product-price="{{$totalTmp}}" type="text"  name="price" id="final-total" class="text-center editable price_class" value="{{number_format($order->total)}}">
                                             </td>
                                             <td></td>
@@ -336,7 +368,13 @@ if (isset($saleCare)) {
             </div>
             <div class="row btn-submit">
                 <div class="col-sm-12 col-lg-12" style="text-align: end;">
-                    <button id="submit" class="mb-1 btn btn-primary create-bill">Lưu</button>
+                    <button  id="cancel" type="button" {{($isDisableTotal || $checkAll) ? 'hidden' : ''}} class=" mb-1 btn btn-danger text-white create-bill" 
+                    onclick="confirmCancel()"><svg class="icon me-2">
+                        <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-x-circle')}}"></use>
+                      </svg>Huỷ Đơn</button>
+                    <button id="submit" class="mb-1 btn btn-primary create-bill"><svg class="icon me-2">
+                        <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-save')}}"></use>
+                      </svg>Lưu</button>
                 </div>
             </div>
             @else
@@ -419,7 +457,7 @@ if (isset($saleCare)) {
 
                                 <div class="col-lg-6 col-sm-12 pb-1">
                                     <label class="form-label" for="statusFor">Trạng thái:</label>
-                                    <select name="status" id="statusFor"
+                                    <select {{$flagAccessDis}} name="status" id="statusFor"
                                         class="form-control">
 
                                         @foreach ($listStatus as $k => $val)
@@ -431,7 +469,7 @@ if (isset($saleCare)) {
                                 </div>
                             </div>
                         </div>
-                        <div class="col-sm-12 col-lg-8">
+                        <div class="col-sm-12 col-lg-8" style="padding: 20px 0;">
                             <div class="row product-list-order">
                                 <div class="col-xs-12 col-sm-6 col-md-4 form-group" style="text-align:center; margin-bottom: 20px;">
                                     <select id="product-select" style="display: none;">
@@ -490,7 +528,10 @@ if (isset($saleCare)) {
             </div>
             <div class="row btn-submit">
                 <div class="col-sm-12 col-lg-12" style="text-align: end;">
-                    <button onclick="validatePhone()" id="submit" class="mb-1 btn btn-primary create-bill">Chốt đơn</button>
+                    <button style="background: #1818b5;" onclick="validatePhone()" id="submit" class="mb-1 btn btn-primary create-bill">
+                        <svg class="icon me-2">
+                            <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-heart')}}"></use>
+                          </svg>Chốt đơn</button>
                 </div>
             </div>
             @endif
@@ -693,13 +734,18 @@ $(document).ready(function() {
             success: function(data) {
                 console.log(data);
                 if ($.isEmptyObject(data.errors)) {
-                    window.parent.postMessage('mess-success', '*');
+                    console.log(data);
+                    // window.parent.postMessage('mess-success', '*');
+                    toastr.success(data.success);
                     $(".error_msg").html('');
                     // $("#notifi-box").show();
                     // $("#notifi-box").html(data.success);
                     // $("#notifi-box").slideDown('fast').delay(5000).hide(0);
                     if (data.link) {
-                        window.location.href = data.link;
+                        // Delay 1 giây để hiển thị toastr trước khi redirect
+                        setTimeout(function() {
+                            window.location.href = data.link;
+                        }, 1000);
                     }
                 } else {
                     $('.error_msg').text('');
@@ -1192,6 +1238,13 @@ function validatePhone() {
             cartData.push(data);
         });
         return cartData;
+    }
+
+    // Function xác nhận hủy đơn hàng
+    function confirmCancel() {
+        if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
+            window.location.href = '{{route("cancel-order", $id)}}';
+        }
     }
 </script>
 @stop
