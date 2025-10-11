@@ -50,7 +50,6 @@ class SaleController extends Controller
         $list = $dataSort = [];
         $homeCtl = new HomeController();
         foreach ($listSale->get() as $sale) {
-            // dd($sale);
             $data = $homeCtl->getReportUserSaleV2($sale, $dataFilter, true);
             if ($data) {
                 $list[] = $data;
@@ -174,7 +173,6 @@ class SaleController extends Controller
 
         if ($validator->passes()) {
             $files = $files_remove = [];
-            // dd($req->file('filenames'));
             if ($req->id) {
                 $his = SaleCareHistoryTN::find($req->id); 
                 if (isset($input['images_uploaded'])) {
@@ -348,7 +346,6 @@ class SaleController extends Controller
         $src_id = $r->src_id;
         $srcPage = SrcPage::find($src_id);
         $shareDataSale = $r->shareDataSale;
-        // dd($name);
         if ($srcPage) {
             $linkPage = $srcPage->link;
             $namePage = $srcPage->name;
@@ -385,8 +382,7 @@ class SaleController extends Controller
         } else {
             $assgin_user = $r->assgin;
         }
-        
-        // dd($assgin_user);
+
         $chatId = $group->tele_hot_data;
         if ($isOldOrder == 1) {
             $chatId = $group->tele_cskh_data;
@@ -543,9 +539,7 @@ class SaleController extends Controller
             // Session::put('address', $req->address);
             // Session::put('messages', $req->messages);
             foreach ($validator->errors()->messages() as $mes) {
-                // notify()->error($mes[], 'Thất bại!');
                 notify()->error($mes[0], 'Thất bại!');
-                // dd($mes[0]);
                 return false;
             }
         }
@@ -623,6 +617,8 @@ class SaleController extends Controller
     public function searchInSaleCare($dataFilter)
     {
         $seach = $dataFilter['search'];
+        $listIDLink = [];
+
         $listIdHasHis = SaleCareHistoryTN::join('sale_care', 'sale_care.id', '=', 'sale_care_history_tn.sale_id')
             ->orwhere('sale_care_history_tn.note', 'like', '%' .  $seach. '%')
             ->pluck('sale_care.id')->toArray();
@@ -634,6 +630,16 @@ class SaleController extends Controller
         $list = SaleCare::orWhereIn('id', $listIdHasHis)
             ->orWhereIn('id', $listId)
             ->orderBy('created_at', 'desc');
+        
+        foreach ($list->get() as $sc) {
+            if ($sc->order && !empty($sc->order->sale_care)) {
+                $listIDLink[] = $sc->order->sale_care;
+            }
+        }
+
+        if ($listIDLink) {
+            $list->orWhereIn('id', $listIDLink);
+        }
 
         $ids = $newList = [];
         foreach ($list->get() as $sc) {
@@ -684,7 +690,6 @@ class SaleController extends Controller
                         } else if ($src->type == 'ladi') {
                             $query->orWhere('page_link', $src->link);
                         } else if ($src->type == 'hotline') {
-                            // dd('aa');
                             $query->orWhere('page_id', $src->id_page);
                         } else if  ($src->type == 'old') {
                             $query->orWhere('page_name', $src->name);
@@ -727,6 +732,7 @@ class SaleController extends Controller
         $isLeadSale = Helper::isLeadSale(Auth::user()->role);
         $checkAllAdmin = isFullAccess(Auth::user()->role);
         $isLeadDigital = Helper::isLeadDigital(Auth::user()->role);
+
         if (isset($dataFilter['search'])) {
             return $this->searchInSaleCare($dataFilter);
         } 
@@ -822,7 +828,6 @@ class SaleController extends Controller
                             } else if ($src->type == 'ladi') {
                                 $query->orWhere('page_link', $src->link);
                             } else if ($src->type == 'hotline') {
-                                // dd('aa');
                                 $query->orWhere('page_id', $src->id_page);
                             } else if  ($src->type == 'old') {
                                 $query->orWhere('page_name', $src->name);
@@ -1197,7 +1202,6 @@ class SaleController extends Controller
                 ->with('saleCare', $saleCare)->with('listCall', $listCall);
         } catch (\Exception $e) {
             // return $e;
-            // dd($e);
             return redirect()->route('home');
         }
     }
@@ -1242,7 +1246,6 @@ class SaleController extends Controller
     {
         if (isFullAccess(Auth::user()->role)) {
             $saleCare = SaleCare::find($id);
-            // dd($saleCare);
             if($saleCare){
                 if ($saleCare->listHistory->count() > 0) {
                     foreach ($saleCare->listHistory as $item) {

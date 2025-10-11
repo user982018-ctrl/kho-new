@@ -3,6 +3,7 @@
 
 <?php
 $checkAll = isFullAccess(Auth::user()->role);
+$isKho = Helper::isKho(Auth::user());
 $name = '';
 if (Helper::isOldCustomerV2($order->phone)) {
     $name .= '❤️ ';
@@ -74,12 +75,12 @@ if (Helper::isOldCustomerV2($order->phone)) {
                        <?php $isMappingShip = Helper::isMappingShippByOrderId($order->id);?>
                            
                         @if (!$isMappingShip)
-                            @if ($checkAll)
+                            @if ($checkAll || $isKho)
                             <a href="{{URL::to('tao-van-don/'. $order->id)}}" class="btn btn-warning ms-1">+ Tạo vận đơn</a>
                             @endif
                         @else
                             <a style="color: #fff;" href="{{URL::to('chi-tiet-van-don/'. $isMappingShip->id)}}" class="btn btn-warning ms-1">{{$isMappingShip->vendor_ship}} - {{$isMappingShip->order_code}}</a>
-                            @if ($checkAll)
+                            @if ($checkAll || $isKho)
                             <a style="color: #fff;" onclick="return confirm('Bạn muốn gỡ mã vận đơn ra khỏi đơn hàng?')" href="{{URL::to('go-van-don/'. $isMappingShip->id)}}" class="btn btn-warning ms-1">Gỡ <svg class="" width="17" height="17" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; vertical-align: middle;"><path d="M987.695 141.258c-22.002-2.006-41.46 14.204-43.465 36.204l-5.3 58.138c-89.919-141.212-246.006-235.6-426.865-235.6-194.562 0-366.024 111.044-451.14 277.709-10.048 19.673-2.244 43.768 17.43 53.815 19.678 10.047 43.768 2.247 53.816-17.431 72.034-141.048 216.689-234.094 379.894-234.094 148.754 0 282.999 77.462 359.905 198.817l-57.033-40.735c-17.979-12.839-42.961-8.673-55.798 9.302-12.839 17.977-8.675 42.959 9.302 55.798l172.95 123.523c25.348 18.070 60.31 1.528 63.082-28.92l19.421-213.059c2.007-22.002-14.201-41.462-36.2-43.468z" fill="rgb(253, 216, 0)" style="fill: rgb(255, 255, 255);"></path><path d="M945.709 692.476c-19.677-10.047-43.77-2.245-53.817 17.428-72.034 141.050-216.689 234.095-379.894 234.095-148.754 0-282.999-77.462-359.906-198.816l57.034 40.735c17.979 12.837 42.959 8.673 55.798-9.302 12.839-17.979 8.675-42.959-9.302-55.798l-172.949-123.523c-25.038-17.887-60.282-1.841-63.082 28.918l-19.422 213.060c-2.006 22.002 14.204 41.462 36.202 43.467 22.028 2.003 41.462-14.223 43.466-36.205l5.3-58.137c89.916 141.214 246.003 235.602 426.862 235.602 194.562 0 366.025-111.045 451.14-277.709 10.050-19.673 2.245-43.768-17.428-53.815z" fill="rgb(253, 216, 0)" style="fill: rgb(255, 255, 255);"></path></svg></a>
                             @endif
 

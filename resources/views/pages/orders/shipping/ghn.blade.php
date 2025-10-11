@@ -251,10 +251,11 @@ if (Helper::isOldCustomerV2($order->phone)) {
                       </tr>
                   </thead>
                   <tbody class="list-product-choose" id="list-product-GHN">
-                  <?php $sumQty = $totalTmp = $i = $totalWeight = 0; 
-                  foreach (json_decode($order->id_product) as $item) {
+                  <?php $sumQty = $totalTmp = $i = $j = $totalWeight = 0; 
+                  // dd(json_decode($order->id_product));
+                  foreach (json_decode($order->id_product) as $key => $item) {
                     $product = getProductByIdHelper($item->id);
-                    
+
                     if ($product) {
                       $nameProduct = $product->name;
                       $weight = $product->weight;
@@ -267,25 +268,25 @@ if (Helper::isOldCustomerV2($order->phone)) {
                       $sumQty += $item->val;
                       $totalTmp += $item->val * $product->price;
                       $totalWeight += $product->weight;
+                      // dd($item->val > 1 && $weight > 10000);
                     ?>
 
                     @if ($item->val > 1 && $weight > 10000)
+                    
                     <input name="bigCart[]" type="hidden" value="{{$item->val}} {{$nameProduct}}">
-                      <?php 
-                      for ($i; $i < $item->val; $i++) {
-                      ?>
+                      <?php for ($j = $i; $j < $item->val + $i; $j++) { ?>
                       <tr class="number dh-san-pham product-{{$product->id}}">
-                                            
-                        <td colspan="7" class="text-left"> <input required name="products[{{$i}}][name]" type="text" style="width: 100%;" value="{{$nameProduct}}"><br>
+                        <td colspan="7" class="text-left"> <input required name="products[{{$j}}][name]" type="text" style="width: 100%;" value="{{$nameProduct}}"><br>
                         </td>
-                        <td colspan="1"><input required class="text-right price_class" required name="products[{{$i}}][weight]" type="text" style="width: 100%;" value="<?php if ($weight > 0) { echo number_format($weight);} ?>"></td>
+                        <td colspan="1"><input required class="text-right price_class" required name="products[{{$j}}][weight]" type="text" style="width: 100%;" value="<?php if ($weight > 0) { echo number_format($weight);} ?>"></td>
                         <td class="no-wrap" style="width: 45px">
-                          <input class="text-center" required name="products[{{$i}}][qty]" type="text" style="width: 100%;" value="1">
+                          <input class="text-center" required name="products[{{$j}}][qty]" type="text" style="width: 100%;" value="1">
                         </td>
                         <td><button class="deleteProductGHN"><i class="fa fa-trash"></i></button></td>
                       </tr>
                       <?php
                       }
+                      $i = $j;
                       ?>
                     @else
                     <tr class="number dh-san-pham product-{{$product->id}}">
@@ -298,10 +299,12 @@ if (Helper::isOldCustomerV2($order->phone)) {
                       </td>
                       <td><button class="deleteProductGHN"><i class="fa fa-trash"></i></button></td>
                     </tr>
+
+                    <?php $i++; ?>
                     @endif
 
                     <?php   
-                    $i++;   
+                      
                     }    
                   }
                   ?>

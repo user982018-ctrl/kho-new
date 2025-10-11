@@ -6,6 +6,110 @@ use App\Http\Controllers\OrdersController;
     
 <link href="{{ asset('public/css/pages/order.css') }}" rel="stylesheet">
 
+<style>
+    /* Custom Modal Styles */
+    .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        animation: fadeIn 0.3s ease;
+    }
+
+    .custom-modal-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 0;
+        border: none;
+        border-radius: 12px;
+        width: 400px;
+        max-width: 90%;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        animation: slideIn 0.3s ease;
+        overflow: hidden;
+    }
+
+    .custom-modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        text-align: center;
+        position: relative;
+    }
+
+    .custom-modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .custom-modal-body {
+        padding: 30px 20px;
+        text-align: center;
+        color: #333;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    .custom-modal-actions {
+        padding: 0 20px 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .custom-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 100px;
+    }
+
+    .custom-btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .custom-btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-1px);
+    }
+
+    .custom-btn-danger {
+        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        color: white;
+    }
+
+    .custom-btn-danger:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
+    }
+
+    .modal-icon {
+        font-size: 48px;
+        display: block;
+        margin-bottom: 15px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+        from { transform: translateY(-50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+</style>
+
 <?php 
   $active       = '';
   $routeName    = \Route::getCurrentRoute()->uri;
@@ -13,6 +117,7 @@ use App\Http\Controllers\OrdersController;
 
   $checkAll = isFullAccess(Auth::user()->role);
   $isLeadSale = Helper::isLeadSale(Auth::user()->role);
+  $isKho = Helper::isKho(Auth::user());
 
   $listStatus = Helper::getListStatus();
   $styleStatus = [
@@ -41,7 +146,7 @@ use App\Http\Controllers\OrdersController;
         <input id="daterange" class="btn btn-outline-secondary" type="text" name="daterange" />
       </div>
 
-      @if ($checkAll || $isLeadSale)
+      @if ($checkAll || $isLeadSale || $isKho)
       <div class="col-xs-12 col-sm-6 col-md-2 form-group">
         <select name="sale" id="sale-filter" class="form-select" style="padding-right: 12px !important;padding-left: 12px !important;">
           <option value="999">--Chọn Sale--</option>
@@ -221,8 +326,7 @@ use App\Http\Controllers\OrdersController;
           <span>{{$listStatus[$item->status]}}</span> </td>
        
         <td>
-          <a title="sửa" href="{{route('update-order',['id'=>$item->id])}}" role="button">
-            
+          <a class="update-order-modal" title="sửa" data-href="{{route('update-order',['id'=>$item->id])}}" data-toggle="modal" data-target="#updateOrderModal" role="button" style="cursor: pointer;">
               <svg class="icon me-2">
                 <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-color-border')}}"></use>
               </svg>
@@ -231,8 +335,8 @@ use App\Http\Controllers\OrdersController;
         
         <td >
           <?php $checkAll = isFullAccess(Auth::user()->role);?>
-          @if ($checkAll || $isLeadSale)
-          <a title="xoá" onclick="return confirm('Bạn muốn xóa đơn này?')" href="{{route('delete-order',['id'=>$item->id])}}" role="button">
+          @if ($checkAll || $isKho)
+          <a title="xoá" class="delete-order-btn" data-href="{{route('delete-order',['id'=>$item->id])}}" data-order-id="#{{$item->id}}" role="button" style="cursor: pointer;">
             <svg class="icon me-2">
               <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-backspace')}}"></use>
             </svg>
@@ -249,6 +353,23 @@ use App\Http\Controllers\OrdersController;
 </div>
 
   
+<!-- Custom Confirm Modal -->
+<div id="customModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <div class="custom-modal-header">
+            <h3 id="modalTitle">Xác nhận</h3>
+        </div>
+        <div class="custom-modal-body">
+            <span id="modalIcon" class="modal-icon">⚠️</span>
+            <p id="modalMessage">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+        </div>
+        <div class="custom-modal-actions">
+            <button id="modalCancel" class="custom-btn custom-btn-secondary">Không</button>
+            <button id="modalConfirm" class="custom-btn custom-btn-danger">Có</button>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="notify-modal" tabindex="-1">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -271,6 +392,20 @@ use App\Http\Controllers\OrdersController;
             </button>
         </div>
         <iframe frameborder="0"></iframe>
+        </div>
+    </div>
+</div>
+
+<div id="updateOrderModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Cập nhật đơn hàng</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <iframe frameborder="0" style="width: 100%; height: 80vh;"></iframe>
         </div>
     </div>
 </div>
@@ -522,6 +657,18 @@ document.getElementById('orderForm').addEventListener('submit', function (e) {
         $("#createOrder iframe").attr("src", href);
     }
   });
+
+  $('.update-order-modal').on('click', function () {
+    var href = $(this).data('href');
+    if (href) {
+        $("#updateOrderModal iframe").attr("src", href);
+    }
+  });
+
+  // Reset iframe khi đóng modal
+  $('#updateOrderModal').on('hidden.bs.modal', function () {
+    $("#updateOrderModal iframe").attr("src", "");
+  });
 </script>
 
 <script>
@@ -582,5 +729,61 @@ document.getElementById('orderForm').addEventListener('submit', function (e) {
 
       var link = "{{URL::to('/in-tat-ca-van-don')}}";
       window.open(link + '?q=' + list_id);
+    });
+
+    // Custom Modal Functions
+    function showCustomModal(title, message, icon, confirmCallback, confirmText = 'Có', confirmClass = 'custom-btn-danger') {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalMessage').textContent = message;
+        document.getElementById('modalIcon').textContent = icon;
+        document.getElementById('modalConfirm').textContent = confirmText;
+        document.getElementById('modalConfirm').className = `custom-btn ${confirmClass}`;
+        
+        const modal = document.getElementById('customModal');
+        modal.style.display = 'block';
+        
+        // Store callback
+        modal._confirmCallback = confirmCallback;
+    }
+
+    function hideCustomModal() {
+        document.getElementById('customModal').style.display = 'none';
+    }
+
+    // Modal event listeners
+    document.getElementById('modalCancel').addEventListener('click', hideCustomModal);
+    document.getElementById('modalConfirm').addEventListener('click', function() {
+        const modal = document.getElementById('customModal');
+        if (modal._confirmCallback) {
+            modal._confirmCallback();
+        }
+        hideCustomModal();
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('customModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideCustomModal();
+        }
+    });
+
+    // Delete order button handler
+    document.querySelectorAll('.delete-order-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const href = this.getAttribute('data-href');
+            const orderId = this.getAttribute('data-order-id');
+            
+            showCustomModal(
+                'Xác nhận xóa đơn hàng',
+                `Bạn có chắc chắn muốn xóa đơn hàng ${orderId}?`,
+                '🗑️',
+                function() {
+                    window.location.href = href;
+                },
+                'Có, xóa!',
+                'custom-btn-danger'
+            );
+        });
     });
 </script>

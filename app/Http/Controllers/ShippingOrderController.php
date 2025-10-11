@@ -300,6 +300,7 @@ class ShippingOrderController extends Controller
                     notify()->error('Đã xảy ra lỗi!', 'Thất bại!');
                 }
             } catch (Exception $e) {
+                // dd($e);
                 notify()->error('Đã xảy ra lỗi!', 'Thất bại!');
             }
             

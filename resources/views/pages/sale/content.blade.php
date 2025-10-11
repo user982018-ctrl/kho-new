@@ -566,7 +566,7 @@
                                 <span class="fb" style="cursor: pointer; width: calc(100% - 60px);">Hotline</span> 
                                 @endif
                             @else
-                                <span class="fb <?= ($item->has_TN) ?: 'ttgh7' ?>" style="cursor: pointer; width: calc(100% - 60px);"> {{$item->typeTN->name}}</span>
+                                <span class="fb <?= ($item->has_TN) ?: 'ttgh7' ?>" style="cursor: pointer; width: calc(100% - 60px);"> {{$item->typeTN ? $item->typeTN->name : ''}}</span>
                             @endif
 
                             <span class="box-TN">

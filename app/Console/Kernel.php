@@ -29,9 +29,14 @@ class Kernel extends ConsoleKernel
       $schedule->call(function() {
         $this->crawlerGroup();
         $this->ghtkToShipping();
+        // $this->updateStatusOrderGHTK();
+        // $this->updateStatusOrderGhnV2();
+      })->cron('*/5 * * * *');
+
+      $schedule->call(function() {
         $this->updateStatusOrderGHTK();
         $this->updateStatusOrderGhnV2();
-      })->cron('*/5 * * * *');
+      })->cron('*/15 * * * *');
 
       $schedule->call(function() {
         $this->wakeUp();

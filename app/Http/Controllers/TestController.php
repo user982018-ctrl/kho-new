@@ -966,7 +966,7 @@ class TestController extends Controller
 
       $pages = $group->srcs;
       foreach ($pages as $page) {
-        // if ($page->id_page != '689087570959486') {
+        // if ($page->id_page != '378087158713964') {
         //   continue;
         // }
         if ($page->type == 'pc' ) {
@@ -1270,8 +1270,8 @@ class TestController extends Controller
   {
     $sale = new SaleController();
     $req = new Request();
-    $req['daterange'] = ['02/09/2025', '01/10/2025'];
-    $req['sale'] = '59';
+    $req['daterange'] = ['11/09/2025', '30/09/2025'];
+    // $req['sale'] = '59';
     // $req['typeDate'] = '2';
     // $sales = ['171','70'];
 
@@ -1280,12 +1280,12 @@ class TestController extends Controller
     $list->whereNull('id_order');
     $list->where('old_customer', 0);
     // $list->where('is_duplicate', 0);
-    // $list->where('group_id', '11');
+    $list->where('group_id', '11');
     // $list->paginate(1000, ['*'], 'page', 4);
     // $list->whereIn('assign_user', $sales);
     // dd($list->get());
     $dataExport[] = [
-      'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách', 'CSKH'
+      'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách', 'Sale'
     ];
 
     $i = 1;
@@ -1309,7 +1309,7 @@ class TestController extends Controller
       $i++;
     }
 
-    return Excel::download(new UsersExport($dataExport), 'My-tháng-9.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'thuy-san-tháng-9.xlsx');
   }
   
   public function wakeUp()
@@ -1329,7 +1329,8 @@ class TestController extends Controller
     foreach ($listSc as $sc) {
 
       $call = $sc->call;
-      if (!isset($call->time) && $call->time !== '') {
+      // dd($call);
+      if (!isset($call->time) || empty($call->time) || (!empty($call->time) && $call->time == '')) {
         // Not empty (0 is allowed here)
         continue;
       }
@@ -1462,9 +1463,9 @@ WHERE  NOT EXISTS
     
   }
 
-  public function exportTaxV2()
+  public function exportTaxV3()
   {
-    $time = ['31/08/2025', '06/09/2025'];
+    $time = ['18/09/2025', '30/09/2025'];
     $timeBegin  = str_replace('/', '-', $time[0]);
     $timeEnd    = str_replace('/', '-', $time[1]);
     $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
@@ -1472,7 +1473,262 @@ WHERE  NOT EXISTS
 
     $list = Orders::select('orders.*')->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->join('sale_care', 'sale_care.id', '=', 'orders.sale_care')
-      ->where('shipping_order.vendor_ship', 'GHTK')
+      ->where('shipping_order.vendor_ship', 'GHN')
+      ->where('orders.status', 3)
+      ->whereDate('orders.created_at', '>=', $dateBegin)
+      ->whereDate('orders.created_at', '<=', $dateEnd)
+      ->where('sale_care.group_id', '!=', 11)
+      // ->where('orders.id', '20272')
+      ->orderBy('orders.id', 'desc');
+
+    $dataExport[] = [
+      'Số thứ tự hóa đơn (*)' , 'Ngày hóa đơn', 'Tên đơn vị mua hàng', 'Mã khách hàng', 'Địa chỉ', 'Mã số thuế', 'Người mua hàng',
+      'Email', 'Hình thức thanh toán', 'Loại tiền', 'Tỷ giá', 'Tỷ lệ CK(%)', 'Tiền CK', 'Tên hàng hóa/dịch vụ (*)', 'Mã hàng', 
+      'ĐVT', 'Số lượng', 'Đơn giá', 'Tỷ lệ CK (%)', 'Tiền CK', '% thuế GTGT', 'Tiền thuế GTGT', 'Thành tiền(*)'
+    ];
+
+    $i = 1;
+    $orderTmp = [];
+    $list = $list->get();
+    // dd($list);
+    foreach ($list as $data) {
+      $orderTmp[] = $data->id;
+      $listProduct = json_decode($data->id_product,true);
+       //trường hợp đơn chỉ cho 1 sp
+      $percenTax = '5';
+      $totalGTGT = '';
+      if (count($listProduct) == 1) {
+        $item = $listProduct[0];
+        $product = getProductByIdHelper($item['id']);
+        
+        $total = $data->total;
+        if (!$product) {
+          continue;
+        }
+
+        $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+
+        $k = $i;
+
+        //check trường hợp sản phẩm cb và sản phẩm lẻ
+        // có dấu + là sản phẩm combo
+        $totalBefore = $product->price;
+        $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+        if ($product->id == 83) {
+          $variantId = $item['variantId'];
+          $variant = HelperProduct::getProductVariantById($variantId);
+          $weight = $variant->weight;
+
+          if (!isset($variant->weight)) {
+            $productName .= ' 5kg';
+          } else {
+            $weight = $variant->weight;
+            if ($weight == 5000.0) {
+              $productName .= ' 5kg';
+            } else {
+              $productName .= ' 20kg';
+            }
+          }
+        }
+        if (strpos($productName, "Hàng tặng") !== false ) {
+          $percenTax = '../..';
+          $totalGTGT = '../..';
+        } else {
+          $qty = $data->qty;
+          $totalOrder = $total;
+          $totalBefore = $totalOrder / 1.05;
+          $taxbeforeProduct = $totalBefore / $qty;
+          $productPrice = $taxbeforeProduct;
+          $totalGTGT = $totalOrder - $totalBefore;
+          $total = $totalOrder;
+        }
+        // 38095
+        // 76190
+
+        // }
+        if ($k != $i) {
+          $tmp = [
+            '',//Số thứ tự hóa đơn (*)
+            '', // Ngày hóa đơn
+            '',// Tên đơn vị mua hàng
+            '',// Mã khách hàng
+            '',// Địa chỉ
+            '',// Mã số thuế
+            '',// Người mua hàng
+            '',// Email
+            '',// Hình thức thanh toán
+            '',// Loại tiền
+            '',// Tỷ giá
+            '',// Tỷ lệ CK(%)
+            '',// Tiền CK
+            $productName,// Tên hàng hóa/dịch vụ (*)
+            '',// Mã hàng
+            $product->unit,// 'ĐVT',
+            $item->val,//  'Số lượng', 
+            $productPrice,//  'Đơn giá', 
+            '',//  'Tỷ lệ CK (%)', 
+            '',//  'Tiền CK',
+            $percenTax, // '% thuế GTGT',
+            $totalGTGT, //  'Tiền thuế GTGT',
+            $total,   // 'Thành tiền(*)'
+          ];  
+        } else {
+          $tmp = [
+          $i,//Số thứ tự hóa đơn (*)
+          date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
+          '',// Tên đơn vị mua hàng
+            '',// Mã khách hàng
+            $data->address,// Địa chỉ
+            '',// Mã số thuế
+            $data->name,// Người mua hàng
+            '',// Email
+            '',// Hình thức thanh toán
+            '',// Loại tiền
+            '',// Tỷ giá
+            '',// Tỷ lệ CK(%)
+            '',// Tiền CK
+            $productName,// Tên hàng hóa/dịch vụ (*)
+            '',// Mã hàng
+            $product->unit,// 'ĐVT',
+            $item['val'],//  'Số lượng', 
+            $productPrice,//  'Đơn giá', 
+            '',//  'Tỷ lệ CK (%)', 
+            '',//  'Tiền CK',
+            $percenTax, // '% thuế GTGT',
+            $totalGTGT, //  'Tiền thuế GTGT',
+            $total,   // 'Thành tiền(*)'
+          ];
+        }
+        
+        $dataExport[] = $tmp;
+        $k++;
+
+        /** số tổng sản phẩm lớn hơn 1 */
+      } else {
+        $j = $i;
+        $percenTax = '5';
+        $totalGTGT = '';
+
+        $qtyNPK = 0;
+        $isNPK = false;
+        $voucher = 'false';
+
+        // Sắp xếp listProduct: gift = false trước, gift = true sau
+        usort($listProduct, function($a, $b) {
+            $giftA = isset($a['gift']) && $a['gift'] === 'true' ? 1 : 0;
+            $giftB = isset($b['gift']) && $b['gift'] === 'true' ? 1 : 0;
+            return $giftA - $giftB;
+        });
+        
+        foreach ($listProduct as $key => $item) {
+          $product = getProductByIdHelper($item['id']);
+          $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+          $total = 0;
+          $tmp = [];
+          
+          if (!$product) {
+            continue;
+          }
+          $voucher = isset($item['gift']) ? $item['gift'] : 'false';
+          $totalOrder = $data->total;
+          $productPrice = $product->price;
+          $qty = $item['val'];
+          $percenTax = '5';
+          $totalGTGT = '';
+          
+          $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+          if ($product->id == 83) {
+            $variantId = $item['variantId'];
+            $variant = HelperProduct::getProductVariantById($variantId);
+            
+            if (!isset($variant->weight)) {
+              $productName .= ' 5kg';
+            } else {
+              $weight = $variant->weight;
+            if ($weight == 5000.0) {
+              $productName .= ' 5kg';
+            } else {
+              $productName .= ' 20kg';
+            }
+            }
+          }
+
+          if ($voucher == "true") {
+            $productName .= " (Hàng tặng không thu tiền)";
+            $percenTax = '../..';
+            $totalGTGT = '../..';
+            $productPrice = '';
+            $total = '';
+          } else {
+            $taxBeforeTotal = $totalOrder / 1.05;
+            $taxbeforeProduct = $taxBeforeTotal / $qty;
+            $productPrice = $taxbeforeProduct;
+            $totalGTGT = $totalOrder - $taxBeforeTotal;
+            $total = $totalOrder;
+          }
+         
+
+          // if (strpos($productName, "Áo mưa (hàng tặng không bán)") !== false ) {
+          //   $percenTax = '../..';
+          //   $total = '0';
+          //   $totalGTGT = '../..';
+          //   $productPrice = '';
+          // }
+        
+          if ($j != $i) {
+            $tmp = ['', '', '', '', '', '',  '', '','', '', '','', '', $productName,'', $product->unit, $qty, $productPrice,
+              '', '', $percenTax, $totalGTGT, $total,   
+            ];  
+          } else {
+              // dd($product->name);
+            $tmp = [
+            $i,//Số thứ tự hóa đơn (*)
+            date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
+            '',// Tên đơn vị mua hàng
+              '',// Mã khách hàng
+              $data->address,// Địa chỉ
+              '',// Mã số thuế
+              $data->name,// Người mua hàng
+              '',// Email
+              '',// Hình thức thanh toán
+              '',// Loại tiền
+              '',// Tỷ giá
+              '',// Tỷ lệ CK(%)
+              '',// Tiền CK
+              $productName,// Tên hàng hóa/dịch vụ (*)
+              '',// Mã hàng
+              $product->unit,// 'ĐVT',
+              $qty,//  'Số lượng', 
+              $productPrice,//  'Đơn giá', 
+              '',//  'Tỷ lệ CK (%)', 
+              '',//  'Tiền CK',
+              $percenTax, // '% thuế GTGT',
+              $totalGTGT, //  'Tiền thuế GTGT',
+              $total,   // 'Thành tiền(*)'
+            ];
+          }
+          
+          $dataExport[] = $tmp;
+          $j++;
+        }
+      }
+      $i++;
+    }
+    // dd($dataExport);
+    return Excel::download(new UsersExport($dataExport), 'GHN-(18-09)-(30-09)-2025.xlsx');
+  }
+
+  public function exportTaxV2()
+  {
+    $time = ['07/09/2025', '17/09/2025'];
+    $timeBegin  = str_replace('/', '-', $time[0]);
+    $timeEnd    = str_replace('/', '-', $time[1]);
+    $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
+    $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
+
+    $list = Orders::select('orders.*')->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
+      ->join('sale_care', 'sale_care.id', '=', 'orders.sale_care')
+      ->where('shipping_order.vendor_ship', 'GHN')
       ->where('orders.status', 3)
       ->whereDate('orders.created_at', '>=', $dateBegin)
       ->whereDate('orders.created_at', '<=', $dateEnd)
@@ -1489,7 +1745,7 @@ WHERE  NOT EXISTS
     $i = 1;
     $orderTmp = [];
     $list = $list->get();
-
+    // dd($list);
     foreach ($list as $data) {
       $orderTmp[] = $data->id;
       $listProduct = json_decode($data->id_product,true);
@@ -1964,7 +2220,7 @@ WHERE  NOT EXISTS
     }
     
     // dd($dataExport);
-    return Excel::download(new UsersExport($dataExport), 'GHTK-NEW-(31-08)-(06-09)-2025.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'GHN-(07-09)-(17-09)-2025.xlsx');
   }
 
     public function parseProductString($str) 

@@ -1,4 +1,5 @@
 
+
 <ul class="sidebar-nav " data-coreui="navigation" data-simplebar="">
     <li class="nav-item"><a class="nav-link" href="{{route('home')}}">
             <svg class="nav-icon">
@@ -9,9 +10,10 @@
     $isLeadSale = Helper::isLeadSale(Auth::user()->role);
     $isMkt = Helper::isMkt(Auth::user());
     $isSale = Helper::isSale(Auth::user());
+    $isKho = Helper::isKho(Auth::user());
 ?>
 
-    @if ($checkAll)
+    @if ($checkAll || $isKho)
     <li class="nav-group"><a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-grid')}}"></use>

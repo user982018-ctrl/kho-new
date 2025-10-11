@@ -1,9 +1,23 @@
 @extends('layouts.default')
 @section('content')
 
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
 <style>
+    /* SweetAlert2 buttons hover effect */
+    .swal2-actions button {
+        opacity: 0;
+        transition: opacity 0.3s ease, transform 0.2s ease;
+    }
+    
+    .swal2-actions:hover button {
+        opacity: 1;
+    }
+    
+    .swal2-actions button:hover {
+        transform: scale(1.05);
+    }
+
     .gift-td {
         /* display: flex;
         padding: 8px !important;
@@ -108,6 +122,252 @@
     .create-bill {
         margin-left: 10px;
     }
+
+    /* Fix SweetAlert2 buttons visibility */
+    .swal2-popup {
+        font-family: inherit !important;
+    }
+    
+    .swal2-actions {
+        display: flex !important;
+        gap: 10px !important;
+        margin-top: 1.5em !important;
+        justify-content: center !important;
+    }
+    
+    .swal2-styled {
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: inline-block !important;
+        margin: 0 !important;
+        font-weight: 500 !important;
+        padding: 0.625em 1.1em !important;
+        border-radius: 0.25rem !important;
+        border: none !important;
+        cursor: pointer !important;
+        font-size: 1em !important;
+    }
+    
+    .swal2-confirm {
+        background-color: #3085d6 !important;
+        color: #fff !important;
+    }
+    
+    .swal2-cancel {
+        background-color: #6c757d !important;
+        color: #fff !important;
+    }
+    
+    .swal2-styled:hover {
+        opacity: 0.8 !important;
+    }
+    
+    .swal2-styled:focus {
+        box-shadow: 0 0 0 3px rgba(100,150,200,.5) !important;
+        outline: none !important;
+    }
+
+    /* Custom Modal Styles */
+    .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        animation: fadeIn 0.3s ease;
+    }
+
+    .custom-modal-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 0;
+        border: none;
+        border-radius: 12px;
+        width: 400px;
+        max-width: 90%;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        animation: slideIn 0.3s ease;
+        overflow: hidden;
+    }
+
+    .custom-modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        text-align: center;
+        position: relative;
+    }
+
+    .custom-modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .custom-modal-body {
+        padding: 30px 20px;
+        text-align: center;
+        color: #333;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    .custom-modal-actions {
+        padding: 0 20px 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .custom-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 100px;
+    }
+
+    .custom-btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .custom-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .custom-btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .custom-btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+
+    .custom-btn-danger {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+    }
+
+    .custom-btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+        from { transform: translateY(-50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes slideInLeft {
+        from { transform: translateX(-100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    .modal-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    /* Button Chốt đơn đẹp */
+    .btn-chot-don {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 600 !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
+        transition: all 0.3s ease !important;
+        position: relative !important;
+        overflow: hidden !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    .btn-chot-don:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6) !important;
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 50%, #f093fb 100%) !important;
+    }
+
+    .btn-chot-don:active {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
+    }
+
+    .btn-chot-don::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-chot-don:hover::before {
+        left: 100%;
+    }
+
+    .btn-chot-don svg {
+        animation: heartbeat 2s ease-in-out infinite !important;
+        background: none !important;
+        padding: 8px !important;
+        margin-right: 8px !important;
+        width: 32px !important;
+        height: 32px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.3s ease !important;
+        position: relative !important;
+    }
+
+    /* Tạo background hình trái tim */
+    .btn-chot-don svg::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.2);
+        clip-path: polygon(50% 85%, 15% 45%, 35% 25%, 50% 40%, 65% 25%, 85% 45%);
+        z-index: -1;
+        transition: all 0.3s ease;
+    }
+
+    .btn-chot-don:hover svg::before {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    @keyframes heartbeat {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .btn-chot-don:focus {
+        outline: none !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3) !important;
+    }
 </style>
 <?php 
 use App\Helpers\HelperProduct;
@@ -119,19 +379,24 @@ $listAttribute = Helper::getListAttributes();
 $name = $phone = '';
 $flagAccessDis = 'disabled';
 $isDisableTotal = false;
+$isKho = Helper::isKho(Auth::user());
+$isBackOrder = false;
 $id = 0;
 if (isset($saleCare)) {
     $name = $saleCare->full_name;
     $phone = $saleCare->phone;
 }
-if ($checkAll) {
+if ($checkAll || Auth::user()->id == 58 || $isKho) {
     $flagAccessDis = '';
 }
 if (isset($order) && ($order->status != 1 || $order->shippingOrder) && !$checkAll) {
     $isDisableTotal = true;
-}
+} 
 if (isset($order)) {
     $id = $order->id;
+    if ($order->status == 0 && !$order->shippingOrder && !$checkAll) {
+        $isBackOrder = true;
+    }
 }
 ?>
 
@@ -212,9 +477,14 @@ if (isset($order)) {
                                 <p class="error_msg" id="price"></p>
                             </div>
                             @else 
+                            <?php $assignSale = $order->assign_user;
+                            if ($order->saleCare) {
+                                $assignSale = $order->saleCare->assign_user;
+                            }
+                            ?>
                             <div class="col-6 hidden">
                                 <select class="form-control" name="assign-sale">
-                                    <option value="{{Auth::user()->id}}"></option>
+                                    <option value="{{$assignSale}}"></option>
                                 </select>
                             </div>
                             @endif
@@ -342,7 +612,7 @@ if (isset($order)) {
                                     <tfoot>
                                         <tr>
                                             <td class="no-wrap text-right" colspan="3">Tạm tính:</td>
-                                            <td style="width: 54px;" class="readonly" id="total-qty" data-total-qty="0">0</td>
+                                            <td style="width: 54px;ss" class="readonly" id="total-qty" data-total-qty="{{$order->qty}}">{{$order->qty}}</td>
                                             <td class="readonly text-center" id="sub-total">{{number_format($order->total)}}</td>
                                             <td colspan="1"></td>
                                         </tr>
@@ -368,10 +638,16 @@ if (isset($order)) {
             </div>
             <div class="row btn-submit">
                 <div class="col-sm-12 col-lg-12" style="text-align: end;">
-                    <button  id="cancel" type="button" {{($isDisableTotal || $checkAll) ? 'hidden' : ''}} class=" mb-1 btn btn-danger text-white create-bill" 
+                    <button id="cancel" type="button" {{($isDisableTotal || $checkAll || $isKho) ? 'hidden' : ''}} class=" mb-1 btn btn-danger text-white create-bill" 
                     onclick="confirmCancel()"><svg class="icon me-2">
                         <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-x-circle')}}"></use>
                       </svg>Huỷ Đơn</button>
+
+                    
+                    <button data-created_at="{{$order->created_at}}" id="backOrder" type="button" {{($isBackOrder && !$isKho) ? '' : 'hidden'}} class=" mb-1 btn btn-warning text-white create-bill" 
+                    onclick="confirmBackOrder()"><svg class="icon me-2">
+                        <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-loop-circular')}}"></use>
+                      </svg>Chốt Lại</button>
                     <button id="submit" class="mb-1 btn btn-primary create-bill"><svg class="icon me-2">
                         <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-save')}}"></use>
                       </svg>Lưu</button>
@@ -528,10 +804,8 @@ if (isset($order)) {
             </div>
             <div class="row btn-submit">
                 <div class="col-sm-12 col-lg-12" style="text-align: end;">
-                    <button style="background: #1818b5;" onclick="validatePhone()" id="submit" class="mb-1 btn btn-primary create-bill">
-                        <svg class="icon me-2">
-                            <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-heart')}}"></use>
-                          </svg>Chốt đơn</button>
+                    <button onclick="validatePhone()" id="submit" class="mb-1 btn btn-primary create-bill btn-chot-don">
+                        <i class="fa fa-heart" style="color:red;"></i> Chốt đơn</button>
                 </div>
             </div>
             @endif
@@ -544,6 +818,23 @@ if (isset($order)) {
 
     <input type="hidden" id="list_variants"/>
     <input type="hidden" id="list_all_attribute" value="{{$listAttribute}}"/>
+
+    <!-- Custom Modal -->
+    <div id="customModal" class="custom-modal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h3 id="modalTitle">Xác nhận</h3>
+            </div>
+            <div class="custom-modal-body">
+                <span id="modalIcon" class="modal-icon">⚠️</span>
+                <p id="modalMessage">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+            </div>
+            <div class="custom-modal-actions">
+                <button id="modalCancel" class="custom-btn custom-btn-secondary">Không</button>
+                <button id="modalConfirm" class="custom-btn custom-btn-danger">Có</button>
+            </div>
+        </div>
+    </div>
 </div>
 <script type="text/javascript">
 
@@ -734,7 +1025,6 @@ $(document).ready(function() {
             success: function(data) {
                 console.log(data);
                 if ($.isEmptyObject(data.errors)) {
-                    console.log(data);
                     // window.parent.postMessage('mess-success', '*');
                     toastr.success(data.success);
                     $(".error_msg").html('');
@@ -971,8 +1261,7 @@ function validatePhone() {
       let total = 0;
       let totalQty = 0;
       const rows = cartBody.querySelectorAll('tr');
-        
-      console.log('tesst')
+
       rows.forEach(row => {
         const checkbox = row.querySelector(".gift");
         const price = parseInt(row.dataset.price);
@@ -980,8 +1269,8 @@ function validatePhone() {
         const lineTotal = price * qty;
 
         if (checkbox.checked) {
-            console.log(checkbox);
             row.querySelector('.line-total').textContent = "0";
+            totalQty += qty;
         } else {
             row.querySelector('.line-total').textContent = formatVND(lineTotal);
             total += lineTotal;
@@ -1005,18 +1294,26 @@ function validatePhone() {
 
             btn._deleteHandler = function () {
                 const row = this.closest('tr');
+                const productName = row.querySelector('.name-product')?.textContent.trim() || 'sản phẩm này';
 
-                // Optional: Xác nhận trước khi xoá
-                if (!confirm("Bạn có chắc chắn muốn xoá sản phẩm này?")) return;
+                // Xác nhận trước khi xoá bằng custom modal
+                showCustomModal(
+                    'Xác nhận xóa sản phẩm',
+                    `Bạn có chắc chắn muốn xóa "${productName}"?`,
+                    '🗑️',
+                    function() {
+                        // Thêm hiệu ứng mờ dần rồi xoá
+                        row.style.transition = 'opacity 0.4s ease';
+                        row.style.opacity = 0;
 
-                // Thêm hiệu ứng mờ dần rồi xoá
-                row.style.transition = 'opacity 0.4s ease';
-                row.style.opacity = 0;
-
-                setTimeout(() => {
-                    row.remove();
-                    updateSubtotal();
-                }, 400);
+                        setTimeout(() => {
+                            row.remove();
+                            updateSubtotal();
+                        }, 400);
+                    },
+                    'Có, xóa!',
+                    'custom-btn-danger'
+                );
             };
 
             btn.addEventListener('click', btn._deleteHandler);
@@ -1240,10 +1537,87 @@ function validatePhone() {
         return cartData;
     }
 
+    // Custom Modal Functions
+    function showCustomModal(title, message, icon, confirmCallback, confirmText = 'Có', confirmClass = 'custom-btn-danger') {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalMessage').textContent = message;
+        document.getElementById('modalIcon').textContent = icon;
+        document.getElementById('modalConfirm').textContent = confirmText;
+        document.getElementById('modalConfirm').className = `custom-btn ${confirmClass}`;
+        
+        const modal = document.getElementById('customModal');
+        modal.style.display = 'block';
+        
+        // Store callback
+        modal._confirmCallback = confirmCallback;
+    }
+
+    function hideCustomModal() {
+        document.getElementById('customModal').style.display = 'none';
+    }
+
+    // Modal event listeners
+    document.getElementById('modalCancel').addEventListener('click', hideCustomModal);
+    document.getElementById('modalConfirm').addEventListener('click', function() {
+        const modal = document.getElementById('customModal');
+        if (modal._confirmCallback) {
+            modal._confirmCallback();
+        }
+        hideCustomModal();
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('customModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideCustomModal();
+        }
+    });
+
     // Function xác nhận hủy đơn hàng
     function confirmCancel() {
-        if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
-            window.location.href = '{{route("cancel-order", $id)}}';
+        showCustomModal(
+            'Xác nhận hủy đơn',
+            'Bạn có chắc chắn muốn hủy đơn hàng này?',
+            '⚠️',
+            function() {
+                window.location.href = '{{route("cancel-order", $id)}}';
+            },
+            'Có, hủy đơn!',
+            'custom-btn-danger'
+        );
+    }
+
+    // Function xác nhận chốt lại đơn hàng với kiểm tra tháng
+    function confirmBackOrder() {
+        const backOrderBtn = document.getElementById('backOrder');
+        const createdAt = backOrderBtn.getAttribute('data-created_at');
+ 
+        // Lấy tháng và năm từ created_at
+        const orderDate = new Date(createdAt);
+        const orderMonth = orderDate.getMonth();
+        const orderYear = orderDate.getFullYear();
+
+        // Lấy tháng và năm hiện tại
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth();
+        const currentYear = currentDate.getFullYear();
+
+        // So sánh tháng và năm
+        if (orderMonth === currentMonth && orderYear === currentYear) {
+            // Cùng tháng - redirect ngay
+            window.location.href = '{{route("back-order", $id)}}';
+        } else {
+            // Khác tháng - hiển thị modal
+            showCustomModal(
+                'Đơn hàng khác tháng!',
+                'Đơn hàng không phải tháng này. Bạn có chắc chắn muốn tiếp tục?',
+                '⚠️',
+                function() {
+                    window.location.href = '{{route("back-order", $id)}}';
+                },
+                'Có, tiếp tục!',
+                'custom-btn-primary'
+            );
         }
     }
 </script>

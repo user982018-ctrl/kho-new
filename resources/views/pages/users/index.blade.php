@@ -37,7 +37,9 @@
 @endif
 
         <div class="card mb-4">
-            <div class="card-header"><strong>Quản lý thành viên</strong> </div>
+            <div class="card-header">
+                <a href="{{route('manage-user')}}"><strong>Quản lý thành viên</strong></a>   
+                </div>
             <div class="card-body">
               <div class="example mt-0">
                 @include('pages.users.content')

@@ -112,6 +112,7 @@
   $isCskhDt = Helper::isCskhDt(Auth::user());
   $isDigital = Auth::user()->is_digital;
   $isLeadDigital = Helper::isLeadDigital(Auth::user()->role);
+  $isKho = Helper::isKho(Auth::user());
 ?>
 
 <div class="container-lg">

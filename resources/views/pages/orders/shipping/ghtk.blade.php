@@ -282,6 +282,7 @@ if (Helper::isOldCustomerV2($order->phone)) {
                   </thead>
                   <tbody class="list-product-choose" id="list-product-GHN">
                   <?php $sumQty = $totalTmp = $i = $totalWeight = 0; 
+                  // dd(json_decode($order->id_product));
                   foreach (json_decode($order->id_product) as $item) {
                     $product = getProductByIdHelper($item->id);
                     

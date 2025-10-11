@@ -29,6 +29,11 @@ setlocale(LC_TIME, 'vi_VN.utf8');
 
 class Helper
 {
+    public static function isKho($user)
+    {
+        return $user->is_kho;
+    }
+
     public static function isFPage($idPage)
     {
         $result = false;

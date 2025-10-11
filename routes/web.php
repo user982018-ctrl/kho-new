@@ -105,7 +105,7 @@ Route::middleware('admin-auth')->group(function () {
     Route::get('/in-don-GHTK',  [OrdersController::class, 'printOrderGHTK'])->name('print-order-GHTK');
     Route::get('/in-don-GHN',  [OrdersController::class, 'printOrderGHN'])->name('print-order-all');
     Route::get('/cancel-order/{id}', [OrdersController::class, 'cancelOrder'])->name('cancel-order');
-
+    Route::get('/back-order/{id}', [OrdersController::class, 'backOrder'])->name('back-order');
 
     Route::get('/cap-nhat-thanh-vien/{id}',[UserController::class,'viewUpdate'])->name('update-user');
     Route::get('/delete-user/{id}',  [UserController::class, 'delete'])->name('delete-user');
@@ -113,6 +113,7 @@ Route::middleware('admin-auth')->group(function () {
     Route::get('/them-thanh-vien',  [UserController::class, 'add'])->name('add-user');
     Route::get('/quan-ly-thanh-vien',  [UserController::class, 'index'])->name('manage-user');
     Route::post('/save-user',[UserController::class,'save'])->name('save-user');
+    Route::post('/api-check-username',[UserController::class,'checkUsername'])->name('api-check-username');
     // Route::get('/thong-tin-ca-nhan',[UserController::class,'view'])->name('save-user');
     
     /** tạo vận đơn */
@@ -238,7 +239,7 @@ Route::get('/hieu',  [TestController::class, 'hieu'])->name('hieu');
 Route::get('/trang',  [TestController::class, 'trang'])->name('trang');
 
 Route::get('/xuat-file', [TestController::class, 'export']);
-Route::get('/tax', [TestController::class, 'exportTaxV2']);
+Route::get('/tax', [TestController::class, 'exportTaxV3']);
 Route::get('/make', [TestController::class, 'wakeUp']);
 
 Route::get('/fix', [TestController::class, 'fix']);

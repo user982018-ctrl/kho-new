@@ -2,14 +2,38 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Hash;
 use Illuminate\Support\Facades\Auth;
 use Validator;
 
+
 class UserController extends Controller
 {
+    public function checkCustomer(Request $r)
+    {
+        $phone = $r->phone;
+        $params = [
+            "client_id" => "3780854",
+            "client_phone" => $phone,
+            "cod" => null,
+            "token" => "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjAwMTM0NTR9.EPyDlhC2ILUGQ_pREEmB2THm6Vd0r0MhUA3jilZoW80",
+            "source" => '5sao',
+        ];
+
+        $link = "https://fe-online-gateway.ghn.vn/shiip/public-api/ops/data/api/online/probability-reject-order";
+        $response = Http::withBody(json_encode($params))->post($link);
+        dd($response->status());
+        if ($response->status() == 200) {
+            $dataApiJson = $response->body();
+            dd($dataApiJson);
+        }
+        
+        return response()->json(['text' => $phone]);
+    }
+
     public function updateStatus(Request $r)
     {
         $id = $r->id;
@@ -21,6 +45,28 @@ class UserController extends Controller
         $user->status = $r->status;
         $user->save();
         return response()->json(['success'=>'OK']);
+    }
+
+    public function checkUsername(Request $r)
+    {
+        $name = $r->name;
+        $id = $r->id; // ID người dùng hiện tại (nếu là update)
+        
+        // Kiểm tra tên đăng nhập đã tồn tại chưa
+        $query = User::where('name', $name);
+        
+        // Nếu đang update (có ID), loại trừ user hiện tại
+        if ($id && $id != 'undefined') {
+            $query->where('id', '!=', $id);
+        }
+        
+        $exists = $query->exists();
+
+        if ($exists) {
+            return response()->json(['exists' => true, 'message' => 'Tên đăng nhập đã tồn tại']);
+        }
+        
+        return response()->json(['exists' => false , 'message' => 'Tên đăng nhập khả dụng']);
     }
 
     public function login() {
@@ -126,10 +172,13 @@ class UserController extends Controller
                 $user->email        = $req->email;
 
                 if ($checkAll) {
-                    $user->is_sale      = $req->is_sale;
-                    $user->is_digital   = $req->is_digital;
-                    $user->is_CSKH      = $req->is_CSKH;
-                    $user->is_receive_data = ($req->is_receive_data) ? $req->is_receive_data : 0 ;
+                    $user->is_sale      = $req->is_sale ?? 0;
+                    $user->is_digital   = $req->is_digital ?? 0;
+                    $user->is_CSKH      = $req->is_CSKH ?? 0;
+                    $user->is_receive_data = $req->is_receive_data ?? 0;
+                    $user->is_kho       = $req->is_kho ?? 0;
+                    $user->is_accountant = $req->is_accountant ?? 0;
+                    $user->is_hr        = $req->is_hr ?? 0;
                     $user->role = $req->roles;
                 }
 
