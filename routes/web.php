@@ -125,7 +125,7 @@ Route::middleware('admin-auth')->group(function () {
     Route::post('/save-shipping-has',  [ShippingOrderController::class, 'createShippingHas'])->name('create-shipping-has');
     Route::get('/chi-tiet-van-don/{id}',  [ShippingOrderController::class, 'detailShippingOrder'])->name('detai-shipping-order');
     Route::get('/go-van-don/{id}',  [ShippingOrderController::class, 'removeShipingOrderCode'])->name('remove-shipping-order');
-    
+    Route::get('/tao-van-don-vtpost/{id}',  [ShippingOrderController::class, 'viewCreateShippingVTPost'])->name('view-create-shipping-VTPost');
         /** tạo vận đơn GHTK */
     Route::get('/tao-van-don-ghtk/{id}',  [ShippingOrderController::class, 'viewCreateShippingGHTK'])->name('view-create-shipping-GHTK');
     Route::post('/save-shipping-has-ghtk',  [ShippingOrderController::class, 'createShippingHasGHTK'])->name('create-shipping-has-ghtk');

@@ -17,6 +17,12 @@ use App\Helpers\Helper;
 
 class ShippingOrderController extends Controller
 {
+    public function viewCreateShippingVTPost($id)
+    {
+        $order = Orders::find($id);
+        return view('pages.orders.shipping.vtpost')->with('order', $order);
+    }
+
     public function createOrderGHTK(Request $req)
     {
         $dataReq = $req->all();
@@ -751,8 +757,9 @@ class ShippingOrderController extends Controller
         $link = 'https://web.giaohangtietkiem.vn/api/v1/package/package-detail?alias=' . $orderCode;
         $response = Http::withToken($token)
             ->get($link);
-        // dd($link);
+        // dd($token);
         $response = $response->json();
+        dd($response);
         if ($response['success']) {
             $data = $response['data'];
             $package = $data['Package'];
@@ -787,6 +794,7 @@ class ShippingOrderController extends Controller
         }
 
         if ($ship['vendor_ship'] == 'GHTK') {
+            return redirect()->route('empty');
             $dataGHTK = $this->detailDataGHTK($ship['order_code']);
             if (!$dataGHTK) {
                 return view('pages.noti.ghtk');

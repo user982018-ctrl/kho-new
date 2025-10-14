@@ -389,7 +389,7 @@ if (isset($saleCare)) {
 if ($checkAll || Auth::user()->id == 58 || $isKho) {
     $flagAccessDis = '';
 }
-if (isset($order) && ($order->status != 1 || $order->shippingOrder) && !$checkAll) {
+if (isset($order) && ($order->status != 1 || $order->shippingOrder) && !$checkAll && Auth::user()->id != 58) {
     $isDisableTotal = true;
 } 
 if (isset($order)) {

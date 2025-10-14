@@ -469,6 +469,7 @@ class OrdersController extends Controller
         $p['daterange'] = [$today, $today];
         $category = Category::where('status', 1)->get();
         $products = Product::where('status', 1)->get();
+        $groups     = Group::where('status', 1)->select('id', 'name')->get();
         $data       = $this->getListOrderByPermisson(Auth::user(), $p);
         $sumProduct = $data->sum('qty');
         $totalOrder = $data->count();
@@ -478,7 +479,8 @@ class OrdersController extends Controller
         $listAttribute = $prControler->getAttributesProduct();
         $listAttribute = json_encode($listAttribute);
         return view('pages.orders.index')->with('sales', $sales)->with('totalOrder', $totalOrder)->with('sumProduct', $sumProduct)
-        ->with('list', $list)->with('category', $category)->with('products', $products)->with('listAttribute', $listAttribute);
+        ->with('list', $list)->with('category', $category)->with('products', $products)->with('listAttribute', $listAttribute)
+        ->with('groups', $groups);
     }
 
     public function getListOrderByPermisson($user, $dataFilter = null, $checkAll = false, $getJson = false) 
@@ -589,15 +591,16 @@ class OrdersController extends Controller
                 
             }
         
+            
             if (isset($dataFilter['group'])) {
                 $group = Group::find($dataFilter['group']);
                 if ($group) {
-
                     $listId = $list->pluck('id')->toArray();
+                    // dd($listId);
                     $listOrder = Orders::select('orders.*')->join('sale_care', 'orders.sale_care', '=', 'sale_care.id')
                         ->where('sale_care.group_id', $dataFilter['group'])
                         ->whereIn('orders.id', $listId);
-                    $list = $list->whereIn('id', $listOrder->pluck('id')->toArray());
+                    $list = Orders::whereIn('id', $listOrder->pluck('id')->toArray())->orderBy('id', 'desc');
                 }
             }
 
@@ -1187,10 +1190,12 @@ class OrdersController extends Controller
             $prControler = new ProductController();
             $listAttribute = $prControler->getAttributesProduct();
             $listAttribute = json_encode($listAttribute);
+            $groups     = Group::where('status', 1)->select('id', 'name')->get();
+
             
             return view('pages.orders.index')->with('list', $list)->with('category', $category)
                 ->with('sumProduct', $sumProduct)->with('sales', $sales)->with('totalOrder', $totalOrder)
-                ->with('products', $products)->with('listAttribute', $listAttribute);
+                ->with('products', $products)->with('listAttribute', $listAttribute)->with('groups', $groups);
         } catch (\Exception $e) {
             // return $e;
             dd($e);

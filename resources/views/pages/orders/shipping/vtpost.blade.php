@@ -3,6 +3,10 @@ $listStatus = Helper::getListStatus();
 $isLeadSale = Helper::isLeadSale(Auth::user()->role);
 $checkAll = isFullAccess(Auth::user()->role);
 $flagAccess = false;
+$name = '';
+if (Helper::isOldCustomerV2($order->phone)) {
+  $name .= '❤️ ';
+}
 ?>
 @extends('layouts.default')
 @section('content')
@@ -10,13 +14,6 @@ $flagAccess = false;
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
 {{-- <link href="{{ asset('public/css/pages/styleOrders.css')}}" rel="stylesheet"> --}}
 <style>
-  #list-product-GHN input {
-    padding: 10px;
-  }
-  input:focus {
-    background-color: lightblue;
-    border: none !important;
-  }
   .select2-container {
     width: 100% !important;
   }
@@ -55,7 +52,7 @@ $flagAccess = false;
   }
   .background {
     height: 200px;
-    background: #1ca54a;
+    background: #f26522;
     color:#fff;
     align-items: center;
     display: flex;
@@ -76,22 +73,15 @@ $flagAccess = false;
     width: 33.33%;
   }
 
-  input[type=radio], input[type=checkbox] {
-    width: 15px; 
-    opacity: unset;
-    position: unset;
-}
-
 </style>
 @include('notify::components.notify')
   <div class="background">
-    <img style="width: auto; height: 100%;" src="{{asset('public/images/ghtk.png')}}" class="card-img-top">
-    {{-- <span>GHTK</span> --}}
+    <span>GHN</span>
   </div>
   <div>
     <div class="hasShipping">
       
-      <form action="{{route('create-shipping-has-ghtk')}}" method="post">
+      <form action="{{route('create-shipping-has')}}" method="post">
         {{ csrf_field() }}
         <div class='label-wrap form-group'>
           <label for="min">Mã vận đơn:</label><br>
@@ -101,7 +91,7 @@ $flagAccess = false;
         <input type="hidden" name="vendor_ship">
         <input type="hidden" name="order_id" value="{{$order->id}}">
        
-        <button type="submit" class="mt-2 btn btn-primary" style="border:none; background: #1ca54a;">Áp dụng</button>
+        <button type="submit" class="mt-2 btn btn-primary" style="border:none; background: #f26522;">Áp dụng</button>
       </form>
     </div>
   </div>
@@ -168,11 +158,16 @@ $flagAccess = false;
                   if ($product) {
                       $sumQty += $item->val;
                       $totalTmp += $item->val * $product->price;
+                      $nameProduct = $product->name;
+                      if ($product->type == 2 && !empty($item->variantId)) {
+                        $variantID = $item->variantId;
+                        $nameProduct .= HelperProduct::getNameAttributeByVariantId($variantID);
+                      }
                     ?>
 
                   <tr class="number dh-san-pham product-{{$product->id}}">
                       <td class="text-left">
-                          <span class="no-combo">{{$product->name}}</span><br>
+                          <span class="no-combo">{{$nameProduct}}</span><br>
                       </td>
                       <td class="no-wrap" style="width: 45px">
                         {{$item->val}}
@@ -202,8 +197,7 @@ $flagAccess = false;
     <input value="{{$order->sale_care}}" class="hidden form-control" name="sale-care">
 
       <div  style="opacity: 0.9; box-shadow: 0 .7699px 2.17382px 0 rgba(0, 71, 111, .02), 0 2.12866px 6.01034px 0 rgba(0, 71, 111, .04), 0 5.125px 14.4706px 0 rgba(0, 71, 111, .05), 0 17px 48px 0 rgba(0, 71, 111, .07);
-          
-    background: aliceblue;">
+        background: aliceblue;">
         <div class="row" >
           <div class="border-top-info"></div>
             <div class="col-sm-12 col-lg-6  form-group">
@@ -215,7 +209,7 @@ $flagAccess = false;
             <div class="col-sm-12 col-lg-6  form-group">
                 <label class="form-label" for="nameFor">Tên khách
                     hàng</label>
-                <input required value="{{$order->name}}" class="form-control" 
+                <input required value="{{$name .= $order->name}}" class="form-control" 
                     name="name" id="nameFor" type="text">
             </div>
             <div class="col-12  form-group">
@@ -224,50 +218,32 @@ $flagAccess = false;
                   name="address" id="addressFor" type="text">
             </div>
             <div class="col-sm-6 col-md-6 form-group address-GHN">
-              <label class="form-label" for="distric-filter-GHN"><b>Quận - Huyện GHTK</b><span class="required-input">(*)</span></label>
+              <label class="form-label" for="distric-filter-GHN"><b>Quận - Huyện GHN</b><span class="required-input">(*)</span></label>
               <select name="district" id="distric-filter-GHN" class="form-control" required>       
-                  <option value="">--Đang tải danh sách quận/huyện--</option>
-                  @if (isset($listDistricGhn))
-                  @foreach ($listDistricGhn as $item)
+                  {{-- <option value="">--Đang tải danh sách quận/huyện từ GHN--</option> --}}
+                  @if (isset($listDistrictGhn))
+                  @foreach ($listDistrictGhn as $item)
 
-                  <option 
-                  <?php if(strpos($item->DistrictName, $nameProvinceSystem) !== FALSE) {  
-                    echo "selected";
-                  } ?>
-                    value="{{$item->DistrictID}}">{{$item->DistrictName}}</option>
+                  <option value="{{$item['DistrictID']}}">{{$item['DistrictName']}}</option>
                   @endforeach
                   @endif
               </select>
             </div>
             <div class="col-sm-6 col-md-6 form-group address-GHN">
-                <label class="form-label" for="ward-filter-GHN"><b>Phường - xã GHTK</b><span class="required-input">(*)</span></label>
+                <label class="form-label" for="ward-filter-GHN"><b>Phường - xã GHN</b><span class="required-input">(*)</span></label>
                 <select name="ward" id="ward-filter-GHN" class="form-control" required>
-                    @if (isset($listWardGHN))
-                    @foreach ($listWardGHN as $ward)
-                    <option 
-                    <?php if(strpos($ward->WardName, $nameWardSystem) !== FALSE) {  
-                      echo "selected";
-                    } ?>
-                    value="{{$ward->WardName}}">{{$ward->WardName}}</option>
-                    @endforeach
                     
-                    @else
-                    <option value="-1">--Chọn phường/ xã--</option>
-                    @endif
                 </select>
             </div>
-
             <div class="col-12 form-group">
-              <button type="button" id="mergeProducts" style="margin-top: 15px;">🔄 Gộp sản phẩm</button>
-              <button type="button" id="undoMerge" style="margin-top: 15px; display: none;">↩️ Tách lại sản phẩm</button>
+              <label for="note" class="form-label"><b>Ghi chú cho GHN:</b></label>
+              <textarea name="note" class="form-control" id="note" rows="4">{{$order->note}} </textarea>
+            </div>
+            <div class="col-12 form-group">
+              
               <table class="table table-bordered table-line" style="margin-bottom:15px; font-size: 13px; ">
                   <thead>
                       <tr>
-                        <th class="text-center" style="white-space: nowrap;">
-                          <label style="cursor: pointer;">
-                            <input type="checkbox" id="checkAllProducts">
-                          </label>
-                        </th>
                         <th colspan="7" class="text-center no-wrap col-spname" style="min-width: 155px; width:50%;">Tên sản phẩm</th>
                         <th colspan="1" class="text-center no-wrap" style="width:30%;">Khối lượng (gam)</th>
                         <th colspan="1" class="text-center no-wrap" style="width:10%;">SL Tổng</th>
@@ -275,59 +251,69 @@ $flagAccess = false;
                       </tr>
                   </thead>
                   <tbody class="list-product-choose" id="list-product-GHN">
-                  <?php $sumQty = $totalTmp = $i = $totalWeight = 0; 
-                  foreach (json_decode($order->id_product) as $item) {
+                  <?php $sumQty = $totalTmp = $i = $j = $totalWeight = 0; 
+                  // dd(json_decode($order->id_product));
+                  foreach (json_decode($order->id_product) as $key => $item) {
                     $product = getProductByIdHelper($item->id);
-                    
+
                     if ($product) {
+                      $nameProduct = $product->name;
+                      $weight = $product->weight;
+                      if ($product->type == 2 && !empty($item->variantId)) {
+                        $variantID = $item->variantId;
+                        $nameProduct .= HelperProduct::getNameAttributeByVariantId($variantID);
+                        $variant = HelperProduct::getProductVariantById($variantID);
+                        $weight = $variant->weight;
+                      }
                       $sumQty += $item->val;
                       $totalTmp += $item->val * $product->price;
                       $totalWeight += $product->weight;
+                      // dd($item->val > 1 && $weight > 10000);
                     ?>
 
-                    @if ($item->val > 1 && $product->weight > 10000)
-                    <input name="bigCart[]" type="hidden" value="{{$item->val}} {{$product->name}}">
-                      <?php 
-                      for ($i; $i < $item->val; $i++) {
-                      ?>
+                    @if ($item->val > 1 && $weight > 10000)
+                    
+                    <input name="bigCart[]" type="hidden" value="{{$item->val}} {{$nameProduct}}">
+                      <?php for ($j = $i; $j < $item->val + $i; $j++) { ?>
                       <tr class="number dh-san-pham product-{{$product->id}}">
-                        <td><input type="checkbox" class="checkbox-merge form-check-input"></td>                 
-                        <td colspan="6" class="text-left"> <input class="form-control" required name="products[{{$i}}][name]" type="text" style="width: 100%;" value="{{$product->name}}"><br>
+                        <td colspan="7" class="text-left"> <input required name="products[{{$j}}][name]" type="text" style="width: 100%;" value="{{$nameProduct}}"><br>
                         </td>
-                        <td><input required class="text-right price_class" required name="products[{{$i}}][weight]" type="text" style="width: 100%; padding: 10px;" value="<?php if ($product->weight > 0) { echo number_format($product->weight);} ?>"></td>
+                        <td colspan="1"><input required class="text-right price_class" required name="products[{{$j}}][weight]" type="text" style="width: 100%;" value="<?php if ($weight > 0) { echo number_format($weight);} ?>"></td>
                         <td class="no-wrap" style="width: 45px">
-                          <input class="text-center" required name="products[{{$i}}][qty]" type="text" style="width: 100%;" value="1">
+                          <input class="text-center" required name="products[{{$j}}][qty]" type="text" style="width: 100%;" value="1">
                         </td>
                         <td><button class="deleteProductGHN"><i class="fa fa-trash"></i></button></td>
                       </tr>
                       <?php
                       }
+                      $i = $j;
                       ?>
                     @else
                     <tr class="number dh-san-pham product-{{$product->id}}">
-                      <td><input type="checkbox" class="checkbox-merge form-check-input"></td>   
-                      <td colspan="7" class="text-left"> <input required name="products[{{$i}}][name]" type="text" style="width: 100%;" value="{{$product->name}}"><br>
+                      
+                      <td colspan="7" class="text-left"> <input required name="products[{{$i}}][name]" type="text" style="width: 100%;" value="{{$nameProduct}}"><br>
                       </td>
-                      <td colspan="1"><input required class="text-right price_class" name="products[{{$i}}][weight]" type="text" style="width: 100%;  padding: 10px;" value="<?php if ($product->weight > 0) { echo number_format($product->weight);} ?>"></td>
+                      <td colspan="1"><input required class="text-right price_class" name="products[{{$i}}][weight]" type="text" style="width: 100%;" value="<?php if ($weight > 0) { echo number_format($weight);} ?>"></td>
                       <td class="no-wrap" style="width: 45px">
                         <input class="text-center" required name="products[{{$i}}][qty]" type="text" style="width: 100%;" value="{{$item->val}}">
                       </td>
-                      <td><button type="button" class="deleteProductGHN"><i class="fa fa-trash"></i></button></td>
+                      <td><button class="deleteProductGHN"><i class="fa fa-trash"></i></button></td>
                     </tr>
+
+                    <?php $i++; ?>
                     @endif
 
                     <?php   
-                    $i++;   
+                      
                     }    
                   }
                   ?>
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td></td>
                       <td class="no-wrap text-right" colspan="8">Tổng đơn:
                       </td>
-                      <td class="no-wrap" colspan="2"><input class="price_class" name="cod_amount" type="text" value="{{number_format($order->total)}}"> </td>
+                      <td class="no-wrap" colspan="2"><input name="cod_amount" type="text" value="{{number_format($order->total)}}"> </td>
 
                     </tr>
                   </tfoot>
@@ -336,8 +322,8 @@ $flagAccess = false;
           </div>
         </div>
         <div class="row">
-          <div class="col-sm-12" style=" text-align: end;">
-              <button id="submit" style="background:#1ca54a; border: none;" class="mb-1 btn btn-primary create-bill">Tạo vận đơn</button>
+          <div class="col-sm-12" style="text-align: end;">
+              <button id="submit" class="mb-1 btn btn-primary create-bill">Tạo vận đơn</button>
           </div>
         </div>
       </div>
@@ -377,8 +363,7 @@ $flagAccess = false;
     $('#addProductGHN').on('click', function() {
       var nextIndex = $('#next-qty-index').val();
                     
-      str = `<tr><td><input type="checkbox" class="checkbox-merge form-check-input"></td>`
-        +`<td colspan="7" class="text-left"><input required name="products[` + nextIndex + `][name]" type="text" style="width: 100%;  padding: 10px;"><br></td>`
+      str = `<tr><td colspan="7" class="text-left"><input required name="products[` + nextIndex + `][name]" type="text" style="width: 100%;"><br></td>`
         + `<td colspan="1"> <input required name="products[` + nextIndex + `][weight]" class="text-right price_class" type="text" style="width: 100%;"><br></td>`
         + `<td class="no-wrap text-center" style="width: 45px"><input class="text-center" required name="products[` + nextIndex + `][qty]" type="text" style="width: 100%;" value=1></td>`
         + `<td><button onClick="deleteRowProductGHN(this)" type="button" ><i class="fa fa-trash"></i></button></td></tr>`;
@@ -506,84 +491,4 @@ document.querySelectorAll('.price_class').forEach(inp => new Cleave(inp, {
     }
   });
 </script>
-
-{{-- gộp sản phẩm --}}
-<script>
-   let originalRowsHTML = '';
-
-document.getElementById('mergeProducts').addEventListener('click', function () {
-  if (!confirm("Bạn có chắc chắn muốn gộp các sản phẩm đã chọn không?")) return;
-
-  const list = document.getElementById('list-product-GHN');
-  const rows = list.querySelectorAll('tr');
-  let selectedRows = [];
-
-  originalRowsHTML = list.innerHTML;
-
-  rows.forEach(row => {
-    const checkbox = row.querySelector('.checkbox-merge');
-    if (checkbox && checkbox.checked) selectedRows.push(row);
-  });
-
-  if (selectedRows.length === 0) {
-    alert("Vui lòng chọn ít nhất 1 sản phẩm để gộp.");
-    return;
-  }
-
-  let mergedName = '';
-  let totalWeight = 0;
-  let totalQty = 0;
-
-  selectedRows.forEach((row, index) => {
-    const name = row.querySelector('input[name*="[name]"]').value;
-    const weight = parseFloat(row.querySelector('input[name*="[weight]"]').value.replace(/,/g, '')) || 0;
-    const qty = parseInt(row.querySelector('input[name*="[qty]"]').value) || 0;
-
-    mergedName += `{${qty} × ${name}}` + (index < selectedRows.length - 1 ? ' + ' : '');
-    totalWeight += weight * qty;
-    totalQty = 1;
-
-    row.remove(); // xóa dòng
-  });
-
-  const newRow = document.createElement('tr');
-  newRow.innerHTML = `
-    <td><input type="checkbox" class="checkbox-merge" checked></td>
-    <td colspan="7" class="text-left">
-      <input required name="products[0][name]" type="text" style="width: 100%;  padding: 10px;" value="${mergedName}">
-    </td>
-    <td><input required class="text-right price_class" name="products[0][weight]" type="text" style="width: 100%;" value="${totalWeight}"></td>
-    <td><input class="text-center" required name="products[0][qty]" type="text" style="width: 100%;" value="${totalQty}"></td>
-    <td><button onClick="deleteRowProductGHN(this)" type="button"><i class="fa fa-trash"></i></button></td>
-  `;
-
-  list.appendChild(newRow);
-  document.getElementById('mergeProducts').style.display = 'none';
-  document.getElementById('undoMerge').style.display = 'inline-block';
-});
-
-document.getElementById('undoMerge').addEventListener('click', function () {
-  document.getElementById('list-product-GHN').innerHTML = originalRowsHTML;
-  document.getElementById('mergeProducts').style.display = 'inline-block';
-  document.getElementById('undoMerge').style.display = 'none';
-});
-
-// Checkbox chọn tất cả
-document.getElementById('checkAllProducts').addEventListener('change', function () {
-  const checkboxes = document.querySelectorAll('.checkbox-merge');
-  checkboxes.forEach(cb => cb.checked = this.checked);
-});
-
-// Tự bỏ check "chọn tất cả" nếu uncheck từng dòng
-document.addEventListener('change', function (e) {
-  if (e.target.classList.contains('checkbox-merge')) {
-    const all = document.querySelectorAll('.checkbox-merge');
-    const checked = document.querySelectorAll('.checkbox-merge:checked');
-    document.getElementById('checkAllProducts').checked = (all.length === checked.length);
-  }
-});
-  </script>
-  
-  
-
 @stop
