@@ -17,10 +17,216 @@ use App\Helpers\Helper;
 
 class ShippingOrderController extends Controller
 {
+    public function getListWardVTPost($district)
+    {
+        $endpoint = "https://partner.viettelpost.vn/v2/categories/listWards?districtId=" . $district;
+        $response = Http::get($endpoint);
+        if ($response["status"] == 200) {
+            return $response["data"];
+        }
+        return [];
+    }
+    public function getListProVinceVTPost()
+    {
+        $endpoint = "https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=-1";
+        $response = Http::get($endpoint);
+
+        if ($response["status"] == 200) {
+            return $response["data"];
+        }
+        return [];
+    }
+
     public function viewCreateShippingVTPost($id)
     {
         $order = Orders::find($id);
-        return view('pages.orders.shipping.vtpost')->with('order', $order);
+        if ($order->saleCare->group_id != 11) {
+            return redirect()->route('empty');
+        }
+        $ship = ShippingOrder::whereOrderId($id)->first();
+        if ($ship) {
+            // notify()->error('Vận đơn đã được tạo', 'Cảnh báo!'); 
+            return redirect('chi-tiet-don-hang/' . $id);
+        }
+        $listProvinceVT = $this->getListProVinceVTPost();
+        $listWardVT = $this->getListWardVTPost($order->district); 
+
+        $addressCtl = new AddressController();
+        $listProvince = $addressCtl->getListProvince();
+        $listWard = $addressCtl->getListWardById($order->district);
+
+        $listProvinceVT = $addressCtl->getListProvinceVT();
+        $listDistrictVT = $addressCtl->getListDistrictByIdVT();
+        $listWardVT = $addressCtl->getListWardByIdVT();
+        // dd($listProvince);
+        return view('pages.orders.shipping.vtpost')
+            ->with('listWard', $listWard)
+            ->with('listProvince', $listProvince)
+            ->with('order', $order)
+            ->with('listWardVT', $listWardVT)
+            ->with('listProvinceVT', $listProvinceVT)
+            ->with('listDistrictVT', $listDistrictVT);
+    }
+
+    /**
+     * Create order ViettelPost
+     */
+    public function createOrderVTPost(Request $req)
+    {
+        $dataReq = $req->all();
+        $orderId = $dataReq['id'];
+        
+        $validator = Validator::make($dataReq, [
+            'phone'      => 'required',
+            'name'       => 'required',
+            'address'    => 'required',
+            'province'   => 'required',
+            'district'   => 'required',
+            'ward'       => 'required',
+            'cod_amount' => 'required',
+            'products'   => 'required',
+        ], [
+            'phone.required' => 'Nhập số điện thoại',
+            'name.required' => 'Nhập tên khách hàng',
+            'address.required' => 'Nhập địa chỉ nhận hàng',
+            'province.required' => 'Chọn tỉnh/thành phố',
+            'district.required' => 'Chọn quận/huyện',
+            'ward.required' => 'Chọn phường/xã',
+            'cod_amount.required' => 'Nhập số COD',
+            'products.required' => 'Thêm sản phẩm',
+        ]);
+
+        if (!isset($dataReq['products'])) {
+            notify()->error('Thiếu sản phẩm', 'Thất bại!');
+            return back();
+        }
+
+        if ($validator->passes()) {
+            $totalWeight = 0;
+            $listItems = [];
+
+            foreach ($dataReq['products'] as $product) {
+                $weight = (int) str_replace(",", "", $product['weight']);
+                $totalWeight += $weight * (int)$product['qty'];
+                
+                $listItems[] = [
+                    "PRODUCT_NAME" => $product['name'],
+                    "PRODUCT_PRICE" => 0,
+                    "PRODUCT_WEIGHT" => $weight,
+                    "PRODUCT_QUANTITY" => (int)$product['qty']
+                ];
+            }
+
+            $codAmount = (int) str_replace(",", "", $dataReq['cod_amount']);
+
+            // Chuẩn bị dữ liệu cho ViettelPost API
+            $data = [
+                "ORDER_NUMBER" => "",
+                "GROUPADDRESS_ID" => 1,
+                "CUS_ID" => 0,
+                
+                // Thông tin người gửi (Phân bón MN - Củ Chi, HCM)
+                "SENDER_FULLNAME" => "CÔNG TY CỔ PHẦN TMDV THỦY SẢN MIỀN NAM",
+                "SENDER_ADDRESS" => "19/1c Nguyễn Thị Chiên",
+                "SENDER_PHONE" => "0986987791",
+                "SENDER_EMAIL" => "",
+                "SENDER_WARD" => 691,        // Xã Tân An Hội (WARDS_ID từ ViettelPost)
+                "SENDER_DISTRICT" => 36,     // Huyện Củ Chi (DISTRICT_ID từ ViettelPost)
+                "SENDER_PROVINCE" => 2,      // TP. Hồ Chí Minh (PROVINCE_ID từ ViettelPost)
+                
+                // Thông tin người nhận
+                "RECEIVER_FULLNAME" => $dataReq['name'],
+                "RECEIVER_ADDRESS" => $dataReq['address'],
+                "RECEIVER_PHONE" => $dataReq['phone'],
+                "RECEIVER_EMAIL" => "",
+                "RECEIVER_WARD" => (int)$dataReq['ward'],
+                "RECEIVER_DISTRICT" => (int)$dataReq['district'],
+                "RECEIVER_PROVINCE" => (int)$dataReq['province'],
+                
+                // Thông tin sản phẩm
+                "PRODUCT_NAME" => "Phân bón",
+                "PRODUCT_DESCRIPTION" => "",
+                "PRODUCT_QUANTITY" => count($listItems),
+                "PRODUCT_PRICE" => $codAmount,
+                "PRODUCT_WEIGHT" => $totalWeight,
+                "PRODUCT_LENGTH" => 20,
+                "PRODUCT_WIDTH" => 20,
+                "PRODUCT_HEIGHT" => 20,
+                "PRODUCT_TYPE" => "HH",  // HH: Hàng hóa, TL: Tài liệu
+                
+                // Thông tin đơn hàng
+                "ORDER_PAYMENT" => 3,  // 1: Người nhận trả phí, 2: Người gửi trả phí
+                "ORDER_SERVICE" => "VSL6", // VCN: Chuyển phát nhanh
+                "ORDER_SERVICE_ADD" => "",
+                "ORDER_VOUCHER" => "",
+                "ORDER_NOTE" => isset($dataReq['note']) ? $dataReq['note'] : "",
+                
+                // Thông tin tiền
+                "MONEY_COLLECTION" => $codAmount,
+                "MONEY_TOTALFEE" => 0,
+                "MONEY_FEECOD" => 0,
+                "MONEY_FEEVAS" => 0,
+                "MONEY_FEEINSURRANCE" => 0,
+                "MONEY_FEE" => 0,
+                "MONEY_FEEOTHER" => 0,
+                "MONEY_TOTALVAT" => 0,
+                "MONEY_TOTAL" => 0,
+                
+                // Danh sách sản phẩm chi tiết
+                "LIST_ITEM" => $listItems
+            ];
+
+            try {
+                // Token ViettelPost - Cần thay bằng token thật
+                $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiVXNlcklkIjoxNjk4MjMwNiwiRnJvbVNvdXJjZSI6NSwiVG9rZW4iOiJBRTVRTjBWSklYN1pSTEUiLCJleHAiOjE4NDY1ODMzNzksIlBhcnRuZXIiOjE2OTgyMzA2fQ.oEZ11NmDf9YqUBj7WYLD4DDBD72QNWVvOqJwur2dj0WaFgIXPCnoFaFxmLxYudf_hcxzht6fVJmghMnxSxU0dQ';
+                $endpoint = "https://partner.viettelpost.vn/v2/order/createOrder";
+                
+                $response = Http::withHeaders([
+                    'Token' => $token,
+                    'Content-Type' => 'application/json'
+                ])->post($endpoint, $data);
+
+                $responseData = $response->json();
+                
+                if ($response->status() == 200 && isset($responseData['status']) && $responseData['status'] == 200) {
+                    $orderCode = $responseData['data']['ORDER_NUMBER'];
+                    $this->saveShippingCodeVTPost($orderCode, $orderId);
+                    notify()->success('Tạo vận đơn ViettelPost thành công', 'Thành công!');
+                    return redirect('chi-tiet-don-hang/' . $orderId);
+                } else {
+                    $errorMsg = isset($responseData['message']) ? $responseData['message'] : 'Đã xảy ra lỗi!';
+                    notify()->error($errorMsg, 'Thất bại!');
+                    \Log::error('ViettelPost Error:', ['response' => $responseData, 'request' => $data]);
+                }
+            } catch (\Exception $e) {
+                notify()->error('Lỗi kết nối API: ' . $e->getMessage(), 'Thất bại!');
+                \Log::error('ViettelPost Exception:', ['error' => $e->getMessage(), 'request' => $data]);
+            }
+
+            return back();
+        } else {
+            foreach ($validator->errors()->messages() as $mes) {
+                notify()->error($mes[0], 'Thất bại!');
+            }
+            return back();
+        }
+    }
+
+    public function saveShippingCodeVTPost($orderCode, $orderId)
+    {
+        $orderCode = trim($orderCode);
+        $ship = ShippingOrder::whereOrderCode($orderCode)->whereOrderId($orderId)->first();
+
+        if (!$ship) {
+            $shippingNew = new ShippingOrder();
+            $shippingNew->order_code = $orderCode;
+            $shippingNew->order_id = $orderId;
+            $shippingNew->vendor_ship = 'VTPOST';
+            $shippingNew->save();
+            return true;
+        }
+
+        return false;
     }
 
     public function createOrderGHTK(Request $req)
@@ -728,7 +934,14 @@ class ShippingOrderController extends Controller
 
     public function createShippingHas(Request $req) 
     {
-        if ($this->saveShippingCodeGHN($req->id_shipping_has, $req->order_id)) { 
+        if ($req->vendor_ship == 'VTPost') {
+            if ($this->saveShippingCodeVTPost($req->id_shipping_has, $req->order_id)) { 
+                notify()->success('Thêm vận đơn thành công', 'Thành công!');
+                return redirect()->route('order');
+            } else {
+                notify()->error('Mã vận đơn VTPost không tồn tại!', 'Thử lại!');
+            }
+        } else if ($this->saveShippingCodeGHN($req->id_shipping_has, $req->order_id)) { 
             notify()->success('Thêm vận đơn thành công', 'Thành công!');
             return redirect()->route('order');
         } else {
@@ -752,6 +965,9 @@ class ShippingOrderController extends Controller
 
     public function detailDataGHTK($orderCode)
     {
+        $link = "https://kho.phanboncanada.online/api/ghtk/$orderCode";
+        return  $response = Http::get($link);       
+
         $printLog = $result = $deliveryLog = $package = [];
         $token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzaG9wX2NvZGUiOiJTMjExNzg4NDMiLCJzaG9wX2lkIjoiNjIyODc1ZTktNjMyMC00ZTlhLTljY2MtNGJlYzBhNmU0ZDU5Iiwic2hvcF9vcmRlciI6MjExNzg4NDMsInN0YWZmX2lkIjoxNzY2Nzg0LCJzb3VyY2UiOiJwbGF0Zm9ybSIsInJvbGUiOiJhZG1pbiIsInNob3Bfc3RhdHVzX2lkIjoxLCJzaG9wX3R5cGUiOjEsImFjY2Vzc190b2tlbiI6IjRhMzk5YTUxLTUwMDgtNDM4NC05ZmI0LTM0NmNmOGI3NzQyZSIsImp3dCI6bnVsbCwiaW52YWxpZF9hdCI6eyJkYXRlIjoiMjAyNS0xMS0wMyAwOTo1NzoyMS43NjEzNjQiLCJ0aW1lem9uZV90eXBlIjozLCJ0aW1lem9uZSI6IkFzaWFcL0hvX0NoaV9NaW5oIn0sImxvZ2luX2FzX2lkIjpudWxsLCJsb2dpbl9hc19zZXNzaW9uX2lkIjpudWxsLCJsb2dpbl9hc190eXBlIjpudWxsLCJzZXNzaW9uIjpudWxsLCJtb3Nob3BfdXNlcl9pZCI6bnVsbCwic2hvcF90b2tlbiI6ImJkMTkzRTkyMGI3RTQwM2U4ZDVFNUI3Qzk5YkFiQWJjY2MyMjQzQ2YiLCJjcmVhdGVkX2F0Ijp7ImRhdGUiOiIyMDI1LTEwLTA0IDA5OjU3OjIxLjc1ODY2MSIsInRpbWV6b25lX3R5cGUiOjMsInRpbWV6b25lIjoiQXNpYVwvSG9fQ2hpX01pbmgifSwic2NvcGVzIjpbInNob3AudmlldyIsInNob3AudGVsLnZpZXcuIiwic2hvcC5lbWFpbC52aWV3Iiwic2hvcC5pZF9jYXJkLnZpZXciLCJzaG9wLnBpY2tfYWRkcmVzc2VzLnZpZXciLCJzaG9wLmJhbmtfYWNjb3VudC52aWV3Iiwic2hvcC51cGRhdGUiLCJzaG9wLmJhc2ljX2luZm8udXBkYXRlIiwic2hvcC5hdmF0YXIudXBkYXRlIiwic2hvcC5waWNrX2FkZHJlc3Nlcy51cGRhdGUiLCJzaG9wLnRlbC51cGRhdGUiLCJzaG9wLmVtYWlsLnVwZGF0ZSIsInNob3AuYmFua19hY2NvdW50LnVwZGF0ZSIsInNob3AuaWRfY2FyZC51cGRhdGUiLCJzaG9wLnN0YWZmLnZpZXciLCJzaG9wLnN0YWZmLmNyZWF0ZSIsInNob3Auc3RhZmYudXBkYXRlIiwic2hvcC5zdGFmZi5kZWxldGUiLCJzaG9wLmJyYW5jaC52aWV3Iiwic2hvcC5icmFuY2gubGlzdCIsInNob3AuYnJhbmNoLmNyZWF0ZSIsInNob3AuYnJhbmNoLnVwZGF0ZSIsInNob3AuYnJhbmNoLmRlbGV0ZSIsImNvbmZpZy5hcGlfdG9rZW4udmlldyIsImNvbmZpZy5hcGlfdG9rZW4ucmVxdWVzdCIsImNvbmZpZy5zeXN0ZW0udXBkYXRlIiwiY29uZmlnLmF1ZGl0X3RpbWUudmlldyIsImNvbmZpZy5hdWRpdF90aW1lLnVwZGF0ZSIsImNvbmZpZy5zaG9wLnVwZGF0ZSIsInNob3AuZGFzaGJvYXJkIiwic2hvcC5yZXBvcnQubW9uZXlfZmxvdyIsInNob3AucmVwb3J0LmRhaWx5LnZpZXciLCJzaG9wLnJlcG9ydC5kYWlseS5kb3dubG9hZCIsIm9yZGVyLmxpc3QiLCJvcmRlci5leHBvcnRfZmlsZSIsIm9yZGVyLmRldGFpbCIsIm9yZGVyLmNyZWF0ZSIsIm9yZGVyLmV4Y2hhbmdlLmNyZWF0ZSIsIm9yZGVyLmRlbGl2ZXJ5LmNyZWF0ZSIsIm9yZGVyLnVwZGF0ZSIsIm9yZGVyLnJlcXVlc3RfY2FuY2VsIiwib3JkZXIucHJpbnQiLCJvcmRlci5kcmFmdC52aWV3Iiwib3JkZXIuZHJhZnQubGlzdCIsIm9yZGVyLmRyYWZ0LmNyZWF0ZSIsIm9yZGVyLmRyYWZ0LnVwZGF0ZSIsIm9yZGVyLmRyYWZ0LmRlbGV0ZSIsInRpY2tldC5hZGQiLCJ0aWNrZXQub3JkZXIucGlja190ZWwudXBkYXRlIiwidGlja2V0Lm9yZGVyLnBpY2tfYWRkcmVzcy51cGRhdGUiLCJ0aWNrZXQub3JkZXIuY3VzdG9tZXJfdGVsLnVwZGF0ZSIsInRpY2tldC5vcmRlci5jdXN0b21lcl9hZGRyZXNzLnVwZGF0ZSIsInRpY2tldC5vcmRlci5waWNrX21vbmV5LnVwZGF0ZSIsImN1c3RvbWVyLnZpZXciLCJjdXN0b21lci51cGRhdGUiLCJjdXN0b21lci5uYW1lLnZpZXciLCJjdXN0b21lci50ZWwudmlldyIsInByb2R1Y3Quc2VhcmNoIiwicHJvZHVjdC52aWV3IiwicHJvZHVjdC5jcmVhdGUiLCJwcm9kdWN0LnVwZGF0ZSIsInByb2R1Y3QuZGVsZXRlIiwid2FsbGV0LmxvZ2luIiwicmV2aWV3LnZpZXciLCJyZXZpZXcudXBkYXRlIiwiY2hhdC5jdXN0b21lciIsInNob3AuZGlzYWJsZSJdLCJkZXZpY2UiOiJjYmM5ZTI1N2RjNzE3OTQ2YjQ0ZTk2MGMwMjIxZWRmOCIsImlzX3dlYWtfcHciOmZhbHNlLCJ1bmlxX2RldmljZSI6ImRkNTA0NzY5ODg0ZDhkNDdlZmM0NjZmNmEyYzY0NTdhIiwibG9naW5fbWV0aG9kIjpudWxsfQ.Ifhg1xWyTu22fsWHwMCIbU3gH9mId_ZzhPPJ17bxh0U';
         $link = 'https://web.giaohangtietkiem.vn/api/v1/package/package-detail?alias=' . $orderCode;
@@ -786,6 +1002,193 @@ class ShippingOrderController extends Controller
         return $result;
     }
 
+    public function detailDataVTPost($orderCode)
+    {
+        $result = [];
+        $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsImludGVybmFsIjpmYWxzZSwiVXNlcklkIjoxNjk4MjMwNiwiRnJvbVNvdXJjZSI6MywiVG9rZW4iOiJCQzA1RjE4QUUzOUFCMDRGOEQ4QTkwRjQzRDNFQzVDNiIsInNlc3Npb25JZCI6IjEwMkEwRUI4RDBBODg3QkMzQzk4QzcyRkRFM0Q2MUMxIiwiZXhwIjoxNzYwOTQ1MTc1LCJsc3RDaGlsZHJlbiI6IiIsIlBhcnRuZXIiOjAsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MX0.oNCwZxzeB1pK7TM4c_2YTD7QUNGXHIhAZROM4h4sns9lRVpv5TDa9LU3xXo6ixhKDfTnzZhUxaoDMByfTF62tw';
+
+        try {
+            //token lấy từ web
+            $endpoint = "https://api.viettelpost.vn/api/setting/listOrderTrackingVTP3?OrderNumber=" . $orderCode;
+            
+            $response = Http::withHeaders([
+                'Token' => $token,
+                'Content-Type' => 'application/json'
+            ])->get($endpoint);
+
+
+            if ($response->status() == 200) {
+                // $shippingOrder = ShippingOrder::whereOrderCode($orderCode)->first();
+                // if (!$shippingOrder->order) {
+                //     return false;
+                // }
+
+                $responseData = $response->json();
+                $data = $responseData['data'];
+                // Lấy thông tin đơn hàng và lịch sử vận chuyển
+                $result = [
+                    'statusLogs' => $data,
+                ];
+
+                // return $result;
+            }
+            // \Log::error('ViettelPost Detail Error:', [
+            //     'orderCode' => $orderCode,
+            //     'response' => $response->json()
+            // ]);
+            
+            // return false;
+            
+        } catch (\Exception $e) {
+            \Log::error('ViettelPost Detail Exception:', [
+                'orderCode' => $orderCode,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+
+        try {
+            //token lấy từ web
+            $endpoint = "https://api.viettelpost.vn/api/setting/getOrderDetailForWeb?OrderNumber=" . $orderCode;
+            
+            $response = Http::withHeaders([
+                'Token' => $token,
+                'Content-Type' => 'application/json'
+            ])->get($endpoint);
+
+          
+            if ($response->status() == 200) {
+                // $shippingOrder = ShippingOrder::whereOrderCode($orderCode)->first();
+                // if (!$shippingOrder->order) {
+                //     return false;
+                // }
+
+                $responseData = $response->json();
+                $data = $responseData[0];
+                // Lấy thông tin đơn hàng và lịch sử vận chuyển
+                $result['order'] = $data;
+            } 
+        } catch (\Exception $e) {
+            \Log::error('ViettelPost Detail Exception:', [
+                'orderCode' => $orderCode,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+
+        return $result;
+    }
+
+    /**
+     * In đơn hàng ViettelPost
+     */
+    public function printVTPost($orderCode)
+    {
+        try {
+            $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsImludGVybmFsIjpmYWxzZSwiVXNlcklkIjoxNjk4MjMwNiwiRnJvbVNvdXJjZSI6MywiVG9rZW4iOiJCQzA1RjE4QUUzOUFCMDRGOEQ4QTkwRjQzRDNFQzVDNiIsInNlc3Npb25JZCI6IjEwMkEwRUI4RDBBODg3QkMzQzk4QzcyRkRFM0Q2MUMxIiwiZXhwIjoxNzYwOTQ1MTc1LCJsc3RDaGlsZHJlbiI6IiIsIlBhcnRuZXIiOjAsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MX0.oNCwZxzeB1pK7TM4c_2YTD7QUNGXHIhAZROM4h4sns9lRVpv5TDa9LU3xXo6ixhKDfTnzZhUxaoDMByfTF62tw';
+            
+            // API ViettelPost để in đơn hàng - Trả về link PDF
+            $endpoint = "https://partner.viettelpost.vn/v2/order/createOrderPDF";
+            
+            $data = [
+                "ORDER_ARRAY" => [$orderCode],
+                "TYPE" => 1  // 1: In đơn 80x80, 2: In A5
+            ];
+            
+            $response = Http::withHeaders([
+                'Token' => $token,
+                'Content-Type' => 'application/json'
+            ])->post($endpoint, $data);
+
+            if ($response->status() == 200) {
+                $responseData = $response->json();
+                
+                if (isset($responseData['status']) && $responseData['status'] == 200) {
+                    // ViettelPost trả về URL PDF
+                    if (isset($responseData['data']['URL'])) {
+                        $pdfUrl = $responseData['data']['URL'];
+                        return redirect($pdfUrl);
+                    }
+                    
+                    // Hoặc trả về base64 PDF
+                    if (isset($responseData['data']['PDF'])) {
+                        $pdf = base64_decode($responseData['data']['PDF']);
+                        return response($pdf, 200)
+                            ->header('Content-Type', 'application/pdf')
+                            ->header('Content-Disposition', 'inline; filename="' . $orderCode . '.pdf"');
+                    }
+                }
+            }
+            
+            notify()->error('Không thể tạo phiếu in ViettelPost!', 'Lỗi!');
+            return back();
+            
+        } catch (\Exception $e) {
+            \Log::error('ViettelPost Print Exception:', [
+                'orderCode' => $orderCode,
+                'error' => $e->getMessage()
+            ]);
+            notify()->error('Lỗi khi tạo phiếu in: ' . $e->getMessage(), 'Lỗi!');
+            return back();
+        }
+    }
+
+    /**
+     * In nhiều đơn hàng ViettelPost
+     */
+    public function printMultipleVTPost(Request $req)
+    {
+        try {
+            $orderCodes = $req->input('order_codes', []);
+            
+            if (empty($orderCodes)) {
+                notify()->error('Chưa chọn đơn hàng để in!', 'Lỗi!');
+                return back();
+            }
+            
+            $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsImludGVybmFsIjpmYWxzZSwiVXNlcklkIjoxNjk4MjMwNiwiRnJvbVNvdXJjZSI6MywiVG9rZW4iOiJCQzA1RjE4QUUzOUFCMDRGOEQ4QTkwRjQzRDNFQzVDNiIsInNlc3Npb25JZCI6IjEwMkEwRUI4RDBBODg3QkMzQzk4QzcyRkRFM0Q2MUMxIiwiZXhwIjoxNzYwOTQ1MTc1LCJsc3RDaGlsZHJlbiI6IiIsIlBhcnRuZXIiOjAsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MX0.oNCwZxzeB1pK7TM4c_2YTD7QUNGXHIhAZROM4h4sns9lRVpv5TDa9LU3xXo6ixhKDfTnzZhUxaoDMByfTF62tw';
+            
+            $endpoint = "https://partner.viettelpost.vn/v2/order/createOrderPDF";
+            
+            $data = [
+                "ORDER_ARRAY" => $orderCodes,
+                "TYPE" => $req->input('type', 1)  // 1: 80x80, 2: A5
+            ];
+            
+            $response = Http::withHeaders([
+                'Token' => $token,
+                'Content-Type' => 'application/json'
+            ])->post($endpoint, $data);
+
+            if ($response->status() == 200) {
+                $responseData = $response->json();
+                
+                if (isset($responseData['status']) && $responseData['status'] == 200) {
+                    if (isset($responseData['data']['URL'])) {
+                        return redirect($responseData['data']['URL']);
+                    }
+                    
+                    if (isset($responseData['data']['PDF'])) {
+                        $pdf = base64_decode($responseData['data']['PDF']);
+                        return response($pdf, 200)
+                            ->header('Content-Type', 'application/pdf')
+                            ->header('Content-Disposition', 'inline; filename="viettelpost_orders.pdf"');
+                    }
+                }
+            }
+            
+            notify()->error('Không thể tạo phiếu in ViettelPost!', 'Lỗi!');
+            return back();
+            
+        } catch (\Exception $e) {
+            \Log::error('ViettelPost Print Multiple Exception:', [
+                'error' => $e->getMessage()
+            ]);
+            notify()->error('Lỗi khi tạo phiếu in: ' . $e->getMessage(), 'Lỗi!');
+            return back();
+        }
+    }
+
     public function detailShippingOrder($id) {
         
         $ship = ShippingOrder::find($id);
@@ -794,15 +1197,21 @@ class ShippingOrderController extends Controller
         }
 
         if ($ship['vendor_ship'] == 'GHTK') {
-            return redirect()->route('empty');
+            // return redirect()->route('empty');
             $dataGHTK = $this->detailDataGHTK($ship['order_code']);
             if (!$dataGHTK) {
                 return view('pages.noti.ghtk');
             }
 
             return view('pages.orders.shipping.detailGHTK')->with('data' , $dataGHTK);
+        } else if ($ship['vendor_ship'] == 'VTPOST') {
+            $dataVTPost = $this->detailDataVTPost($ship['order_code']);
+            if (!$dataVTPost) {
+                return view('pages.noti.vtpost');
+            }
+            return view('pages.orders.shipping.detailVTPost')->with('data' , $dataVTPost);
         }
-       
+        
         // $orderCode  = $ship->order_code;
 
         // $endpointTracking   = "https://fe-online-gateway.ghn.vn/order-tracking/public-api/client/tracking-logs?order_code=" . $orderCode;

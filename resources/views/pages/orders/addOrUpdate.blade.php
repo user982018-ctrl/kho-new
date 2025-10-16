@@ -1187,9 +1187,11 @@ $.urlParam = function(name){
         //         return res.json();
         //     });
 
+        // Xử lý khi chọn quận/huyện - tự động load phường/xã
         $('#distric-filter').on('change', function() {
             var id = this.value;
             var _token  = $("input[name='_token']").val();
+            
             $.ajax({
                 url: "{{ route('get-ward-by-id-distric') }}",
                 type: 'GET',
@@ -1199,8 +1201,7 @@ $.urlParam = function(name){
                 },
                 success: function(data) {
                     if (data.length > 0) {
-                        
-                        let str = '';
+                        let str = '<option value="">--Chọn phường/xã--</option>';
                         $.each(data, function(index, value) {
                             str += `<option value="` +value.id+ `">` + value.name + `</option>`;
                         });
@@ -1210,7 +1211,110 @@ $.urlParam = function(name){
                     }
                 }
             });
-        })
+        });
+
+        // Xử lý khi nhập địa chỉ chi tiết - tự động chọn quận/huyện và phường/xã
+        var addressTimeout;
+        $('#addressFor').on('input', function() {
+            clearTimeout(addressTimeout);
+            var addressInput = $(this).val();
+            
+            // Chỉ phân tích khi người dùng dừng nhập 1 giây
+            addressTimeout = setTimeout(function() {
+                if (addressInput.length > 5) {
+                    console.log('Bắt đầu phân tích địa chỉ:', addressInput);
+                    analyzeAddress(addressInput);
+                }
+            }, 1000);
+        });
+
+        // Xử lý khi blur khỏi input địa chỉ
+        $('#addressFor').on('blur', function() {
+            var addressInput = $(this).val();
+            if (addressInput.length > 5) {
+                console.log('Blur - Phân tích địa chỉ:', addressInput);
+                analyzeAddress(addressInput);
+            }
+        });
+
+        // Hàm phân tích địa chỉ và tự động chọn quận/huyện, phường/xã
+        function analyzeAddress(address) {
+            var _token = $("input[name='_token']").val();
+            var districtId = null;
+            var wardId = null;
+            var districtName = '';
+            var wardName = '';
+            
+            console.log('Địa chỉ cần phân tích:', address);
+            
+            // Lấy danh sách tất cả quận/huyện
+            var allDistricts = $('#distric-filter option').map(function() {
+                var fullName = $(this).text();
+                // Lấy tên quận/huyện (phần trước dấu -)
+                var districtNameOnly = fullName.split(' - ')[0].toLowerCase().trim();
+                return {
+                    id: $(this).val(),
+                    fullName: fullName.toLowerCase(),
+                    name: districtNameOnly
+                };
+            }).get();
+
+            console.log('Danh sách quận/huyện:', allDistricts);
+
+            // Tìm quận/huyện trong địa chỉ
+            var addressLower = address.toLowerCase();
+            for (var i = 0; i < allDistricts.length; i++) {
+                if (allDistricts[i].id && allDistricts[i].name) {
+                    // Tìm theo tên ngắn (trước dấu -)
+                    if (addressLower.indexOf(allDistricts[i].name) !== -1) {
+                        districtId = allDistricts[i].id;
+                        districtName = allDistricts[i].fullName;
+                        console.log('Tìm thấy quận/huyện:', districtName, 'ID:', districtId);
+                        break;
+                    }
+                }
+            }
+
+            // Nếu tìm thấy quận/huyện, load phường/xã
+            if (districtId) {
+                console.log('Đang chọn quận/huyện:', districtId);
+                $('#distric-filter').val(districtId).trigger('change');
+                
+                // Sau khi load xong phường/xã, tìm phường/xã
+                setTimeout(function() {
+                    var allWards = $('#ward-filter option').map(function() {
+                        return {
+                            id: $(this).val(),
+                            name: $(this).text().toLowerCase()
+                        };
+                    }).get();
+
+                    console.log('Danh sách phường/xã:', allWards);
+
+                    // Tìm phường/xã trong địa chỉ
+                    for (var j = 0; j < allWards.length; j++) {
+                        if (allWards[j].id && allWards[j].name) {
+                            if (addressLower.indexOf(allWards[j].name) !== -1) {
+                                wardId = allWards[j].id;
+                                wardName = allWards[j].name;
+                                console.log('Tìm thấy phường/xã:', wardName, 'ID:', wardId);
+                                break;
+                            }
+                        }
+                    }
+
+                    // Tự động chọn phường/xã nếu tìm thấy
+                    if (wardId) {
+                        $('#ward-filter').val(wardId).trigger('change');
+                        console.log('✅ Đã tự động chọn: Phường/Xã: ' + wardName + ', Quận/Huyện: ' + districtName);
+                    } else {
+                        console.log('❌ Không tìm thấy phường/xã phù hợp');
+                    }
+                }, 800);
+            } else {
+                console.log('❌ Không tìm thấy quận/huyện phù hợp');
+            }
+        }
     });
 </script>
 <script type="text/javascript">

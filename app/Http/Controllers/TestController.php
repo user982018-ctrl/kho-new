@@ -966,7 +966,7 @@ class TestController extends Controller
 
       $pages = $group->srcs;
       foreach ($pages as $page) {
-        // if ($page->id_page != '378087158713964') {
+        // if ($page->id_page != '750099411515741') {
         //   continue;
         // }
         if ($page->type == 'pc' ) {
@@ -1268,9 +1268,14 @@ class TestController extends Controller
 
   public function export()
   {
+    $user = User::find(159);
+    $listSaleOfLeader = Helper::getListSaleV2($user)->get();
+    $listSaleId = $listSaleOfLeader->pluck('id')->toArray();
+    // dd($listSaleOfLeader->pluck('id')->toArray());
+    // dd($listSaleId);
     $sale = new SaleController();
     $req = new Request();
-    $req['daterange'] = ['11/09/2025', '30/09/2025'];
+    $req['daterange'] = ['01/09/2025', '15/10/2025'];
     // $req['sale'] = '59';
     // $req['typeDate'] = '2';
     // $sales = ['171','70'];
@@ -1279,11 +1284,11 @@ class TestController extends Controller
     $list->whereNull('id_order_new');
     $list->whereNull('id_order');
     $list->where('old_customer', 0);
-    // $list->where('is_duplicate', 0);
+    $list->where('is_duplicate', 0);
     $list->where('group_id', '11');
     // $list->paginate(1000, ['*'], 'page', 4);
-    // $list->whereIn('assign_user', $sales);
-    // dd($list->get());
+    $list->whereIn('assign_user', $listSaleId);
+    // dd($list->pluck('assign_user')->toArray());
     $dataExport[] = [
       'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách', 'Sale'
     ];
@@ -1309,7 +1314,7 @@ class TestController extends Controller
       $i++;
     }
 
-    return Excel::download(new UsersExport($dataExport), 'thuy-san-tháng-9.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'team-Truc.xlsx');
   }
   
   public function wakeUp()
@@ -1473,7 +1478,7 @@ WHERE  NOT EXISTS
 
     $list = Orders::select('orders.*')->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->join('sale_care', 'sale_care.id', '=', 'orders.sale_care')
-      ->where('shipping_order.vendor_ship', 'GHN')
+      ->where('shipping_order.vendor_ship', 'GHTK')
       ->where('orders.status', 3)
       ->whereDate('orders.created_at', '>=', $dateBegin)
       ->whereDate('orders.created_at', '<=', $dateEnd)
@@ -1715,12 +1720,12 @@ WHERE  NOT EXISTS
       $i++;
     }
     // dd($dataExport);
-    return Excel::download(new UsersExport($dataExport), 'GHN-(18-09)-(30-09)-2025.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'GHTK-(18-09)-(30-09)-2025.xlsx');
   }
 
   public function exportTaxV2()
   {
-    $time = ['07/09/2025', '17/09/2025'];
+    $time = ['18/09/2025', '30/09/2025'];
     $timeBegin  = str_replace('/', '-', $time[0]);
     $timeEnd    = str_replace('/', '-', $time[1]);
     $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
@@ -1728,7 +1733,7 @@ WHERE  NOT EXISTS
 
     $list = Orders::select('orders.*')->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->join('sale_care', 'sale_care.id', '=', 'orders.sale_care')
-      ->where('shipping_order.vendor_ship', 'GHN')
+      ->where('shipping_order.vendor_ship', 'GHTK')
       ->where('orders.status', 3)
       ->whereDate('orders.created_at', '>=', $dateBegin)
       ->whereDate('orders.created_at', '<=', $dateEnd)
@@ -2220,7 +2225,7 @@ WHERE  NOT EXISTS
     }
     
     // dd($dataExport);
-    return Excel::download(new UsersExport($dataExport), 'GHN-(07-09)-(17-09)-2025.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'GHTK-(18-09)-(30-09)-2025.xlsx');
   }
 
     public function parseProductString($str) 
@@ -2407,6 +2412,357 @@ WHERE  NOT EXISTS
     }
     
     return $newName;
+  }
+
+  /**
+   * Lấy danh sách quận/huyện từ API Viettel Post và lưu vào file JSON
+   * URL: /test/fetch-viettel-districts
+   */
+  public function fetchViettelPostDistricts()
+  {
+    try {
+      // Gọi API Viettel Post để lấy danh sách quận/huyện
+      $endpoint = "https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=-1";
+      $response = Http::get($endpoint);
+
+      if ($response->status() == 200) {
+        $data = $response->json();
+        
+        // Lưu vào file JSON
+        $jsonPath = public_path('json/viettel_districts.json');
+        file_put_contents($jsonPath, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        
+        return response()->json([
+          'success' => true,
+          'message' => 'Đã lưu thành công dữ liệu quận/huyện từ Viettel Post',
+          'file' => 'public/json/viettel_districts.json',
+          'total_districts' => count($data['data'] ?? [])
+        ]);
+      } else {
+        return response()->json([
+          'success' => false,
+          'message' => 'Không thể lấy dữ liệu từ API Viettel Post',
+          'status' => $response->status()
+        ]);
+      }
+    } catch (\Exception $e) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Lỗi: ' . $e->getMessage()
+      ]);
+    }
+  }
+
+  /**
+   * Lấy danh sách tỉnh/thành phố từ API Viettel Post và lưu vào file JSON
+   * URL: /test/fetch-viettel-provinces
+   */
+  public function fetchViettelPostProvinces()
+  {
+    try {
+      // Gọi API Viettel Post để lấy danh sách tỉnh/thành phố
+      $endpoint = "https://partner.viettelpost.vn/v2/categories/listProvince";
+      $response = Http::get($endpoint);
+
+      if ($response->status() == 200) {
+        $data = $response->json();
+        
+        // Lưu vào file JSON
+        $jsonPath = public_path('json/viettel_provinces.json');
+        file_put_contents($jsonPath, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        
+        return response()->json([
+          'success' => true,
+          'message' => 'Đã lưu thành công dữ liệu tỉnh/thành phố từ Viettel Post',
+          'file' => 'public/json/viettel_provinces.json',
+          'total_provinces' => count($data['data'] ?? [])
+        ]);
+      } else {
+        return response()->json([
+          'success' => false,
+          'message' => 'Không thể lấy dữ liệu từ API Viettel Post',
+          'status' => $response->status()
+        ]);
+      }
+    } catch (\Exception $e) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Lỗi: ' . $e->getMessage()
+      ]);
+    }
+  }
+
+  /**
+   * Lấy danh sách phường/xã theo quận/huyện từ API Viettel Post
+   * URL: /test/fetch-viettel-wards?districtId=1
+   */
+  public function fetchViettelPostWards(Request $request)
+  {
+    try {
+      $districtId = $request->input('districtId', 1);
+      
+      // Gọi API Viettel Post để lấy danh sách phường/xã
+      $endpoint = "https://partner.viettelpost.vn/v2/categories/listWards?districtId=" . $districtId;
+      $response = Http::get($endpoint);
+
+      if ($response->status() == 200) {
+        $data = $response->json();
+        
+        return response()->json([
+          'success' => true,
+          'message' => 'Lấy dữ liệu thành công',
+          'data' => $data['data'] ?? [],
+          'total_wards' => count($data['data'] ?? [])
+        ]);
+      } else {
+        return response()->json([
+          'success' => false,
+          'message' => 'Không thể lấy dữ liệu từ API Viettel Post',
+          'status' => $response->status()
+        ]);
+      }
+    } catch (\Exception $e) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Lỗi: ' . $e->getMessage()
+      ]);
+    }
+  }
+
+  /**
+   * Lấy TẤT CẢ ấp/thôn/xóm từ API Viettel Post và lưu vào file JSON
+   * URL: /test/fetch-all-viettel-subwards
+   * Cảnh báo: API này sẽ mất RẤT NHIỀU thời gian
+   */
+  public function fetchAllViettelPostSubwards()
+  {
+    try {
+      // Đọc file wards đã lưu
+      $wardJsonPath = public_path('json/viettel_wards.json');
+      
+      if (!file_exists($wardJsonPath)) {
+        return response()->json([
+          'success' => false,
+          'message' => 'Vui lòng chạy /test/fetch-all-viettel-wards trước để lấy danh sách phường/xã'
+        ]);
+      }
+
+      $wardData = json_decode(file_get_contents($wardJsonPath), true);
+      $wards = $wardData['data'] ?? [];
+
+      $allSubwards = [];
+      $totalWards = count($wards);
+      $processedCount = 0;
+      $errorCount = 0;
+
+      echo "Bắt đầu lấy ấp/thôn/xóm cho " . $totalWards . " phường/xã...\n";
+      flush();
+
+      // Lặp qua từng phường/xã và lấy danh sách ấp/thôn
+      foreach ($wards as $ward) {
+        $wardId = $ward['WARDS_ID'];
+        $wardName = $ward['WARDS_NAME'];
+        
+        try {
+          // Gọi API Viettel Post để lấy danh sách ấp/thôn
+          $endpoint = "https://partner.viettelpost.vn/v2/categories/listSubwards?wardsId=" . $wardId;
+          $response = Http::timeout(10)->get($endpoint);
+
+          if ($response->status() == 200) {
+            $data = $response->json();
+            $subwards = $data['data'] ?? [];
+            
+            // Thêm thông tin phường/xã vào mỗi ấp/thôn
+            foreach ($subwards as $subward) {
+              $subward['WARDS_ID'] = $wardId;
+              $subward['WARDS_NAME'] = $wardName;
+              $allSubwards[] = $subward;
+            }
+            
+            $processedCount++;
+            if ($processedCount % 100 == 0) {
+              echo "✓ Đã xử lý " . $processedCount . "/" . $totalWards . " phường/xã\n";
+              flush();
+            }
+          } else {
+            $errorCount++;
+          }
+
+          // Delay 0.05 giây để tránh quá tải API
+          usleep(50000);
+
+        } catch (\Exception $e) {
+          $errorCount++;
+        }
+      }
+
+      // Lưu vào file JSON
+      $result = [
+        'status' => 200,
+        'error' => false,
+        'message' => 'OK',
+        'total_wards' => $totalWards,
+        'processed_wards' => $processedCount,
+        'errors' => $errorCount,
+        'total_subwards' => count($allSubwards),
+        'data' => $allSubwards
+      ];
+
+      $jsonPath = public_path('json/viettel_subwards.json');
+      file_put_contents($jsonPath, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+      return response()->json([
+        'success' => true,
+        'message' => 'Đã lưu thành công dữ liệu ấp/thôn/xóm từ Viettel Post',
+        'file' => 'public/json/viettel_subwards.json',
+        'total_subwards' => count($allSubwards),
+        'total_wards' => $totalWards,
+        'processed_wards' => $processedCount,
+        'errors' => $errorCount
+      ]);
+
+    } catch (\Exception $e) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Lỗi: ' . $e->getMessage()
+      ]);
+    }
+  }
+
+  /**
+   * Lấy TẤT CẢ phường/xã của TẤT CẢ quận/huyện từ API Viettel Post và lưu vào file JSON
+   * URL: /test/fetch-all-viettel-wards
+   * Cảnh báo: API này sẽ mất nhiều thời gian vì phải gọi API cho từng quận/huyện
+   */
+  public function fetchAllViettelPostWards2()
+  {
+    try {
+      // Đọc file districts đã lưu
+      $districtJsonPath = public_path('json/viettel_districts.json');
+      
+      if (!file_exists($districtJsonPath)) {
+        return response()->json([
+          'success' => false,
+          'message' => 'Vui lòng chạy /test/fetch-viettel-districts trước để lấy danh sách quận/huyện'
+        ]);
+      }
+
+      $districtData = json_decode(file_get_contents($districtJsonPath), true);
+      $districts = $districtData['data'] ?? [];
+
+      $allWards = [];
+      $totalDistricts = count($districts);
+      $processedCount = 0;
+      $errorCount = 0;
+
+      // Lặp qua từng quận/huyện và lấy danh sách phường/xã
+      foreach ($districts as $district) {
+        $districtId = $district['DISTRICT_ID'];
+        $districtName = $district['DISTRICT_NAME'];
+        
+        try {
+          // Gọi API Viettel Post để lấy danh sách phường/xã
+          $endpoint = "https://partner.viettelpost.vn/v2/categories/listWards?districtId=" . $districtId;
+          $response = Http::timeout(10)->get($endpoint);
+
+          if ($response->status() == 200) {
+            $data = $response->json();
+            $wards = $data['data'] ?? [];
+            
+            // Thêm thông tin quận/huyện vào mỗi phường/xã
+            foreach ($wards as $ward) {
+              $ward['DISTRICT_ID'] = $districtId;
+              $ward['DISTRICT_NAME'] = $districtName;
+              $allWards[] = $ward;
+            }
+            
+            $processedCount++;
+            echo "✓ Đã lấy " . count($wards) . " phường/xã của " . $districtName . " ($processedCount/$totalDistricts)\n";
+            flush();
+          } else {
+            $errorCount++;
+            echo "✗ Lỗi khi lấy dữ liệu của " . $districtName . " (Status: " . $response->status() . ")\n";
+            flush();
+          }
+
+          // Delay 0.1 giây để tránh quá tải API
+          usleep(100000);
+
+        } catch (\Exception $e) {
+          $errorCount++;
+          echo "✗ Exception với " . $districtName . ": " . $e->getMessage() . "\n";
+          flush();
+        }
+      }
+
+      // Lưu vào file JSON
+      $result = [
+        'status' => 200,
+        'error' => false,
+        'message' => 'OK',
+        'total_districts' => $totalDistricts,
+        'processed_districts' => $processedCount,
+        'errors' => $errorCount,
+        'total_wards' => count($allWards),
+        'data' => $allWards
+      ];
+
+      $jsonPath = public_path('json/viettel_wards.json');
+      file_put_contents($jsonPath, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+      return response()->json([
+        'success' => true,
+        'message' => 'Đã lưu thành công dữ liệu phường/xã từ Viettel Post',
+        'file' => 'public/json/viettel_wards.json',
+        'total_wards' => count($allWards),
+        'total_districts' => $totalDistricts,
+        'processed_districts' => $processedCount,
+        'errors' => $errorCount
+      ]);
+
+    } catch (\Exception $e) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Lỗi: ' . $e->getMessage()
+      ]);
+    }
+  }
+
+  public function fetchAllViettelPostWards()
+  {
+    try {
+      // $districtId = $request->input('districtId', 1);
+      
+      // Gọi API Viettel Post để lấy danh sách phường/xã
+      $endpoint = "https://partner.viettelpost.vn/v2/categories/listWards?districtId=-1";
+      $response = Http::get($endpoint);
+
+      if ($response->status() == 200) {
+        $data = $response->json();
+        
+        // Lưu vào file JSON
+        $jsonPath = public_path('json/viettel_provinces.json');
+        file_put_contents($jsonPath, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        
+        return response()->json([
+          'success' => true,
+          'message' => 'Đã lưu thành công dữ liệu tỉnh/thành phố từ Viettel Post',
+          'file' => 'public/json/viettel_wards.json',
+          'total_provinces' => count($data['data'] ?? [])
+        ]);
+      } else {
+        return response()->json([
+          'success' => false,
+          'message' => 'Không thể lấy dữ liệu từ API Viettel Post',
+          'status' => $response->status()
+        ]);
+      }
+    } catch (\Exception $e) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Lỗi: ' . $e->getMessage()
+      ]);
+    }
   }
 }
 

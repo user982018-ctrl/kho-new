@@ -168,6 +168,30 @@ class Helper
         return $result;
     }
 
+    public static function getListSaleOfLeader2($user) 
+    {
+        $arrQuery = [1];
+        $result = [];
+        // $user = Auth::user();
+        $checkAll = $isLeadSale = false;
+        $checkAll = isFullAccess($user->role);
+        $isLeadSale = Helper::isLeadSale($user->role);
+
+        if ($checkAll) {
+            $result = User::where('status', 1)
+                ->where(function($query) use ($arrQuery) {
+                foreach ($arrQuery as $term) {
+                    $query->orWhere('is_sale', $term)->orWhere('is_cskh', $term);
+                }
+            });
+        } else if ($isLeadSale) {
+            $result = Helper::getListSaleV2($user, true);
+            //thêm teamlead
+        }
+        
+        return $result;
+    }
+
     public static function getListSaleOfLeader() 
     {
         $arrQuery = [1];

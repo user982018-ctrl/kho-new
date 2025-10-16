@@ -28,6 +28,127 @@ class OrdersController extends Controller
 {
     const bearTokenGHTK = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzaG9wX2NvZGUiOiJTMjExNzg4NDMiLCJzaG9wX2lkIjoiNjIyODc1ZTktNjMyMC00ZTlhLTljY2MtNGJlYzBhNmU0ZDU5Iiwic2hvcF9vcmRlciI6MjExNzg4NDMsInN0YWZmX2lkIjoxNzY2Nzg0LCJzb3VyY2UiOiJwbGF0Zm9ybSIsInJvbGUiOiJhZG1pbiIsInNob3Bfc3RhdHVzX2lkIjoxLCJzaG9wX3R5cGUiOjEsImFjY2Vzc190b2tlbiI6IjRhMzk5YTUxLTUwMDgtNDM4NC05ZmI0LTM0NmNmOGI3NzQyZSIsImp3dCI6bnVsbCwiaW52YWxpZF9hdCI6eyJkYXRlIjoiMjAyNS0xMS0wMyAwOTo1NzoyMS43NjEzNjQiLCJ0aW1lem9uZV90eXBlIjozLCJ0aW1lem9uZSI6IkFzaWFcL0hvX0NoaV9NaW5oIn0sImxvZ2luX2FzX2lkIjpudWxsLCJsb2dpbl9hc19zZXNzaW9uX2lkIjpudWxsLCJsb2dpbl9hc190eXBlIjpudWxsLCJzZXNzaW9uIjpudWxsLCJtb3Nob3BfdXNlcl9pZCI6bnVsbCwic2hvcF90b2tlbiI6ImJkMTkzRTkyMGI3RTQwM2U4ZDVFNUI3Qzk5YkFiQWJjY2MyMjQzQ2YiLCJjcmVhdGVkX2F0Ijp7ImRhdGUiOiIyMDI1LTEwLTA0IDA5OjU3OjIxLjc1ODY2MSIsInRpbWV6b25lX3R5cGUiOjMsInRpbWV6b25lIjoiQXNpYVwvSG9fQ2hpX01pbmgifSwic2NvcGVzIjpbInNob3AudmlldyIsInNob3AudGVsLnZpZXcuIiwic2hvcC5lbWFpbC52aWV3Iiwic2hvcC5pZF9jYXJkLnZpZXciLCJzaG9wLnBpY2tfYWRkcmVzc2VzLnZpZXciLCJzaG9wLmJhbmtfYWNjb3VudC52aWV3Iiwic2hvcC51cGRhdGUiLCJzaG9wLmJhc2ljX2luZm8udXBkYXRlIiwic2hvcC5hdmF0YXIudXBkYXRlIiwic2hvcC5waWNrX2FkZHJlc3Nlcy51cGRhdGUiLCJzaG9wLnRlbC51cGRhdGUiLCJzaG9wLmVtYWlsLnVwZGF0ZSIsInNob3AuYmFua19hY2NvdW50LnVwZGF0ZSIsInNob3AuaWRfY2FyZC51cGRhdGUiLCJzaG9wLnN0YWZmLnZpZXciLCJzaG9wLnN0YWZmLmNyZWF0ZSIsInNob3Auc3RhZmYudXBkYXRlIiwic2hvcC5zdGFmZi5kZWxldGUiLCJzaG9wLmJyYW5jaC52aWV3Iiwic2hvcC5icmFuY2gubGlzdCIsInNob3AuYnJhbmNoLmNyZWF0ZSIsInNob3AuYnJhbmNoLnVwZGF0ZSIsInNob3AuYnJhbmNoLmRlbGV0ZSIsImNvbmZpZy5hcGlfdG9rZW4udmlldyIsImNvbmZpZy5hcGlfdG9rZW4ucmVxdWVzdCIsImNvbmZpZy5zeXN0ZW0udXBkYXRlIiwiY29uZmlnLmF1ZGl0X3RpbWUudmlldyIsImNvbmZpZy5hdWRpdF90aW1lLnVwZGF0ZSIsImNvbmZpZy5zaG9wLnVwZGF0ZSIsInNob3AuZGFzaGJvYXJkIiwic2hvcC5yZXBvcnQubW9uZXlfZmxvdyIsInNob3AucmVwb3J0LmRhaWx5LnZpZXciLCJzaG9wLnJlcG9ydC5kYWlseS5kb3dubG9hZCIsIm9yZGVyLmxpc3QiLCJvcmRlci5leHBvcnRfZmlsZSIsIm9yZGVyLmRldGFpbCIsIm9yZGVyLmNyZWF0ZSIsIm9yZGVyLmV4Y2hhbmdlLmNyZWF0ZSIsIm9yZGVyLmRlbGl2ZXJ5LmNyZWF0ZSIsIm9yZGVyLnVwZGF0ZSIsIm9yZGVyLnJlcXVlc3RfY2FuY2VsIiwib3JkZXIucHJpbnQiLCJvcmRlci5kcmFmdC52aWV3Iiwib3JkZXIuZHJhZnQubGlzdCIsIm9yZGVyLmRyYWZ0LmNyZWF0ZSIsIm9yZGVyLmRyYWZ0LnVwZGF0ZSIsIm9yZGVyLmRyYWZ0LmRlbGV0ZSIsInRpY2tldC5hZGQiLCJ0aWNrZXQub3JkZXIucGlja190ZWwudXBkYXRlIiwidGlja2V0Lm9yZGVyLnBpY2tfYWRkcmVzcy51cGRhdGUiLCJ0aWNrZXQub3JkZXIuY3VzdG9tZXJfdGVsLnVwZGF0ZSIsInRpY2tldC5vcmRlci5jdXN0b21lcl9hZGRyZXNzLnVwZGF0ZSIsInRpY2tldC5vcmRlci5waWNrX21vbmV5LnVwZGF0ZSIsImN1c3RvbWVyLnZpZXciLCJjdXN0b21lci51cGRhdGUiLCJjdXN0b21lci5uYW1lLnZpZXciLCJjdXN0b21lci50ZWwudmlldyIsInByb2R1Y3Quc2VhcmNoIiwicHJvZHVjdC52aWV3IiwicHJvZHVjdC5jcmVhdGUiLCJwcm9kdWN0LnVwZGF0ZSIsInByb2R1Y3QuZGVsZXRlIiwid2FsbGV0LmxvZ2luIiwicmV2aWV3LnZpZXciLCJyZXZpZXcudXBkYXRlIiwiY2hhdC5jdXN0b21lciIsInNob3AuZGlzYWJsZSJdLCJkZXZpY2UiOiJjYmM5ZTI1N2RjNzE3OTQ2YjQ0ZTk2MGMwMjIxZWRmOCIsImlzX3dlYWtfcHciOmZhbHNlLCJ1bmlxX2RldmljZSI6ImRkNTA0NzY5ODg0ZDhkNDdlZmM0NjZmNmEyYzY0NTdhIiwibG9naW5fbWV0aG9kIjpudWxsfQ.Ifhg1xWyTu22fsWHwMCIbU3gH9mId_ZzhPPJ17bxh0U';
     
+    public function printOrderByOrderCodeVTPost($orderCode)
+    {
+        try {
+            $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsImludGVybmFsIjpmYWxzZSwiVXNlcklkIjoxNjk4MjMwNiwiRnJvbVNvdXJjZSI6MywiVG9rZW4iOiJCQzA1RjE4QUUzOUFCMDRGOEQ4QTkwRjQzRDNFQzVDNiIsInNlc3Npb25JZCI6IjEwMkEwRUI4RDBBODg3QkMzQzk4QzcyRkRFM0Q2MUMxIiwiZXhwIjoxNzYwOTQ1MTc1LCJsc3RDaGlsZHJlbiI6IiIsIlBhcnRuZXIiOjAsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MX0.oNCwZxzeB1pK7TM4c_2YTD7QUNGXHIhAZROM4h4sns9lRVpv5TDa9LU3xXo6ixhKDfTnzZhUxaoDMByfTF62tw';
+            
+            // API ViettelPost để in đơn hàng
+            $endpoint = "https://partner.viettelpost.vn/v2/order/createOrderPDF";
+            
+            $data = [
+                "ORDER_ARRAY" => [$orderCode],
+                "TYPE" => 1  // 1: In 80x80, 2: In A5
+            ];
+            
+            $response = Http::withHeaders([
+                'Token' => $token,
+                'Content-Type' => 'application/json'
+            ])->post($endpoint, $data);
+
+            if ($response->status() == 200) {
+                $responseData = $response->json();
+                
+                if (isset($responseData['status']) && $responseData['status'] == 200) {
+                    // Redirect đến URL PDF của ViettelPost
+                    if (isset($responseData['data']['URL'])) {
+                        return redirect($responseData['data']['URL']);
+                    }
+                    
+                    // Hoặc hiển thị PDF trực tiếp
+                    if (isset($responseData['data']['PDF'])) {
+                        $pdf = base64_decode($responseData['data']['PDF']);
+                        return response($pdf, 200)
+                            ->header('Content-Type', 'application/pdf')
+                            ->header('Content-Disposition', 'inline; filename="' . $orderCode . '.pdf"');
+                    }
+                }
+            }
+            
+            notify()->error('Không thể tạo phiếu in ViettelPost!', 'Lỗi!');
+            return back();
+            
+        } catch (\Exception $e) {
+            notify()->error('Lỗi: ' . $e->getMessage(), 'Lỗi!');
+            return back();
+        }
+    }
+    
+    public function getDataPrintOrderVTPost($orderCode)
+    {
+        // Deprecated - Sử dụng printOrderByOrderCodeVTPost thay thế
+        return [];
+    }
+
+    /**
+     * In tất cả đơn hàng ViettelPost đã chọn
+     */
+    public function printOrderByOrderAllVTPost(Request $r)
+    {
+        try {
+            $listJson = $r->q;
+            $list = json_decode($listJson, true);
+            $orderCodes = [];
+            
+            if ($list && count($list) > 0) {
+                foreach ($list as $orderId) {
+                    $order = Orders::find($orderId);
+                    if ($order) {
+                        $shippingOrder = $order->shippingOrder()->first();
+                        if ($shippingOrder && $shippingOrder->vendor_ship == 'VTPOST') {
+                            $orderCodes[] = $shippingOrder->order_code;
+                        }
+                    }
+                }
+            }
+
+            if (empty($orderCodes)) {
+                notify()->error('Không có đơn hàng ViettelPost nào để in!', 'Lỗi!');
+                return back();
+            }
+
+            $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsImludGVybmFsIjpmYWxzZSwiVXNlcklkIjoxNjk4MjMwNiwiRnJvbVNvdXJjZSI6MywiVG9rZW4iOiJCQzA1RjE4QUUzOUFCMDRGOEQ4QTkwRjQzRDNFQzVDNiIsInNlc3Npb25JZCI6IjEwMkEwRUI4RDBBODg3QkMzQzk4QzcyRkRFM0Q2MUMxIiwiZXhwIjoxNzYwOTQ1MTc1LCJsc3RDaGlsZHJlbiI6IiIsIlBhcnRuZXIiOjAsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MX0.oNCwZxzeB1pK7TM4c_2YTD7QUNGXHIhAZROM4h4sns9lRVpv5TDa9LU3xXo6ixhKDfTnzZhUxaoDMByfTF62tw';
+            
+            $endpoint = "https://partner.viettelpost.vn/v2/order/createOrderPDF";
+            
+            $data = [
+                "ORDER_ARRAY" => $orderCodes,
+                "TYPE" => 1  // 1: In 80x80, 2: In A5
+            ];
+            
+            $response = Http::withHeaders([
+                'Token' => $token,
+                'Content-Type' => 'application/json'
+            ])->post($endpoint, $data);
+
+            if ($response->status() == 200) {
+                $responseData = $response->json();
+                
+                if (isset($responseData['status']) && $responseData['status'] == 200) {
+                    // Redirect đến URL PDF của ViettelPost
+                    if (isset($responseData['data']['URL'])) {
+                        return redirect($responseData['data']['URL']);
+                    }
+                    
+                    // Hoặc hiển thị PDF trực tiếp
+                    if (isset($responseData['data']['PDF'])) {
+                        $pdf = base64_decode($responseData['data']['PDF']);
+                        return response($pdf, 200)
+                            ->header('Content-Type', 'application/pdf')
+                            ->header('Content-Disposition', 'inline; filename="viettelpost_orders.pdf"');
+                    }
+                }
+            }
+            
+            notify()->error('Không thể tạo phiếu in ViettelPost!', 'Lỗi!');
+            return back();
+            
+        } catch (\Exception $e) {
+            notify()->error('Lỗi: ' . $e->getMessage(), 'Lỗi!');
+            return back();
+        }
+    }
+    
     public function backOrder($id)
     {
         $order = Orders::find($id);

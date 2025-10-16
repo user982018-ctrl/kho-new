@@ -559,7 +559,6 @@ class HomeController extends Controller
             if (isset($dataFilter['group'])) {
                 $group = Group::find($dataFilter['group']);
                 if ($group) {
-
                     $listId = $list->pluck('id')->toArray();
                     $listOrder = Orders::select('orders.id')->join('sale_care', 'orders.sale_care', '=', 'sale_care.id')
                         ->where('sale_care.group_id', $dataFilter['group'])

@@ -303,7 +303,7 @@ class SaleController extends Controller
         $saleCare   = $this->getListSalesByPermisson(Auth::user(), $dataFilter);
 
         $listSrc    = SrcPage::select('id', 'name')->get();
-        $groups     = Group::select('id', 'name')->get();
+        $groups     = Group::select('id', 'name')->where('status', 1)->get();
         $callResults = CallResult::select('id', 'name')->get();
         $typeDate = TypeDate::select('id', 'name')->get();
         $listMktUser = Helper::getListMktUser()->select('id', 'name');

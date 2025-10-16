@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Helper;
+use App\Models\Group;
+use App\Models\GroupUser;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -90,9 +93,15 @@ class UserController extends Controller
         return redirect()->route('login');
     }
 
-    public function index() {
+    public function index() 
+    {
+        $groupDigital = GroupUser::orderBy('id', 'desc')->where('type', 'mkt')->get();
+        $groupSale = GroupUser::where('status', 1)
+            ->where('type', 'sale')->get();
+        $groups  = Group::select('id', 'name')->where('status', 1)->get(); 
         $list = User::orderBy('id', 'desc')->paginate(50);
-        return view('pages.users.index')->with('list', $list);
+        return view('pages.users.index')->with('list', $list)->with('groups', $groups)->with('groupSale', $groupSale)
+        ->with('groupDigital', $groupDigital);
     }
 
     public function add() {
@@ -229,7 +238,35 @@ class UserController extends Controller
 
     public function search(Request $str)
     {
-        $list = User::where('real_name',  'like', '%' . $str->search . '%')->paginate(50);
-        return view('pages.users.index')->with('list', $list);
+        $groupDigital = GroupUser::orderBy('id', 'desc')->where('type', 'mkt')->get();
+        $groupSale = GroupUser::where('status', 1)->where('type', 'sale')->get();
+        $list = User::orderBy('id', 'desc')->where('real_name',  'like', '%' . $str->search . '%');
+        $groups  = Group::select('id', 'name')->where('status', 1)->get(); 
+
+        if ($str->group && $str->group != 999) {
+            $group = Group::find($str->group);
+            if ($group && $group->sales) {
+                $listUserOfGroup = $group->sales->pluck('id_user')->toArray();
+                $list = $list->whereIn('id', $listUserOfGroup);
+            }
+        }
+        if ($str->sale && $str->sale != 999) {
+            $groupUS = GroupUser::find($str->sale);
+            if ($groupUS) {
+                $listSale = $groupUS->users;
+                $list = $list->whereIn('id', $listSale->pluck('id')->toArray());
+            }
+        }
+        if ($str->digital && $str->digital != 999) {
+            $groupUS = GroupUser::find($str->digital);
+            if ($groupUS) {
+                $listSale = $groupUS->users;
+                $list = $list->whereIn('id', $listSale->pluck('id')->toArray());
+            }
+        }
+
+        $list = $list->paginate(50);
+        return view('pages.users.index')->with('list', $list)->with('groups', $groups)
+            ->with('groupSale', $groupSale)->with('groupDigital', $groupDigital);
     }
 }

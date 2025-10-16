@@ -2,8 +2,24 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <!-- toastr js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
 
 <style>
+  .form-control {
+    line-height: unset;
+  }
+  .select2-container {
+    width: 100% !important;
+  }
+  /* .select2-selection__rendered { */
+  .result-TN-col .select-assign, .result-TN-col .select2-container--default .select2-selection--single , .result-TN {
+      background-color: inherit !important;
+      border: none;
+  }
+
+  .selectedClass .select2-container {
+      box-shadow: rgb(0, 123, 255) 0px 1px 1px 1px;
+  }
   /* Custom Modal Styles */
   .custom-modal {
     display: none;
@@ -160,81 +176,144 @@
     transform: translateX(16px);
   }
 </style>
-<div class="tab-content rounded-bottom">
-  <div class="tab-pane p-3 active preview" role="tabpanel" id="preview-1001">
-                    
-    <div class="row ">
-      <div class="col col-4">
-        <a class="btn btn-primary" href="{{route('add-user')}}" role="button">+ Thêm thành viên</a>
-      </div>
-      <div class="col-8 ">
-        <form class ="row tool-bar d-flex justify-content-end" action="{{route('search-user')}}" method="get">
-          <div class="col-3">
-            <input class="form-control" name="search" placeholder="Tìm thành viên..." type="text">
-          </div>
-          <div class="col-3 " style="padding-left:0;">
-            <button type="submit" class="btn btn-primary"><svg class="icon me-2">
-                        <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-search')}}"></use>
-                      </svg>Tìm</button>
-        </form>
-          </div>
-      </div>
-    </div>
-    <div class="example mt-0">
-      <div class="tab-content rounded-bottom">
-        <div class=" tab-pane p-3 active preview" role="tabpanel" id="preview-1002">
-          <table class="table table-bordered table-line">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Họ và tên</th>
-                <th scope="col">Tên đăng nhập</th>
-                <th scope="col">Email</th>
-                <th scope="col">Ngày tạo</th>
-                <th scope="col" class="text-center">Trạng thái</th>
-                <th scope="col"></th>
-              </tr>
-            </thead>
-            <tbody>
 
-            @foreach ($list as $item)
-      
-              <tr>
-                <td scope="row col-1">{{ $item->id }}</td>
-                <td scope="col-7" >  {{ ($item->real_name) ? $item->real_name : $item->name }}</td>
-                <td scope="row col-1">{{ $item->name }}</td>
-                <td scope="row col-1">{{ $item->email }}</td>
-                <td scope="col-1">  {{ date_format($item->created_at,"d-m-Y H:i")}}</td>
-                <td scope="col-1" class="text-center">
-                  <label class="toggle-switch">
-                    <input id="toggle-checkbox-<?= $item->id ?>" 
-                    data-name="<?= ($item->real_name) ? $item->real_name : $item->name ?>"
-                     onclick="updateStatus(<?= $item->id ?>)"
-                     type="checkbox" id="toggle-checkbox" name="status" <?= ($item->status == 1) ? 'checked' : '' ?>>
-                    <span class="slider"></span>
-                  </label>
-                </td>
-                <td scope="col-1">
-                <a class="btn btn-warning" href="{{route('update-user',['id'=>$item->id])}}" role="button">
-                    <svg class="icon me-2">
-                      <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-color-border')}}"></use>
-                    </svg>Sửa
-                </a>
-                  <a onclick="return confirm('Xoá thành viên?')" class="btn btn-danger active" href="{{route('delete-user',['id'=>$item->id])}}" role="button">
-                    <svg class="icon me-2">
-                      <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-backspace')}}"></use>
-                    </svg>Xoá
-                  </a>
-                </td>
-              </tr>
-              @endforeach
-              
-            </tbody>
-          </table>
-          {!! $list->links() !!}
+<?php
+  $listSale = Helper::getListSaleOfLeaderGroup(); 
+  $checkAll = isFullAccess(Auth::user()->role);
+  $isLeadSale = Helper::isLeadSale(Auth::user()->role);  
+  $isLeadDigital = Helper::isLeadDigital(Auth::user()->role);     
+  $flag = false;
+  $flagAccess = false;
+  $isDigital = Auth::user()->is_digital;
+  $listSaleJson = '';
+?>
+
+<div class="tab-content rounded-bottom">
+  <div class="tab-pane p-3 active preview" role="tabpanel" id="preview-1001">                  
+    <div class="row ">
+      <form id="userForm" action="{{route('search-user')}}" method="get">
+        {{ csrf_field() }}
+        <div class="maintain-filter-main">
+          <div class="m-header-wrap">
+            <div class="m-header" style="top:150px;">
+              <div class="row header-top-filter">
+                @if ($checkAll)
+                <div class="col-12 col-sm-3 col-md-3 col-lg-2 form-group" style="padding:0 15px;"> 
+                    <select name="group" id="group-filter" class="border-select-box-se">
+                        {{-- <option selected="selected" value="-1" >--Tất cả sale--</option> --}}
+                        <option value="999">--Nhóm Hàng--</option>
+                        @if (isset($groups))
+                            @foreach($groups as $group)
+                            <option value="{{$group->id}}">{{$group->name}}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                @endif
+
+                @if ($checkAll)
+                <div class="col-12 col-sm-3 col-md-3 col-lg-2 form-group" style="padding:0 15px;"> 
+                    <select name="sale" id="sale-filter" class="border-select-box-se">
+                        <option value="999">--Nhóm Sale--</option>
+                        @if (isset($groupSale))
+                            @foreach($groupSale as $sale)
+                            <option value="{{$sale->id}}">{{($sale->real_name) ? : $sale->name}}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                @endif
+
+                @if ($checkAll)
+                <div class="col-12 col-sm-3 col-md-3 col-lg-2 form-group" style="padding:0 15px;"> 
+                    <select name="digital" id="digital-filter" class="border-select-box-se">
+                        <option value="999">--Nhóm Digital--</option>
+                        @if (isset($groupDigital))
+                            @foreach($groupDigital as $digital)
+                            <option value="{{$digital->id}}">{{($digital->real_name) ? : $digital->name}}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                @endif
+
+                <div class="col-12 col-sm-6 col-md-3 form-group">
+                    <input name="search" type="text"  value="{{ isset($search) ? $search : null}}" class="form-control" placeholder="Họ tên">
+                </div>
+            
+                <div class="col-12 col-sm-6 col-md-3 col-lg-3 form-group" style="max-width: 180px;" >
+                    <button class="btn btn-sm btn-primary" type="submit">
+                        <i class="fa fa-search"></i>Tìm kiếm
+                    </button>
+                </div>
+
+                <div style="clear: both;"></div>
+              </div>
+            </div>
+          </div>
         </div>
+      </form>
+    </div>
+  </div>
+  <div class="example mt-0">
+    <div class="tab-content rounded-bottom">
+      <div class=" tab-pane p-3 active preview" role="tabpanel" id="preview-1002">
+        <table class="table table-bordered table-line">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Họ và tên</th>
+              <th scope="col">Tên đăng nhập</th>
+              <th scope="col">Email</th>
+              <th scope="col">Ngày tạo</th>
+              <th scope="col" class="text-center">Trạng thái</th>
+              <th scope="col"><a class="btn btn-primary" href="{{route('add-user')}}" role="button">+ Thêm</a></th>
+            </tr>
+          </thead>
+          <tbody>
+
+          @foreach ($list as $item)
+          <?php $teamName = '';
+          if ($item->groupUser) {
+            $teamName = $item->groupUser->name . ' _ ';
+          }
+          ?>
+            <tr>
+              <td scope="row col-1">{{ $item->id }}</td>
+              <td scope="col-7"> {{$teamName}} {{ ($item->real_name) ? $item->real_name : $item->name }}</td>
+              <td scope="row col-1">{{ $item->name }}</td>
+              <td scope="row col-1">{{ $item->email }}</td>
+              <td scope="col-1">  {{ date_format($item->created_at,"d-m-Y H:i")}}</td>
+              <td scope="col-1" class="text-center">
+                <label class="toggle-switch">
+                  <input id="toggle-checkbox-<?= $item->id ?>" 
+                  data-name="<?= ($item->real_name) ? $item->real_name : $item->name ?>"
+                    onclick="updateStatus(<?= $item->id ?>)"
+                    type="checkbox" id="toggle-checkbox" name="status" <?= ($item->status == 1) ? 'checked' : '' ?>>
+                  <span class="slider"></span>
+                </label>
+              </td>
+              <td scope="col-1">
+              <a class="btn btn-warning" href="{{route('update-user',['id'=>$item->id])}}" role="button">
+                  <svg class="icon me-2">
+                    <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-color-border')}}"></use>
+                  </svg>Sửa
+              </a>
+                <a onclick="return confirm('Xoá thành viên?')" class="btn btn-danger active" href="{{route('delete-user',['id'=>$item->id])}}" role="button">
+                  <svg class="icon me-2">
+                    <use xlink:href="{{asset('public/vendors/@coreui/icons/svg/free.svg#cil-backspace')}}"></use>
+                  </svg>Xoá
+                </a>
+              </td>
+            </tr>
+            @endforeach
+            
+          </tbody>
+        </table>
+        {!! $list->links() !!}
       </div>
     </div>
+  </div>
 </div>
 
 <!-- Custom Confirm Modal -->
@@ -359,3 +438,71 @@ function updateStatus(id) {
   );
 }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
+<script>
+  $(function() {
+      $('#sale-filter').select2();
+      $('#group-filter').select2();
+      $('#digital-filter').select2();
+  });
+</script>
+
+
+<script>
+  document.getElementById('userForm').addEventListener('submit', function (e) {
+    const inputs = this.querySelectorAll('input');
+    inputs.forEach(input => {
+        if (input.value === '') {
+            input.disabled = true; // loại bỏ khỏi dữ liệu gửi đi
+        }
+    });
+  
+    const selects = this.querySelectorAll('select');
+    selects.forEach(select => {
+      if (select.value === '999') {
+        select.disabled = true; // không gửi giá trị này
+      }
+    });
+    return;
+  });
+  </script>
+  <script>
+    $.urlParam = function(name){
+      var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+      if (results) {
+        return results[1];
+      }
+      return 0;
+    }
+
+    let group = $.urlParam('group')
+    if (group && group != 999) {
+      $('#group-filter option[value=' + group +']').attr('selected','selected');
+      $('#group-filter').parent().addClass('selectedClass');
+    }
+
+    let sale = $.urlParam('sale')
+    if (sale && sale != 999) {
+      $('#sale-filter option[value=' + sale +']').attr('selected','selected');
+      $('#sale-filter').parent().addClass('selectedClass');
+    }
+
+    let digital = $.urlParam('digital')
+    if (digital && digital != 999) {
+      $('#digital-filter option[value=' + digital +']').attr('selected','selected');
+      $('#digital-filter').parent().addClass('selectedClass');
+    }
+    
+    let search = $.urlParam('search')
+    if (search) {
+      search = decodeURIComponent(search);
+      search = search.replaceAll('+', " ");
+      $('input[name="search"]').val(search);
+    }
+
+    let status = $.urlParam('status')
+    if (status && status != 999) {
+      $('#status-filter option[value=' + status +']').attr('selected','selected');
+      $('#status-filter').parent().addClass('selectedClass');
+    }
+  </script>

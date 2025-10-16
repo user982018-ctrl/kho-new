@@ -29,7 +29,7 @@ $orderId = $order->id;
             </a>
             <a href="">
                 <div class="card-shipping">
-                    <input type="radio" name="pricing" id="card2" onclick="clickToHrefShippingBy('vtpost')">
+                    <input type="radio" name="pricing" id="card2" onclick="clickToHrefShippingBy('ghtk')">
                     <label for="card2">
                         <h5>Giao Hàng Tiết Kiệm</h5>
                         <img src="{{asset('public/images/ghtk.png')}}" class="card-img-top">

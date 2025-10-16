@@ -208,6 +208,14 @@ class AddressController extends Controller
         return $result;
     }
 
+    public function getListProvinceVT(){
+        /** lấy danh sách quận cả nước */
+        // $json = file_get_contents(public_path('json/simplified_json_generated_data_vn_units.json'));
+        $json = file_get_contents(public_path('json/viettel_provinces.json'));
+        $data = json_decode($json, true);
+        return $data['data'];
+    }
+
     public function getListWardById($id)
     {
         $result = [];
@@ -229,6 +237,21 @@ class AddressController extends Controller
         }
 
         return $result;
+    }
+
+    public function getListDistrictByIdVT()
+    {
+        // $json = file_get_contents(public_path('json/simplified_json_generated_data_vn_units.json'));
+        $json = file_get_contents(public_path('json/viettel_wards.json'));
+        $data = json_decode($json, true);
+        return $data['data'];
+    }
+
+    public function getListWardByIdVT()
+    {
+        $json = file_get_contents(public_path('json/viettel_wards.json'));
+        $data = json_decode($json, true);
+        return $data['data'];
     }
 
      /**

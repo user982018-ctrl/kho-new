@@ -126,11 +126,16 @@ Route::middleware('admin-auth')->group(function () {
     Route::get('/chi-tiet-van-don/{id}',  [ShippingOrderController::class, 'detailShippingOrder'])->name('detai-shipping-order');
     Route::get('/go-van-don/{id}',  [ShippingOrderController::class, 'removeShipingOrderCode'])->name('remove-shipping-order');
     Route::get('/tao-van-don-vtpost/{id}',  [ShippingOrderController::class, 'viewCreateShippingVTPost'])->name('view-create-shipping-VTPost');
+    Route::post('/create-order-VTPost',  [ShippingOrderController::class, 'createOrderVTPost'])->name('create-order-VTPost');
+    Route::get('/in-don-vtpost/{orderCode}',  [ShippingOrderController::class, 'printVTPost'])->name('print-vtpost');
+    Route::post('/in-nhieu-don-vtpost',  [ShippingOrderController::class, 'printMultipleVTPost'])->name('print-multiple-vtpost');
         /** tạo vận đơn GHTK */
     Route::get('/tao-van-don-ghtk/{id}',  [ShippingOrderController::class, 'viewCreateShippingGHTK'])->name('view-create-shipping-GHTK');
     Route::post('/save-shipping-has-ghtk',  [ShippingOrderController::class, 'createShippingHasGHTK'])->name('create-shipping-has-ghtk');
     Route::post('/create-order-GHTK',  [ShippingOrderController::class, 'createOrderGHTK'])->name('create-order-GHTK');
-
+    Route::get('/in-don-le-VTPOST/{order_code}',  [OrdersController::class, 'printOrderByOrderCodeVTPost'])->name('print-order-code-VTPOST');
+    Route::get('/in-tat-ca-van-don-VTPOST',  [OrdersController::class, 'printOrderByOrderAllVTPost'])->name('print-order-all-VTPOST');
+    
     Route::get('/tac-nghiep-sale',  [SaleController::class, 'index'])->name('sale-index');
     Route::get('/tao-tac-nghiep-sale',  [SaleController::class, 'add'])->name('sale-add');
     Route::post('/tao-tac-nghiep-sale',  [SaleController::class, 'saveUI'])->name('sale-care-save');
@@ -256,6 +261,13 @@ Route::get('/ghtk', [TestController::class, 'updatePrintStatusGHTK']);
 
 // Route::get('/pdf', [TestController::class, 'pdf']);
 Route::get('/fix', [TestController::class, 'thuySanCSKH']);
+
+// API Viettel Post - Lấy danh sách địa chỉ
+Route::get('/test/fetch-viettel-districts', [TestController::class, 'fetchViettelPostDistricts'])->name('fetch-viettel-districts');
+Route::get('/test/fetch-viettel-provinces', [TestController::class, 'fetchViettelPostProvinces'])->name('fetch-viettel-provinces');
+Route::get('/test/fetch-viettel-wards', [TestController::class, 'fetchViettelPostWards'])->name('fetch-viettel-wards');
+Route::get('/test/fetch-all-viettel-wards', [TestController::class, 'fetchAllViettelPostWards'])->name('fetch-all-viettel-wards');
+Route::get('/test/fetch-all-viettel-subwards', [TestController::class, 'fetchAllViettelPostSubwards'])->name('fetch-all-viettel-subwards');
 
 
 

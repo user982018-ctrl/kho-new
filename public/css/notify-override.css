@@ -1,0 +1,34 @@
+/**
+ * NOTIFY Z-INDEX OVERRIDE
+ * Fix cho thông báo luôn hiển thị trên cùng
+ */
+
+#laravel-notify .notify {
+    z-index: 99999 !important;
+}
+
+/* Đảm bảo notify hiển thị trên tất cả các thành phần */
+.notify.fixed {
+    z-index: 99999 !important;
+}
+
+/* Notify container */
+#notifyContainer {
+    z-index: 99999 !important;
+}
+
+/* Laravel notify wrapper */
+.notify-wrapper {
+    z-index: 99999 !important;
+}
+
+/* Toast notification */
+.toast-notification {
+    z-index: 99999 !important;
+}
+
+/* Alert notification */
+.alert-notification {
+    z-index: 99999 !important;
+}
+

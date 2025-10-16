@@ -176,6 +176,7 @@ use App\Http\Controllers\OrdersController;
           <option value="999">--Đơn vị vận chuyển--</option>
           <option value="GHN">Giao hàng nhanh</option>
           <option value="GHTK">Giao hàng tiết kiệm</option>
+          <option value="VTPOST">Viettel Post</option>
         </select>
       </div>
       <div class="col-xs-12 col-sm-6 col-md-2 form-group">
