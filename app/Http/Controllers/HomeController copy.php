@@ -559,7 +559,6 @@ class HomeController extends Controller
             if (isset($dataFilter['group'])) {
                 $group = Group::find($dataFilter['group']);
                 if ($group) {
-
                     $listId = $list->pluck('id')->toArray();
                     $listOrder = Orders::select('orders.id')->join('sale_care', 'orders.sale_care', '=', 'sale_care.id')
                         ->where('sale_care.group_id', $dataFilter['group'])
@@ -1308,7 +1307,7 @@ class HomeController extends Controller
         return $result;
     }
 
-    public function ajaxFilterDashboardDigitalV3(Request $req)
+    public function ajaxFilterDashboardDigitalV4(Request $req)
     {
         $result = $dataFilter = [];
         if ($req->date) {
@@ -1367,6 +1366,7 @@ class HomeController extends Controller
 
         $listResult = [];
         $listResult = $this->getReportUserDigitalV3($dataFilter);
+        // dd($listResult);
         $totalSum = $avgSum = $newContact = $newOrder = $newRate = $newProduct = $newTotal = 0;
         $oldAvg = $oldTotal = $oldProduct = $oldRate = $oldContact = $oldOrder= 0;
         $sumNewCustomer = $sumOldCustomer = [
@@ -1463,6 +1463,7 @@ class HomeController extends Controller
 
     public function getListMktReportOrder($req, $listSrc)
     {
+        // dd($listSrc);
         if (!$listSrc) {
             return [];
         }
@@ -1476,8 +1477,10 @@ class HomeController extends Controller
                 $req['daterange'] = explode('-', $date);
             }
         }
+        dd($req);
 
         $listOrders = $ordersController->getListOrderByPermisson($userAdmin, $req);
+        dd($listOrders->get());
         foreach ($listOrders->get() as $order) {
             if (!empty($order->saleCare) && !empty($order->saleCare->getSrcPage)) {
                 $sc = $order->saleCare;
@@ -1610,6 +1613,7 @@ class HomeController extends Controller
     public function getReportUserDigitalV3($dataFilter) 
     {
         $listFiltrSrc = $this->getListSaleCare($dataFilter);
+        // dd($listFiltrSrc);
         return $this->getListMktReportOrder($dataFilter, $listFiltrSrc);
     }
 
@@ -1932,8 +1936,7 @@ class HomeController extends Controller
     public function getListSaleCare($req)
     {
         $result = [];
-        $list = SaleCare::select('src_id', 'id', 'created_at', 'group_id', 'assign_user', 'old_customer');
-        
+        $list = SaleCare::select('src_id', 'id', 'created_at', 'group_id', 'assign_user', 'old_customer', 'phone');
         if (isset($req['daterange']) || !empty($req->daterange)) {
             $dateRange = (isset($req['daterange'])) ? $req['daterange'] : $req->daterange;
 
@@ -1950,7 +1953,7 @@ class HomeController extends Controller
             $list = $list->whereDate('created_at', '>=', $dateBegin)
                 ->whereDate('created_at', '<=', $dateEnd);
         }
-       
+
         if (isset($req['group']) || !empty($req->group)) {
             $groupId = (isset($req['group'])) ? $req['group'] : $req->group;
             $list = $list->where('group_id', $groupId);

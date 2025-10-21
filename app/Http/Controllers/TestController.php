@@ -28,6 +28,26 @@ use Google\Service\AndroidPublisher\Order;
 class TestController extends Controller
 {
   use WithoutMiddleware;
+  public function updateSrcId(){
+    $list = SaleCare::where('old_customer', 1)
+    ->whereNull('src_id')
+    // ->limit(1000)
+    // ->where('id', 99145)
+    ->get();
+    // dd($list);
+    foreach ($list as $saleCare) {
+      $id = $saleCare->phone;
+      $newSale = SaleCare::where('phone', $id)
+        ->where('id_order_new', $saleCare->id_order)->first();
+
+      if ($newSale && $newSale->src_id) {
+        // dd($newSale);
+        $saleCare->src_id = $newSale->src_id;
+        $saleCare->save();
+        echo $saleCare->phone . ' - ' . $newSale->src_id . '<br>';
+      }
+    }
+  }
 
   public function thuySanCSKH()
   {
@@ -966,7 +986,7 @@ class TestController extends Controller
 
       $pages = $group->srcs;
       foreach ($pages as $page) {
-        // if ($page->id_page != '750099411515741') {
+        // if ($page->id_page != '842547358935849') {
         //   continue;
         // }
         if ($page->type == 'pc' ) {
@@ -1470,7 +1490,7 @@ WHERE  NOT EXISTS
 
   public function exportTaxV3()
   {
-    $time = ['18/09/2025', '30/09/2025'];
+    $time = ['01/09/2025', '10/10/2025'];
     $timeBegin  = str_replace('/', '-', $time[0]);
     $timeEnd    = str_replace('/', '-', $time[1]);
     $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
@@ -1483,7 +1503,7 @@ WHERE  NOT EXISTS
       ->whereDate('orders.created_at', '>=', $dateBegin)
       ->whereDate('orders.created_at', '<=', $dateEnd)
       ->where('sale_care.group_id', '!=', 11)
-      // ->where('orders.id', '20272')
+      ->where('orders.id', '24502')
       ->orderBy('orders.id', 'desc');
 
     $dataExport[] = [
@@ -1624,7 +1644,7 @@ WHERE  NOT EXISTS
             $giftB = isset($b['gift']) && $b['gift'] === 'true' ? 1 : 0;
             return $giftA - $giftB;
         });
-        
+
         foreach ($listProduct as $key => $item) {
           $product = getProductByIdHelper($item['id']);
           $productName = ($product->tax_name) ? $product->tax_name : $product->name;
@@ -1720,7 +1740,7 @@ WHERE  NOT EXISTS
       $i++;
     }
     // dd($dataExport);
-    return Excel::download(new UsersExport($dataExport), 'GHTK-(18-09)-(30-09)-2025.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'GHTK-(01-10)-(10-10)-2025.xlsx');
   }
 
   public function exportTaxV2()

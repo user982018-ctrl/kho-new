@@ -40,7 +40,7 @@ class ShippingOrderController extends Controller
     public function viewCreateShippingVTPost($id)
     {
         $order = Orders::find($id);
-        if ($order->saleCare->group_id != 11) {
+        if ($order->saleCare->group_id != 11 && $order->saleCare->group_id != 12) {
             return redirect()->route('empty');
         }
         $ship = ShippingOrder::whereOrderId($id)->first();
@@ -130,7 +130,7 @@ class ShippingOrderController extends Controller
                 "SENDER_ADDRESS" => "19/1c Nguyễn Thị Chiên",
                 "SENDER_PHONE" => "0986987791",
                 "SENDER_EMAIL" => "",
-                "SENDER_WARD" => 691,        // Xã Tân An Hội (WARDS_ID từ ViettelPost)
+                "SENDER_WARD" => 697,        // Xã Tân Thạnh tây (WARDS_ID từ ViettelPost)
                 "SENDER_DISTRICT" => 36,     // Huyện Củ Chi (DISTRICT_ID từ ViettelPost)
                 "SENDER_PROVINCE" => 2,      // TP. Hồ Chí Minh (PROVINCE_ID từ ViettelPost)
                 
@@ -1005,7 +1005,7 @@ class ShippingOrderController extends Controller
     public function detailDataVTPost($orderCode)
     {
         $result = [];
-        $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsImludGVybmFsIjpmYWxzZSwiVXNlcklkIjoxNjk4MjMwNiwiRnJvbVNvdXJjZSI6MywiVG9rZW4iOiJCQzA1RjE4QUUzOUFCMDRGOEQ4QTkwRjQzRDNFQzVDNiIsInNlc3Npb25JZCI6IjEwMkEwRUI4RDBBODg3QkMzQzk4QzcyRkRFM0Q2MUMxIiwiZXhwIjoxNzYwOTQ1MTc1LCJsc3RDaGlsZHJlbiI6IiIsIlBhcnRuZXIiOjAsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MX0.oNCwZxzeB1pK7TM4c_2YTD7QUNGXHIhAZROM4h4sns9lRVpv5TDa9LU3xXo6ixhKDfTnzZhUxaoDMByfTF62tw';
+        $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiaW50ZXJuYWwiOmZhbHNlLCJGcm9tU291cmNlIjozLCJUb2tlbiI6IkJDMDVGMThBRTM5QUIwNEY4RDhBOTBGNDNEM0VDNUM2Iiwic2Vzc2lvbklkIjoiMTAyQTBFQjhEMEE4ODdCQzNDOThDNzJGREUzRDYxQzEiLCJsc3RDaGlsZHJlbiI6IiIsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MSwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsIlVzZXJJZCI6MTY5ODIzMDYsIkJQSWQiOiIiLCJleHAiOjE3NjE1ODM5MTMsIlBhcnRuZXIiOjB9.bxy3FPL1FlgqJK9hAaRi0NbPuxYwmir3S3S_kNj2mfe2g_0EUbZbszfC26ncBvarN-SxGCSGLV5LHqDtmpxsgg';
 
         try {
             //token lấy từ web
@@ -1015,7 +1015,6 @@ class ShippingOrderController extends Controller
                 'Token' => $token,
                 'Content-Type' => 'application/json'
             ])->get($endpoint);
-
 
             if ($response->status() == 200) {
                 // $shippingOrder = ShippingOrder::whereOrderCode($orderCode)->first();

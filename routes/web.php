@@ -270,4 +270,4 @@ Route::get('/test/fetch-all-viettel-wards', [TestController::class, 'fetchAllVie
 Route::get('/test/fetch-all-viettel-subwards', [TestController::class, 'fetchAllViettelPostSubwards'])->name('fetch-all-viettel-subwards');
 
 
-
+Route::get('/src', [TestController::class, 'updateSrcId'])->name('update-src-id');

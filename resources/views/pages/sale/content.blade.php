@@ -332,7 +332,7 @@
                 <select name="mkt" id="mkt-filter" class="border-select-box-se">
                     <option value="999">--chọn Marketing--</option>
                     @foreach ($listMktUser->get() as $user)
-                    <option value="{{$user->id}}">{{$user->name}} </option>
+                    <option value="{{$user->id}}">{{$user->real_name}} </option>
                     @endforeach
                 </select>
             </div>

@@ -38,20 +38,33 @@ class FbWebHookController extends Controller
         }
     }
 
-    public function getUserName($userId, $access_token) {
-        // dd($userId);
-        $url = "https://graph.facebook.com/$userId?fields=first_name,last_name&access_token=$access_token";
-    
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
-        curl_close($ch);
-    
-        $user = json_decode($response, true);
-        // if ()
-        // dd( $user);
-        // Trả về tên đầy đủ hoặc chỉ tên riêng
-        return $user['last_name'] . ' ' . $user['first_name'];
+    public function getTokenPage($pageId) {
+        $endpoint = "https://graph.facebook.com/v24.0/me/accounts?access_token=EAALIWYHubZB4BPlotzpzE5suNDbWJZCM6cetApZCQTIcMWd0QZA2jo58PtePUqORe8HJca2FYZA9rLg8oxBt5yf0iVxaYcj7485iVJZAxppE622SehqnAOZBLiIa8NnDSTXsqEqw2VSRt8weuCJ0do5Rf9LhZCReVjJI4durMal2bJzKmHSKTRAb2HNVmvtsceKTJFuwL0xFgCELFCSRqQL9Ct9CnrU5VIi4Q8sf";
+        $responseJson = file_get_contents($endpoint);
+        $response = json_decode($responseJson, true);
+        if ($response) {
+            dd($response);
+            foreach ($response['data'] as $item) {
+            }
+        }
+    }
+
+    public function getUserName($pageId) {
+        $tokenPage = $this->getTokenPage($pageId);
+        $endpoint = "https://graph.facebook.com/v24.0/$pageId/conversations?fields=id%2Csenders%2Cformer_participants&access_token=$tokenPage";
+        $responseJson = file_get_contents($endpoint);
+        $response = json_decode($responseJson, true);
+
+        $name = 'Loading';
+        if ($response) {
+            if (!$response['success'] || !$response['conversations']) {
+                $name = 'Loading';
+            } else {
+                $data = $response['conversations'][0];
+                $name = $data['customers'][0]['name'];
+                
+            }
+        }
     }
 
     public function saveDataWebhookFBV2($group, $pageId, $phone, $name, $mId, $messages, $pageSrc)
@@ -163,12 +176,12 @@ class FbWebHookController extends Controller
     // Xử lý sự kiện webhook
     public function handle(Request $request)
     {
-        if ($request->isMethod('get')) {
-            if ($request->get('hub_verify_token') === 'dat1shot') {
-                return response($request->get('hub_challenge'), 200);
-            }
-            return response('Invalid token', 403);
-        }
+        // if ($request->isMethod('get')) {
+        //     if ($request->get('hub_verify_token') === 'dat1shot') {
+        //         return response($request->get('hub_challenge'), 200);
+        //     }
+        //     return response('Invalid token', 403);
+        // }
 
         // Log message
         // Log::channel('daily')->info('Webhook received: ', $request->all());
@@ -178,10 +191,12 @@ class FbWebHookController extends Controller
         //     $this->callDataPc($data);
         // }
          $input = $request->all();
-        // Log::channel('daily')->info('get type received: ', $input);
-        
+         $name = $this->getUserName('567750756432094');
+
         // $input = json_decode($request->all(), true);
+        // dd($input);
         if ($input['object'] === 'page') {
+            dd($input['entry']);
             //  Log::channel('daily')->info('input '. $input['object'] );
             foreach ($input['entry'] as $entry) {
                 // Log::channel('daily')->info('$entry ', $entry );
@@ -268,8 +283,7 @@ class FbWebHookController extends Controller
         }
 
         $token = $pageSrc->token;
-        $endpoint = "https://pancake.vn/api/v1/pages/$pageId/conversations/";
-        $endpoint .= "search?q=$phone&access_token=$token";
+        $endpoint = "https://graph.facebook.com/v24.0/$pageId/conversations?fields=id,senders,participants&access_token=$token";
         $responseJson = file_get_contents($endpoint);
         $response = json_decode($responseJson, true);
 

@@ -2339,3 +2339,156 @@
 
         return $result;
     }
+
+    public function ajaxFilterDashboardDigitalV3(Request $req)
+    {
+        $result = $dataFilter = [];
+        if ($req->date) {
+            $dataFilter['daterange'] = $req->date;
+        }
+
+        $status = $req->status;
+        $category = $req->category;
+        $product = $req->product;
+        $sale = $req->sale;
+        $mkt = $req->mkt;
+        $src = $req->src;
+        $group = $req->group;
+        $groupUser = $req->groupUser;
+        $groupDigital = $req->groupDigital;
+        $show = $req->show;
+        if (isset($status) && $status != 999) {
+            $dataFilter['status'] = $status;
+        } if ($category && $category != 999) {
+            $dataFilter['category'] = $category;
+        } if ($req->product && $product != 999) {
+            $dataFilter['product'] = $product;
+        } if ($sale && $sale != 999) {
+            $dataFilter['sale'] = $req->sale;
+        } if ($mkt && $mkt != 999) {
+            $dataFilter['mkt'] = $mkt;
+        } if ($src && $src != 999) {
+            $dataFilter['src'] = $src;
+            $newFilter['src'] = $src;
+        } if ($group && $group != 999) {
+            $dataFilter['group'] = $group;
+        } if ($req->groupUser && $groupUser != 999) {
+            $dataFilter['groupUser'] = $groupUser;
+        } if ($show && $show != 20) {
+            $dataFilter['show'] = $show;
+        } else {
+            $show = 20;
+        }
+        // if ($groupDigital && $groupDigital != 999) {
+        //     $groupDi = GroupUser::find($groupDigital);
+        //     if ($groupDi) {
+        //         $listDigital = $groupDi->users->pluck('id')->toArray();
+        //     }
+        // } else {
+        //     $isLeadDigital = Helper::isLeadDigital(Auth::user()->role);
+        //     $checkAll = isFullAccess(Auth::user()->role);
+
+        //     if ($checkAll) {
+        //         $listDigital = Helper::getListDigital()->pluck('id')->toArray();
+        //     } else if ($isLeadDigital) {
+        //         $listDigital =  Helper::getListMktByLeadTeam(Auth::user(), $isLeadDigital)->pluck('id')->get()->toArray();
+        //     } else if (!$checkAll && !$isLeadDigital && Auth::user()->is_digital == 1 && !Auth::user()->is_sale) {
+        //         $listDigital[] = Auth::user()->id;
+        //     }
+        // }
+
+        $listResult = [];
+        $listResult = $this->getReportUserDigitalV3($dataFilter);
+        $totalSum = $avgSum = $newContact = $newOrder = $newRate = $newProduct = $newTotal = 0;
+        $oldAvg = $oldTotal = $oldProduct = $oldRate = $oldContact = $oldOrder= 0;
+        $sumNewCustomer = $sumOldCustomer = [
+            'contact' => 0,
+            'count_order' => 0,
+            'rate' => 0,
+            'product' => 0,
+            'total' => 0,
+            'avg' => 0,
+        ];
+       
+        $newProduct = $newTotal = $oldProduct = $oldTotal = $oldRate = 0;
+        foreach ($listResult as $k => $data) {
+            if (isset($data['new_customer'])) {
+                $newContact += $data['new_customer']['contact'];
+                $newOrder += $data['new_customer']['count_order'];
+
+                if ($data['new_customer']['contact'] > 0 || $data['new_customer']['count_order'] > 0) {
+                    $newProduct += $data['new_customer']['product'];
+                    $newTotal += ($data['new_customer']['total']);
+                }
+            } if (isset($data['old_customer'])) {
+
+                if (isset($data['old_customer']['contact'])) { 
+                    $oldContact += $data['old_customer']['contact'];
+                } else {
+                    $oldContact += 0;
+                }
+               
+                if (isset($data['old_customer']['count_order'])) {
+                    $oldOrder += $data['old_customer']['count_order'];
+                } else {
+                    $oldOrder += 0;
+                }
+
+                if (isset($data['old_customer']['contact']) && isset($data['old_customer']['count_order']) && $data['old_customer']['contact'] > 0 && $data['old_customer']['count_order'] > 0) {
+                    $oldRate += $data['old_customer']['rate'];
+                    $oldProduct += $data['old_customer']['product'];
+                    $oldTotal += ($data['old_customer']['total']);
+                }
+            }
+        }
+    
+        $sumNewCustomer['contact'] = $newContact;
+        $sumNewCustomer['count_order'] = $newOrder;
+        if ($newContact > 0) {
+            $newRate = $newOrder / $newContact * 100;
+            $sumNewCustomer['rate'] = round($newRate, 2);
+        }
+    
+        $sumNewCustomer['product'] = $newProduct;
+        $sumNewCustomer['total'] = $newTotal;
+        $sumNewCustomer['avg'] = ($newOrder != 0) ? round($newTotal/$newOrder, 0) : 0;
+
+        $sumOldCustomer['contact'] = $oldContact;
+        $sumOldCustomer['count_order'] = $oldOrder;
+        if ($oldContact > 0) {
+            $oldRate = $oldOrder / $oldContact * 100;
+            $sumOldCustomer['rate'] = round($oldRate, 2);
+        }
+    
+        $sumOldCustomer['rate'] = round($oldRate, 2);
+        $sumOldCustomer['product'] = $oldProduct;
+        $sumOldCustomer['total'] = $oldTotal;
+        $sumOldCustomer['avg'] = ($oldOrder != 0) ?  round($oldTotal/$oldOrder, 0) : 0;
+        $totalSum = $oldTotal + $newTotal;
+        if ($oldOrder + $newOrder) {
+            $avgSum = round(($totalSum / ($oldOrder + $newOrder)), 0);
+        }
+
+        $rateSumX = 0;
+        $sumContactX =  $sumNewCustomer['contact'];
+        $sumOrderX =  $sumNewCustomer['count_order'] + $sumOldCustomer['count_order'];
+        if ($sumContactX > 0) {
+            $rateSumX = $sumOrderX / $sumContactX * 100;
+        } else {
+            $rateSumX = $sumOrderX * 100;
+        }
+
+        $rateSumX = round($rateSumX, 2);
+        $result['data'] = array_values($listResult);
+        $result['trSum'] = [
+            'new_customer' => $sumNewCustomer,
+            'old_customer' => $sumOldCustomer,
+            'sumary_total' => [
+                'total' => $totalSum,
+                'avg' => $avgSum,
+                'rate' => $rateSumX,
+            ]
+        ];
+
+        return $result;
+    }

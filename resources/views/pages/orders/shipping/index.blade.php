@@ -38,7 +38,7 @@ $orderId = $order->id;
             </a>
 
             {{-- // nhóm thuỷ sản --}}
-            @if ($order->saleCare && $order->saleCare->group_id == 11) 
+            @if ($order->saleCare && ($order->saleCare->group_id == 11 || $order->saleCare->group_id == 12)) 
             <a href="">
                 <div class="card-shipping">
                     <input type="radio" id="card3" onclick="clickToHrefShippingBy('vtpost')">

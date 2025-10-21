@@ -85,7 +85,7 @@
             Hiện tại không thể lấy thông tin chi tiết của đơn hàng ViettelPost.<br>
             Vui lòng thử lại sau hoặc liên hệ bộ phận hỗ trợ.
         </p>
-        <a href="javascript:history.back()" class="btn">← Quay lại</a>
+        <a href="{{ route('home') }}" class="btn">← Quay lại</a>
     </div>
 </body>
 </html>

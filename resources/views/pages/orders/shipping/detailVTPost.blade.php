@@ -268,7 +268,7 @@
                   if ($tracking['TEN_BUUCUC_DEN'] == 'Đội vận chuyển') {
                     $strShipping .= '<li>' . $tracking['THOI_GIAN'] . ': Nhận tại ' . $tracking['TEN_BUUCUC_DEN'] . '</li>';
                   } else {
-                    $strShipping .= '<li>' . $tracking['THOI_GIAN'] . ': Kết nối từ' . $tracking['TEN_BUUCUC_DEN'] .  ' - ' . $tracking['QUAN_HUYEN_BUU_CUC_DEN'] . ' - ' . $tracking['TINH_BUU_CUC_DEN'] . '</li>';
+                    $strShipping .= '<li>' . $tracking['THOI_GIAN'] . ': Kết nối từ ' . $tracking['TEN_BUUCUC_DEN'] .  ' - ' . $tracking['QUAN_HUYEN_BUU_CUC_DEN'] . ' - ' . $tracking['TINH_BUU_CUC_DEN'] . '</li>';
                   }
                 }
                 $strShipping .= '</ul>';
