@@ -28,6 +28,14 @@ use Google\Service\AndroidPublisher\Order;
 class TestController extends Controller
 {
   use WithoutMiddleware;
+
+  public function updateSrcId2(){
+    // $list = Orders::query()->get();
+    // foreach ($list as $order) {
+    //   $saleCare 
+    // }
+    // dd($list);
+  }
   public function updateSrcId(){
     $list = SaleCare::where('old_customer', 1)
     ->whereNull('src_id')
@@ -986,7 +994,7 @@ class TestController extends Controller
 
       $pages = $group->srcs;
       foreach ($pages as $page) {
-        // if ($page->id_page != '842547358935849') {
+        // if ($page->id_page != '787560754445901') {
         //   continue;
         // }
         if ($page->type == 'pc' ) {
@@ -1019,6 +1027,8 @@ class TestController extends Controller
       $before   = date ( 'Y/m/d H:i' , $before );
       $before   = strtotime($before);
 
+      // echo "endpoint: $endpoint \n" . '<br>';
+      // dd($endpoint);
       $endpoint = "$endpoint?type=PHONE,DATE:$before+-+$today&access_token=$token";
       $response = Http::withHeaders(['access_token' => $token])->get($endpoint);
       // dd($response);
@@ -1048,6 +1058,7 @@ class TestController extends Controller
                   Log::channel('ladi')->info('Số điện thoại đã nằm trong danh sách spam/seeding tesst..');
                   return;
               }
+
               if ($name && $checkSaleCareOld) {
                 $assignSale = Helper::assignSaleFB($hasOldOrder, $group, $phone, $typeCSKH, $isOldCustomer);
                 if (!$assignSale) {
@@ -1056,11 +1067,12 @@ class TestController extends Controller
                 /** kiểm tra thời gian insert tin nhắn => lâu hơn 3 ngày ko nhận lại */
                   $inputTime = strtotime($item->inserted_at);
                   $now = time();
-                  $secondsIn3Days = 7 * 24 * 60 * 60;
+                  $secondsIn3Days = 3 * 24 * 60 * 60;
+                  echo 'inputTime: ' . $item->inserted_at . '<br>';
                    echo '$now - $inputTime: ' . $now - $inputTime;
                    echo '<br>';
                     echo '$secondsIn3Days: ' . $secondsIn3Days;
-                    // dd($item);
+                    // dd($now - $inputTime >= $secondsIn3Days);
                   if ($now - $inputTime >= $secondsIn3Days) {
                       echo "Đã quá 3 ngày " . $phone;
                       echo "<br>";
@@ -1260,7 +1272,7 @@ class TestController extends Controller
   {
     $orderCTL = new OrdersController();
     $req = new Request();
-    $req['daterange'] = ['01/06/2025', '30/09/2025'];
+    $req['daterange'] = ['01/08/2025', '31/07/2025'];
     // $req['sale'] = '77';
     // $req['typeDate'] = '2';
     // $sales = ['50','74'];
@@ -1288,15 +1300,15 @@ class TestController extends Controller
 
   public function export()
   {
-    $user = User::find(159);
-    $listSaleOfLeader = Helper::getListSaleV2($user)->get();
-    $listSaleId = $listSaleOfLeader->pluck('id')->toArray();
+    // $user = User::find(159);
+    // $listSaleOfLeader = Helper::getListSaleV2($user)->get();
+    // $listSaleId = $listSaleOfLeader->pluck('id')->toArray();
     // dd($listSaleOfLeader->pluck('id')->toArray());
     // dd($listSaleId);
     $sale = new SaleController();
     $req = new Request();
-    $req['daterange'] = ['01/09/2025', '15/10/2025'];
-    // $req['sale'] = '59';
+    $req['daterange'] = ['01/09/2025', '30/09/2025'];
+    $req['sale'] = '76';
     // $req['typeDate'] = '2';
     // $sales = ['171','70'];
 
@@ -1304,15 +1316,16 @@ class TestController extends Controller
     $list->whereNull('id_order_new');
     $list->whereNull('id_order');
     $list->where('old_customer', 0);
-    $list->where('is_duplicate', 0);
-    $list->where('group_id', '11');
+    // $list->where('is_duplicate', 0);
+    $list->where('group_id', '!=', '11');
     // $list->paginate(1000, ['*'], 'page', 4);
-    $list->whereIn('assign_user', $listSaleId);
+    // $list->whereIn('assign_user', $listSaleId);
     // dd($list->pluck('assign_user')->toArray());
     $dataExport[] = [
-      'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách', 'Sale'
+      'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách'
     ];
 
+    // dd($list->get());
     $i = 1;
     foreach ($list->get() as $data) {
 
@@ -1328,13 +1341,13 @@ class TestController extends Controller
         $i,
         date_format($data->created_at,"d-m-Y "),
         $data->phone,
-        $data->full_name,
-        $data->user->real_name,
+        $data->full_name
+        // $data->user->real_name,
       ];
       $i++;
     }
 
-    return Excel::download(new UsersExport($dataExport), 'team-Truc.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'thang9-Sinh.xlsx');
   }
   
   public function wakeUp()
@@ -1344,7 +1357,7 @@ class TestController extends Controller
       ->where('result_call', '!=', 0)
       ->where('result_call', '!=', -1)
       ->where('has_TN', 1)
-      ->where('created_at', '>' , '2025-07-01')
+      ->where('created_at', '>' , '2025-09-01')
       // ->limit(1000)
       // ->where('id', '74390')
       ->orderBy('id', 'DESC')
@@ -1490,7 +1503,7 @@ WHERE  NOT EXISTS
 
   public function exportTaxV3()
   {
-    $time = ['01/09/2025', '10/10/2025'];
+    $time = ['10/10/2025', '17/10/2025'];
     $timeBegin  = str_replace('/', '-', $time[0]);
     $timeEnd    = str_replace('/', '-', $time[1]);
     $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
@@ -1498,12 +1511,12 @@ WHERE  NOT EXISTS
 
     $list = Orders::select('orders.*')->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->join('sale_care', 'sale_care.id', '=', 'orders.sale_care')
-      ->where('shipping_order.vendor_ship', 'GHTK')
+      ->where('shipping_order.vendor_ship', 'GHN')
       ->where('orders.status', 3)
       ->whereDate('orders.created_at', '>=', $dateBegin)
       ->whereDate('orders.created_at', '<=', $dateEnd)
       ->where('sale_care.group_id', '!=', 11)
-      ->where('orders.id', '24502')
+      // ->where('orders.id', '24502')
       ->orderBy('orders.id', 'desc');
 
     $dataExport[] = [
@@ -1740,7 +1753,7 @@ WHERE  NOT EXISTS
       $i++;
     }
     // dd($dataExport);
-    return Excel::download(new UsersExport($dataExport), 'GHTK-(01-10)-(10-10)-2025.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'GHN-(10-10)-(17-10)-2025.xlsx');
   }
 
   public function exportTaxV2()

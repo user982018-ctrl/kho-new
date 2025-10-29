@@ -7,7 +7,12 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="{{asset('public/js/moment.js')}}"></script>
-<link rel="stylesheet" type="text/css" href="{{asset('public/css/daterangepicker.css')}}" /> 
+<link rel="stylesheet" type="text/css" href="{{asset('public/css/daterangepicker.css')}}" />
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> 
 
 <?php $checkAll = isFullAccess(Auth::user()->role);
   $isLeadSale = Helper::isLeadSale(Auth::user()->role);
@@ -26,8 +31,29 @@
     <div class="col-xs-12 col-sm-6 col-md-4 form-group daterange mb-1">
       <input id="daterange" class=" btn btn-outline-secondary" type="text" name="daterange"/>
     </div>
+    
+     <div class="col-xs-12 col-sm-6 col-md-2 form-group mb-1">
+       <select name="show" id="show-filter" class="form-select">
+         <option value="20">Hiển thị 20 dòng</option>  
+         <option value="40">Hiển thị 40 dòng</option>
+         <option value="60">Hiển thị 60 dòng</option>
+         <option value="80">Hiển thị 80 dòng</option>
+       </select>
+     </div>
 
-      {{ csrf_field() }}
+    @if ($checkAll)
+    <div class="col-xs-12 col-sm-6 col-md-2 form-group mb-1">
+      <select name="groupUser" id="groupUser-filter" class="form-select">
+        <option value="999">--Nhóm sale--</option>  
+        @if (isset($groupUser))
+            @foreach($groupUser as $group)
+            <option value="{{$group->id}}">{{$group->name}}</option>
+            @endforeach
+        @endif
+      </select>
+    </div>
+    @endif
+       {{ csrf_field() }}
       
     </div>
     <div class="row mb-1">
@@ -74,6 +100,10 @@
 <script>
 $(document).ready(function() {
     
+    // Khởi tạo Select2 cho các filter
+    $('#show-filter').select2();
+    $('#groupUser-filter').select2();
+    
     $('input[name="daterange"]').daterangepicker({
       ranges: {
         'Hôm nay': [moment(), moment()],
@@ -99,6 +129,20 @@ $(document).ready(function() {
       }
     });
     $('[data-range-key="Custom Range"]').text('Tuỳ chỉnh');
+
+    // Xử lý URL parameter cho show filter
+    let show = $.urlParam('show') 
+    if (show && show != 20) {
+        $('#show-filter option[value="' + show +'"]').attr('selected','selected');
+        $('#show-filter').parent().addClass('selectedClass');
+    }
+
+    // Xử lý URL parameter cho groupUser filter
+    let groupUser = $.urlParam('groupUser') 
+    if (groupUser && groupUser != 999) {
+        $('#groupUser-filter option[value="' + groupUser +'"]').attr('selected','selected');
+        $('#groupUser-filter').parent().addClass('selectedClass');
+    }
 
     $('input[name="daterange"]').change(function () {
     });
@@ -146,18 +190,22 @@ $(document).ready(function() {
         });
     });
 
-    $("#btn-filter").on("click", function() {
-      let date =  $("input[name='daterange']").val();
-      var _token = $("input[name='_token']").val();
-      
-      $('#loader-overlay').css('display', 'flex');
-      $.ajax({
-            url: "{{ route('view-count-dataTN-ajax') }}",
-            type: 'GET',
-            data: {
-              _token: _token,
-              date,
-            },
+     $("#btn-filter").on("click", function() {
+       let date =  $("input[name='daterange']").val();
+       let show = $("#show-filter :selected").val();
+       let groupUser = $("#groupUser-filter :selected").val();
+       var _token = $("input[name='_token']").val();
+       
+       $('#loader-overlay').css('display', 'flex');
+       $.ajax({
+             url: "{{ route('view-count-dataTN-ajax') }}",
+             type: 'GET',
+             data: {
+               _token: _token,
+               date,
+               show,
+               groupUser,
+             },
             success: function(data) {
               
               var rs = '';

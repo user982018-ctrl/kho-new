@@ -19,6 +19,8 @@
       $flag = true;
   }
 
+  $idSaleByLeadSale = $sales->pluck('id')->toArray();
+
 ?>
 
 <script type="text/javascript" src="{{asset('public/js/moment.js')}}"></script>
@@ -76,7 +78,7 @@
                 @if ($gr->sales)
                   <span><b>Data nóng: </b></span> 
                   @foreach ($gr->sales as $mem)
-                    @if ($mem->type_sale == 1)
+                    @if ($mem->type_sale == 1 && in_array($mem->id_user, $idSaleByLeadSale))
                     &nbsp; {{$mem->user->real_name}}, 
                     @endif
                   @endforeach
@@ -84,7 +86,7 @@
                   <br>
                   <span><b>Data CSKH: </b></span>
                   @foreach ($gr->sales as $mem)
-                    @if ($mem->type_sale == 2)
+                    @if ($mem->type_sale == 2 && in_array($mem->id_user, $idSaleByLeadSale))
                     &nbsp; {{$mem->user->real_name}} 
                     @endif
                   @endforeach

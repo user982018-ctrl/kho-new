@@ -115,6 +115,11 @@
 </head>
 <body>
 
+<?php $checkAll = isFullAccess(Auth::user()->role);
+// dd($data);
+ ?>
+
+
 @if (isset($data) && $data)
 <?php $package = $data['package'];
     $deliveryLog = $data['deliveryLog'];
@@ -122,8 +127,28 @@
 <div class="modal">
     <div class="header">Đơn hàng: {{$package['alias']}}</div>
     <div class="recipient-info">
-        <div><strong>👤 Người nhận:</strong> {{$package['customer_fullname']}}</div>
-        <div><strong>📞 SĐT:</strong> {{$package['customer_tel']}}</div>
+        <div><strong>👤 Người nhận:</strong> <span id="name-order">
+          <?php 
+          $name = $package['customer_fullname'];
+          if (!$checkAll && strlen($name) >= 4) {
+              $lastThree = substr($name, -4);
+              $maskedName = str_repeat('-', strlen($name) - 4) . $lastThree;
+              echo $maskedName;
+          } else {
+              echo $name;
+          }
+          ?>
+        </span></div>
+        <div><strong>📞 SĐT:</strong><span id="phone-order">
+          <?php $phone = $package['customer_tel'];
+                        if (!$checkAll && strlen($phone) >= 4) {
+                            $lastThree = substr($phone, -4);
+                            $maskedName = str_repeat('-', strlen($phone) - 4) . $lastThree;
+                            echo $maskedName;
+                        } else {
+                          echo $phone;
+                        }
+                        ?> </span></div>
         <div><strong>📍 Địa chỉ:</strong> {{$package['customer_first_address']}}</div>
     </div>
     <ul class="timeline">

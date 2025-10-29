@@ -6,6 +6,7 @@ use App\Helpers\Helper;
 use App\Models\SaleCare;
 use App\Models\SaleCareDataCountAction;
 use App\Models\SaleCareDataCountActionDetail;
+use App\Models\GroupUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth; 
 
@@ -29,10 +30,25 @@ class SaleCareCountActionController  extends Controller
     {
         $dataFilter['daterange'] = $r->date;
         $listSale = Helper::getListSaleV2(Auth::user());
+        $show = $r->show;
         $list = [];
 
+        // Xử lý filter groupUser
+        if ($r->groupUser && $r->groupUser != 999) {
+            $listUserInGroup = GroupUser::find($r->groupUser);
+            if ($listUserInGroup) {
+                $listUserGroupIds = $listUserInGroup->users->pluck('id')->toArray();
+                // dd($listUserGroupIds);
+                $listSale = $listSale->whereIn('id', $listUserGroupIds);
+            }
+        }
+
+        $i = 1;
         $listDataCount = $this->getListDataCount( $dataFilter['daterange']);
         foreach ($listSale->get() as $sale) {
+            if ($i > $show) {
+                break;
+            }
             $count = $this->getReportUserSaleEffect($listDataCount, $sale->id);
            
             if ($count['total'] > 0) {
@@ -40,12 +56,19 @@ class SaleCareCountActionController  extends Controller
                     'name' => ($sale->real_name) ?: '',
                     'count' => $count['total'],
                 ];
+                $i++;
             }
+            
         }
 
         if ($list) {
             $this->sortByTotalCount($list);
         }
+
+        // Xử lý số lượng hiển thị
+        // if ($r->show && $r->show != 20) {
+        //     $list = array_slice($list, 0, $r->show);
+        // }
 
         return $list;
     }
@@ -55,9 +78,11 @@ class SaleCareCountActionController  extends Controller
         $result = [];
         $total = 0;
         if ($listDataCount->count() > 0) {
+            // dd($listDataCount->get());
             foreach ($listDataCount->get() as $item) {
                 $count = 0;
                 $scCountAction = $item->scCountAction;
+                // dd($scCountAction);
                 if ($scCountAction) {
                     $count = $scCountAction->where('assign_user', $saleID)->count();
                 }
@@ -81,7 +106,7 @@ class SaleCareCountActionController  extends Controller
         array_multisort(array_column($list, 'count'), SORT_DESC, $list);
     }
 
-    public function getReportSaleEffect($time, $checkAll = false)
+    public function getReportSaleEffect($time, $checkAll = false, $show = 20)
     {
         $dataFilter['daterange'] = "$time - $time";
         $listSale = Helper::getListSaleV2(Auth::user());
@@ -90,18 +115,23 @@ class SaleCareCountActionController  extends Controller
         if (!$checkAll) {
             $checkAll = isFullAccess(Auth::user()->role);
         }
-
+        
         $isLeadSale = Helper::isLeadSale(Auth::user()->role);
         if ($checkAll || $isLeadSale) {
             $listDataCount = $this->getListDataCount( $dataFilter['daterange']);
+            $i = 1;
             foreach ($listSale->get() as $sale) {
+                if ($i > $show) {
+                    break;
+                }
+
                 $count = $this->getReportUserSaleEffect($listDataCount, $sale->id);
-               
                 if ($count['total'] > 0) {
                     $result[] = [
                         'name' => ($sale->real_name) ?: '',
                         'count' => $count['total'],
                     ];
+                    $i++;
                 }
             }
         }
@@ -118,11 +148,11 @@ class SaleCareCountActionController  extends Controller
         $toMonth      = date("d/m/Y", time());
 
         /**set tmp */
-        // $toMonth = '05/02/2025';
+        // $toMonth = '20/10/2025';
         // $item = $this->filterByDate('day', $toMonth);
-
         $dataCountSale = $this->getReportSaleEffect($toMonth);
-        return view('pages.sale.report')->with('dataCountSale', $dataCountSale);
+        $groupUser = GroupUser::orderBy('id', 'desc')->where('type', 'sale')->get();
+        return view('pages.sale.report')->with('dataCountSale', $dataCountSale)->with('groupUser', $groupUser);
     }
     public function getListDataCount($daterange)
     {

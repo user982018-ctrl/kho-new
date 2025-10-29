@@ -816,7 +816,9 @@ class ShippingOrderController extends Controller
     public function indexCreateShipping($id)
     {
         $order = Orders::find($id);
-        if ($order) {
+        $isKho = Helper::isKho(Auth::user());
+        $checkAll = isFullAccess(Auth::user()->role);
+        if (($isKho || $checkAll) && $order && $saleCare = $order->saleCare) {
             $ship = ShippingOrder::whereOrderId($id)->first();
             if ($ship) {
                 // notify()->error('Vận đơn đã được tạo', 'Cảnh báo!'); 
@@ -975,7 +977,7 @@ class ShippingOrderController extends Controller
             ->get($link);
         // dd($token);
         $response = $response->json();
-        dd($response);
+        // dd($response);
         if ($response['success']) {
             $data = $response['data'];
             $package = $data['Package'];
@@ -1005,7 +1007,7 @@ class ShippingOrderController extends Controller
     public function detailDataVTPost($orderCode)
     {
         $result = [];
-        $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiaW50ZXJuYWwiOmZhbHNlLCJGcm9tU291cmNlIjozLCJUb2tlbiI6IkJDMDVGMThBRTM5QUIwNEY4RDhBOTBGNDNEM0VDNUM2Iiwic2Vzc2lvbklkIjoiMTAyQTBFQjhEMEE4ODdCQzNDOThDNzJGREUzRDYxQzEiLCJsc3RDaGlsZHJlbiI6IiIsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MSwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsIlVzZXJJZCI6MTY5ODIzMDYsIkJQSWQiOiIiLCJleHAiOjE3NjE1ODM5MTMsIlBhcnRuZXIiOjB9.bxy3FPL1FlgqJK9hAaRi0NbPuxYwmir3S3S_kNj2mfe2g_0EUbZbszfC26ncBvarN-SxGCSGLV5LHqDtmpxsgg';
+        $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiaW50ZXJuYWwiOmZhbHNlLCJGcm9tU291cmNlIjozLCJUb2tlbiI6IkJDMDVGMThBRTM5QUIwNEY4RDhBOTBGNDNEM0VDNUM2Iiwic2Vzc2lvbklkIjoiMTAyQTBFQjhEMEE4ODdCQzNDOThDNzJGREUzRDYxQzEiLCJsc3RDaGlsZHJlbiI6IiIsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MSwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsIlVzZXJJZCI6MTY5ODIzMDYsIkJQSWQiOiIiLCJleHAiOjE3NjIyMzk4OTEsIlBhcnRuZXIiOjB9.TsdBpZhy5k3EROGVdK-LPBKzBC6-JvGfj6AOpqmCPsMIOdlD4U0NDH65bjnba1tPH7Vud50oAeZ8fNYObdfsow';
 
         try {
             //token lấy từ web

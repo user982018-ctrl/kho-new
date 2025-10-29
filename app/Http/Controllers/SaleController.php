@@ -47,8 +47,19 @@ class SaleController extends Controller
         $listSale = Helper::getListSaleV2(Auth::user(), true)
             ->select('id', 'real_name', 'profile_image');
 
+        // Xử lý filter groupUser
+        if (isset($dataFilter['groupUser']) && $dataFilter['groupUser'] != 999) {
+            $listUserInGroup = GroupUser::find($dataFilter['groupUser']);
+            if ($listUserInGroup) {
+                $listUserGroupIds = $listUserInGroup->users->pluck('id')->toArray();
+                // dd($listUserGroupIds);
+                $listSale = $listSale->whereIn('id', $listUserGroupIds);
+            }
+        }
+
         $list = $dataSort = [];
         $homeCtl = new HomeController();
+
         foreach ($listSale->get() as $sale) {
             $data = $homeCtl->getReportUserSaleV2($sale, $dataFilter, true);
             if ($data) {
@@ -57,26 +68,21 @@ class SaleController extends Controller
         }
 
         $dataSort = $this->selection_sort($list);
+        $dataSort = array_slice($dataSort, 0, 10);
         return $dataSort;
     }
 
     public function ajaxViewRank(Request $r)
     {
         $dataFilter['daterange'] = $r->date;
+        
+        // Xử lý filter groupUser
+        if ($r->groupUser && $r->groupUser != 999) {
+            $dataFilter['groupUser'] = $r->groupUser;
+        }
         return $this->processViewRank($dataFilter);
 
-        //prepare clean
-        $listSale = Helper::getListSaleV2(Auth::user(), true);
-        $list = $dataSort = [];
-        $homeCtl = new HomeController();
-        foreach ($listSale->get() as $sale) {
-            $data = $homeCtl->getReportUserSaleV2($sale, $dataFilter, true);
-            $list[] = $data;
-        }
-       
-        $dataSort = $this->selection_sort($list);
-
-        return $dataSort;
+        
     }
 
     public function viewRankSale()
@@ -90,39 +96,8 @@ class SaleController extends Controller
         $dataFilter['daterange'] = [$toMonth, $toMonth];
         $dataSort = $this->processViewRank($dataFilter);
 
-        return view('pages.sale.rank')->with('dataSort', $dataSort);
-
-        //prepare clean
-        $homeCtl = new HomeController();
-        /**set tmp */
-        // $toMonth = '01/12/2024';
-       
-        $checkAll = isFullAccess(Auth::user()->role);
-        $dataFilter['daterange'] = [$toMonth, $toMonth];
-        // return $this->ajaxViewRank();
-        if ($checkAll) {
-            $listGroup = GroupUser::where('status', 1)->get();
-            
-            foreach ($listGroup as $gr) {
-                $listSale =  Helper::getListSaleV3(Auth::user());
-                foreach ($listSale as $sale) {
-                    $data = $homeCtl->getReportUserSaleV2($sale, $dataFilter);
-                    $result[] = $data;   
-                }
-            }
-            $dataSale = $result;
-        } else if (Helper::isCskhDT(Auth::user())) {
-            $dataSale = $homeCtl->getReportCskhDamTom($toMonth, false, true);
-        } else {
-            $dataSale = $homeCtl->getReportUserSaleV2(Auth::user(), $dataFilter);
-        }
-
-        $dataSort = [];
-        if ($dataSale) {
-            $dataSort = $this->selection_sort($dataSale);
-        }
-       
-        return view('pages.sale.rank')->with('dataSort', $dataSort);
+        $groupUser = GroupUser::orderBy('id', 'desc')->where('type', 'sale')->get();
+        return view('pages.sale.rank')->with('dataSort', $dataSort)->with('groupUser', $groupUser);
     }
 
     private function swap_positions($data1, $left, $right) {  
@@ -302,11 +277,12 @@ class SaleController extends Controller
         $dataFilter['daterange']  = [date('d/m/Y'), date('d/m/Y')];
         $saleCare   = $this->getListSalesByPermisson(Auth::user(), $dataFilter);
 
+        $groupUser = GroupUser::orderBy('id', 'desc')->where('type', 'sale')->get();
         $listSrc    = SrcPage::select('id', 'name')->get();
         $groups     = Group::select('id', 'name')->where('status', 1)->get();
         $callResults = CallResult::select('id', 'name')->get();
         $typeDate = TypeDate::select('id', 'name')->get();
-        $listMktUser = Helper::getListMktUser()->select('id', 'name');
+        $listMktUser = Helper::getListMktUser()->select('id', 'name', 'real_name');
         $listTypeTN = CategoryCall::get();
         $listProduct = Product::select('product.id', 'product.name')
             ->join('detail_product_group','detail_product_group.id_product', '=', 'product.id')
@@ -321,7 +297,8 @@ class SaleController extends Controller
             ->with('listMktUser', $listMktUser)
             ->with('listTypeTN', $dataCountByType)
             ->with('listProduct', $listProduct)
-            ->with('sales', $sales)->with('saleCare', $saleCare)->with('listCall', $listCall);
+            ->with('sales', $sales)->with('saleCare', $saleCare)->with('listCall', $listCall)
+            ->with('groupUser', $groupUser);
     }
 
     public function add()
@@ -967,6 +944,14 @@ class SaleController extends Controller
 
                 $list   = SaleCare::orderBy('created_at', 'desc')->whereIn('id', $newSCare);
             }
+
+            if (isset($dataFilter['groupUser'])) {
+                $listUserInGroup = GroupUser::find($dataFilter['groupUser']);
+                if ($listUserInGroup) {
+                    $listUserGroupIds = $listUserInGroup->users->pluck('id')->toArray();
+                    $list = $list->whereIn('assign_user', $listUserGroupIds);
+                }
+            }
         }
 
         $checkAll   = false;
@@ -1094,6 +1079,10 @@ class SaleController extends Controller
             $dataFilter['product'] = $req->product;
         }
 
+        if ($req->groupUser && $req->groupUser != 999) {
+            $dataFilter['groupUser'] = $req->groupUser;
+        }
+
         try {
             $data       = $this->getListSalesByPermisson(Auth::user(), $dataFilter);
             $helper     = new Helper();
@@ -1107,6 +1096,7 @@ class SaleController extends Controller
                 $sales = Helper::getListSaleOfLeader()->get();
             }
 
+            $groupUser = GroupUser::orderBy('id', 'desc')->where('type', 'sale')->get();
             $listSrc    = SrcPage::orderBy('id', 'desc')->get();
             $groups     = Group::orderBy('id', 'desc')->get();
             $callResults = CallResult::orderBy('id', 'desc')->get();
@@ -1199,6 +1189,7 @@ class SaleController extends Controller
                 ->with('listMktUser', $listMktUser)
                 ->with('listTypeTN', $dataCountByType)
                 ->with('listProduct', $listProduct)
+                ->with('groupUser', $groupUser)
                 ->with('saleCare', $saleCare)->with('listCall', $listCall);
         } catch (\Exception $e) {
             // return $e;

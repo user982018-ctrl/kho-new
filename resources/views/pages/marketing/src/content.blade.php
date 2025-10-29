@@ -32,7 +32,7 @@
                     <div class="row">
                         <div class="col-xs-12 col-md-3 form-group">
                             <a class="home-sale-index" href="{{{route('marketing-src-search')}}}"> 
-                            <span id="dnn_ctr1440_Main_MarketingTacNghiep_lblModuleTitle" class="text">Marketing dashboard</span>
+                            <span class="text">Marketing dashboard</span>
                             </a>
                         </div>
                         <div class="col-sm-12 col-md-9 form-group">
@@ -61,7 +61,7 @@
                 <div class="col-sm-4 form-group" style="min-height: 40px;">
                     
                         <div style="width: calc(100% - 145px); float: left;">
-                            <input name="search" type="text"  value="{{ isset($search) ? $search : null}}" class="form-control" placeholder="Tên nguồn">
+                            <input name="search" type="text"  value="{{ isset($searchValue) ? $searchValue : null}}" class="form-control" placeholder="Tên nguồn, id page, url">
                         </div>
                         <div style="width: 125px; float: right;">
                             <button class="btn btn-sm btn-primary">
@@ -198,10 +198,10 @@
         return 0;
     }
 
-    let search = $.urlParam('search') 
-    if (search) {
-        $('input[name="search"]').val(search)
-    }
+    // let search = $.urlParam('search') 
+    // if (search) {
+    //     $('input[name="search"]').val(search)
+    // }
 
     let mkt = $.urlParam('mkt_user') 
     if (mkt) {

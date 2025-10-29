@@ -1676,10 +1676,10 @@ class Helper
         $listProduct = json_decode($order->id_product, true);
         
         /** check gr tricho */
-        if ($order->saleCare->group_id == 5) {
-            $type = 17;
-            return $type;
-        }
+        // if ($order->saleCare->group_id == 5) {
+        //     $type = 17;
+        //     return $type;
+        // }
 
         if ($listProduct) {
             foreach ($listProduct as $product) {

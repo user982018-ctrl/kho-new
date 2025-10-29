@@ -94,11 +94,33 @@ if (Helper::isOldCustomerV2($order->phone)) {
                 </tr>
                 <tr>
                     <td class="first-col">Số điện thoại</td>
-                    <td>{{$order->phone}}</td>
+                    <td id="phone-order">
+                        <?php 
+                        $phone = $order->phone;
+                        if (!$checkAll || Auth::user()->id == $order->assign_user) {
+                            $lastTwo = substr($phone, -2);
+                            $masked = str_repeat('x', strlen($phone) - 2) . $lastTwo;
+                            echo $masked;
+                        } else {
+                            echo $phone;
+                        }
+                        ?>
+                    </td>
                 </tr>
                 <tr>
                     <td class="first-col">Tên khách hàng</td>
-                    <td>{{$name .= $order->name}}</td>
+                    <td id="name-order">
+                        <?php 
+                        $name .= $order->name;
+                        if ((!$checkAll || Auth::user()->id == $order->assign_user) && strlen($name) >= 4 ) {
+                            $lastThree = substr($name, -4);
+                            $maskedName = str_repeat('-', strlen($name) - 4) . $lastThree;
+                            echo $maskedName;
+                        } else {
+                            echo $name;
+                        }
+                        ?>
+                    </td>
                 </tr>
                 <tr>
                     <td class="first-col">Giới tính</td>
@@ -106,7 +128,37 @@ if (Helper::isOldCustomerV2($order->phone)) {
                 </tr>
                 <tr>
                     <td class="first-col">Địa chỉ</td>
-                    <td>{{$order->address}}</td>
+                    <td id="address-order">
+                        <?php 
+                        $address = $order->address;
+                        /*if (!$checkAll && strlen($address) > 0) {
+                            // Tìm vị trí dấu cách cuối cùng
+                            $lastSpacePos = strrpos($address, ' ');
+                            if ($lastSpacePos !== false) {
+                                // Lấy phần từ dấu cách cuối đến hết
+                                $visiblePart = substr($address, $lastSpacePos);
+                                // Tạo phần ẩn, giữ nguyên khoảng trắng
+                                $hiddenPart = substr($address, 0, $lastSpacePos);
+                                $maskedPart = '';
+                                for ($i = 0; $i < strlen($hiddenPart); $i++) {
+                                    if ($hiddenPart[$i] === ' ') {
+                                        $maskedPart .= ' ';
+                                    } else {
+                                        $maskedPart .= 'x';
+                                    }
+                                }
+                                echo $maskedPart . $visiblePart;
+                            } else {
+                                // Không có dấu cách, ẩn toàn bộ
+                                echo str_repeat('x', strlen($address));
+                            }
+                        } else {
+                            echo $address;
+                        }*/
+
+                        echo $address;
+                        ?>
+                    </td>
                 </tr>
                 <tr>
                     <td class="first-col">Tổng tiền</td>

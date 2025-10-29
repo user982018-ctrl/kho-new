@@ -217,6 +217,8 @@
   </style>
 </head>
 <body>
+
+<?php $checkAll = isFullAccess(Auth::user()->role); ?>
 @if (isset($data) && $data)
 <?php 
     $order = $data['order'];
@@ -233,8 +235,26 @@
     </div>
     
     <div class="recipient-info">
-        <div><strong>👤 Người nhận:</strong> {{$order['RECEIVER_FULLNAME'] ?? 'N/A'}}</div>
-        <div><strong>📞 Số điện thoại:</strong> {{$order['RECEIVER_PHONE'] ?? 'N/A'}}</div>
+        <div><strong>👤 Người nhận:</strong> <span id="name-order"> 
+          <?php $name = $order['RECEIVER_FULLNAME'];
+          if (!$checkAll && strlen($name) >= 4) {
+              $lastThree = substr($name, -4);
+              $maskedName = str_repeat('-', strlen($name) - 4) . $lastThree;
+              echo $maskedName;
+          } else {
+              echo $name;
+          }
+          ?> </span></div>
+        <div><strong>📞 Số điện thoại:</strong> <span id="phone-order"> 
+          <?php $phone = $order['RECEIVER_PHONE'];
+          if (!$checkAll) {
+              $lastThree = substr($phone, -2);
+              $maskedName = str_repeat('-', strlen($phone) - 2) . $lastThree;
+              echo $maskedName;
+          } else {
+              echo $phone;
+          }
+          ?> </span></div>
         <div><strong>📍 Địa chỉ:</strong> {{$order['RECEIVER_ADDRESS'] ?? 'N/A'}}</div>
         @if (isset($order['PRODUCT_WEIGHT']))
         <div><strong>⚖️ Khối lượng:</strong> {{$order['PRODUCT_WEIGHT']}}g</div>

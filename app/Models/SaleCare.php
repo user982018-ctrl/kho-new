@@ -23,6 +23,48 @@ class SaleCare extends Model
      */
     protected $table = 'sale_care';
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'id',
+        'id_order',
+        'id_order_new',
+        'issetDuplicate',
+        'duplicate_id',
+        'type_TN',
+        'has_TN',
+        'time_update_TN',
+        'time_wakeup_TN',
+        'm_id',
+        'is_duplicate',
+        'old_customer',
+        'has_old_order',
+        'group_id',
+        'sex',
+        'full_name',
+        'phone',
+        'address',
+        'messages',
+        'TN_can',
+        'type_tree',
+        'product_request',
+        'reason_not_buy',
+        'note_info_customer',
+        'is_runjob',
+        'result_call',
+        'next_step',
+        'assign_user',
+        'src_id',
+        'page_id',
+        'page_name',
+        'page_link',
+        'created_at',
+        'updated_at'
+    ];
+
      /**
      * Get the shippingOrder for the Orders.
      */

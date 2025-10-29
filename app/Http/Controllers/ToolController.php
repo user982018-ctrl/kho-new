@@ -3,6 +3,9 @@ namespace App\Http\Controllers;
 
 use App\Helpers\Helper;
 use App\Models\Group;
+use App\Models\Orders;
+use App\Models\SaleCare;
+use App\Models\SrcPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Validator;
@@ -10,6 +13,165 @@ use Illuminate\Support\Facades\Auth;
 
 class ToolController extends Controller
 {
+    public function getID(){
+        $orders = Orders::whereDate('orders.created_at', '>=', '2025-09-01')
+        ->whereDate('orders.created_at', '<=', '2025-10-23')
+        ->where('orders.status',  '!=', 0)
+        // ->where('orders.id', 24013)
+        ->get();
+        // dd($orders);
+        $i = 0;
+        foreach ($orders as $order) {
+            if (!$order->saleCare) {
+                // dd($order);
+                $i++;
+                echo $i . ' - ' . $order->phone . ' - ' . $order->id . '<br>';
+            } 
+        }
+        echo $i;
+        // dd($orders);n_decode($json, true);
+        // dd($data);
+    }
+
+    public function setID(){
+        // Phương pháp 1: Xử lý streaming (khuyến nghị cho file lớn)
+       // $this->processJsonStreaming();
+        
+        // Phương pháp 2: Xử lý toàn bộ file (cần nhiều memory)
+         $this->processFullJson();
+    }
+    
+    private function processJsonStreaming() {
+        $jsonFile = public_path('json/sale_care.json');
+        $handle = fopen($jsonFile, 'r');
+        
+        $saleCareData = [];
+        $inDataArray = false;
+        $recordCount = 0;
+        $maxRecords = 1000; // Giới hạn để test
+        
+        while (($line = fgets($handle)) !== false && $recordCount < $maxRecords) {
+            $line = trim($line);
+            
+            // Tìm bắt đầu data array
+            if (strpos($line, '"data":') !== false) {
+                $inDataArray = true;
+                continue;
+            }
+            
+            if ($inDataArray && $line !== ']' && $line !== '[' && $line !== '') {
+                // Bỏ dấu phẩy cuối dòng
+                if (substr($line, -1) === ',') {
+                    $line = substr($line, 0, -1);
+                }
+                
+                // Decode từng record
+                $record = json_decode($line, true);
+                if ($record) {
+                    $saleCareData[] = $record;
+                    $recordCount++;
+                }
+            }
+        }
+        
+        fclose($handle);
+        
+        dd([
+            'method' => 'streaming',
+            'records_processed' => count($saleCareData),
+            'first_record' => $saleCareData[0] ?? null,
+            'memory_usage' => memory_get_usage(true)
+        ]);
+    }
+    
+    private function processFullJson() {
+        // Tăng memory limit để xử lý file lớn
+        ini_set('memory_limit', '1G');
+        
+        $json = file_get_contents(public_path('json/sale_care.json'));
+        
+        // Decode JSON thành array
+        $data = json_decode($json, true);
+        // Kiểm tra lỗi JSON
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            dd('JSON Error: ' . json_last_error_msg());
+        }
+        
+        // Extract data array từ PHPMyAdmin format
+        $saleCareData = [];
+        foreach ($data as $item) {
+            if (isset($item['type']) && $item['type'] === 'table' && isset($item['data'])) {
+                $saleCareData = $item['data'];
+                break;
+            }
+        }
+
+        $saleCareBKs = [];
+
+        if (count($saleCareData) > 0) {
+            foreach ($saleCareData as $item) {
+                $saleCareBKs[$item['id']] = $item;
+            }
+
+        }
+        // dd($saleCareBKs);
+        // dd([
+        //     'method' => 'full_decode',
+        //     'total_records' => count($saleCareData),
+        //     'first_record' => $saleCareData ?? null,
+        //     'memory_usage' => memory_get_usage(true)
+        // ]);
+        $orders = Orders::whereDate('orders.created_at', '>=', '2025-09-01')
+        ->whereDate('orders.created_at', '<=', '2025-10-23')
+        ->where('orders.status',  '!=', 0)
+        // ->where('orders.id', 24013)
+        ->get();
+        // dd($orders);
+        foreach ($orders as $order) {
+            if (!$order->saleCare && $order->sale_care && isset($saleCareBKs[$order->sale_care])) {
+                $saleBK = $saleCareBKs[$order->sale_care];
+                $saleCare = new SaleCare($saleBK);
+                $saleCare->save();
+                echo $saleCare->id . ' - ' . $order->id . '<br>';
+            } 
+        }
+       
+    }
+    public function updateName(){
+        $list = SaleCare::where('old_customer', 0)
+        ->whereDate('created_at', '>=', '2025-10-21')
+        ->whereDate('created_at', '<=', '2025-10-30')
+        ->whereFullName('Loading')
+        // ->limit(100)
+        // ->where('id', 99145)
+        ->get();
+        // dd($list);
+       foreach ($list as $item) {
+            $src = $item->getSrcPage;
+            $phoneSearch = $item->phone;
+            // dd($src->id_page);
+            if ($src && ($pIdPan = $src->id_page) && ($token = $src->token)) {
+                // dd($pIdPan);
+                $endpoint = "https://pancake.vn/api/v1/pages/$pIdPan/conversations";
+                $endpoint = "$endpoint/search?q=$phoneSearch&access_token=$token&cursor_mode=true";
+                $response = Http::withHeaders(['access_token' => $token])->get($endpoint);
+                // dd($endpoint);
+                if ($response->status() == 200) {
+                    $content  = json_decode($response->body());
+                    // dd($content);
+                    if (isset($content->conversations) && count($content->conversations) > 0) {
+                        $data     = $content->conversations;
+                        $customer = $data[0]->customers[0];
+                        $name = $customer->name;
+                        $item->full_name = $name;
+                        $item->save();
+                        echo $name . ' - ' . $phoneSearch . '<br>';
+                    }
+                }
+            }
+       }
+      }
+
     public function tool()
     {
         $checkAll = isFullAccess(Auth::user()->role);

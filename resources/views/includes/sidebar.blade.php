@@ -98,6 +98,7 @@
         <ul class="nav-group-items">
             @if ($checkAll)
             <li class="nav-item"><a class="nav-link" href="{{route('setting-general')}}"><span class="nav-icon"></span>Chung</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{route('user-activity-logs')}}"><span class="nav-icon"></span>Lịch sử hoạt động</a></li>
             <li class="nav-group"><a class="nav-link nav-group-toggle">QL TN Sale</a>
                 <ul class="nav-group-items">
                     <li class="nav-item"><a class="nav-link" href="{{route('category-call')}}"><span class="nav-icon"></span>Loại TN</a></li>

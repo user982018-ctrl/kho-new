@@ -1179,6 +1179,7 @@ class OrdersController extends Controller
         $order          = Orders::find($id);
         if($order){
             if ($saleCare = $order->saleCare) {
+                
                 if ($group = $saleCare->group) {
                     $products    = $group->products;
     
@@ -1295,6 +1296,7 @@ class OrdersController extends Controller
 
     public function view($id) {
         $order = Orders::find($id);
+
         // notify()->success('Gỡ vận đơn thành công', 'Thành công!');
         if($order){
             return view('pages.orders.detail')->with('order', $order); 

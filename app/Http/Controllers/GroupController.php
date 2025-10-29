@@ -27,9 +27,11 @@ class GroupController extends Controller
     {
         $checkAll = isFullAccess(Auth::user()->role);
         if ($checkAll) {
+            $sales      = Helper::getListSale()->get();
             $list = Group::get();
         } else {
             // $list = Group::where('lead_sale', Auth::user()->id)->get();
+            $sales = Helper::getListSaleOfLeader()->get();
             $groups = Group::get();
             $list = [];
             
@@ -41,7 +43,7 @@ class GroupController extends Controller
             }
         }
        
-        return view('pages.group.index')->with('list', $list);
+        return view('pages.group.index')->with('list', $list)->with('sales', $sales);
     }
 
     /**
@@ -63,11 +65,17 @@ class GroupController extends Controller
         $listSale       = Helper::getListSale()->get();
         $listProduct    = Helper::getListProduct()->get();
         $listSrc        = Helper::getListSrc();
+
+        if (isFullAccess(Auth::user()->role)) {
+            $sales      = Helper::getListSale()->get();
+        } else {
+            $sales = Helper::getListSaleOfLeader()->get();
+        }
         // dd($listSrc);
         $group = Group::find($id);
         if ($group) {
             return view('pages.group.addOrUpdate')->with('listSale', $listSale)->with('group', $group)
-                ->with('listProduct', $listProduct)->with('listSrc', $listSrc);
+                ->with('listProduct', $listProduct)->with('listSrc', $listSrc)->with('sales', $sales);
         }
 
         notify()->error('Lỗi không tìm thấy nhóm nào', 'Thất bại!');

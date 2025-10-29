@@ -908,7 +908,7 @@ class HomeController extends Controller
             $rateSum = $orderSum * 100;
         }
 
-        $profileImg = '/public/assets/img/avatars/8.jpg';
+        $profileImg = '/public/assets/img/avatars/8.png';
         if (isset($user['profile_image'])) {
             $profileImg = '/storage/app/public/' . $user['profile_image'];
         }
@@ -1166,8 +1166,9 @@ class HomeController extends Controller
             $groupUs = GroupUser::find($groupUser);
             
             if ($groupUs) {
-                $listSale = $groupUs->users;
+                $listSale = $groupUs->users->toArray();
 
+                // dd($listSale->toArray());
                 $listSale = array_slice($listSale, 0, $show);
                 foreach ($listSale as $sale) {
                     $data = $this->getReportUserSaleV2($sale, $dataFilter);

@@ -32,7 +32,7 @@
     <li class="nav-item dropdown">
       <a class="nav-link py-0" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
         <div class="avatar avatar-md" id="avatar">
-          <?php $src = 'public/assets/img/avatars/8.jpg';
+          <?php $src = 'public/assets/img/avatars/8.png';
           if (Auth::user()->profile_image) {
             $src = 'storage/app/public/' . Auth::user()->profile_image;
           }

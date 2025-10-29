@@ -6,7 +6,12 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="{{asset('public/js/moment.js')}}"></script>
-<link rel="stylesheet" type="text/css" href="{{asset('public/css/daterangepicker.css')}}" /> 
+<link rel="stylesheet" type="text/css" href="{{asset('public/css/daterangepicker.css')}}" />
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> 
 
 <style>
   .header.header-sticky {
@@ -30,6 +35,21 @@
     }
     .filter-button svg{
       transform: rotate(90deg)
+    }
+
+    /* CSS cho hình ảnh có thể click */
+    .avatar-container a {
+        cursor: pointer;
+        transition: opacity 0.3s ease;
+    }
+    
+    .avatar-container a:hover {
+        opacity: 0.8;
+    }
+    
+    .avatar-container a:hover .avatar-img {
+        transform: scale(1.05);
+        transition: transform 0.3s ease;
     }
 
     .total-sales .card-body {
@@ -161,14 +181,17 @@
       </div>
 
       <div class="col-xs-12 col-sm-6 col-md-2 form-group mb-1">
-        <select name="group" id="group-filter" class="form-select">
-          <option   value="999">--Chọn nhóm--</option>  
-            @if (isset($groups))
-                @foreach($groups as $group)
+        
+        @if ($checkAll)
+        <select name="groupUser" id="groupUser-filter" class="form-select">
+          <option value="999">--Nhóm sale--</option>  
+            @if (isset($groupUser))
+                @foreach($groupUser as $group)
                 <option value="{{$group->id}}">{{$group->name}}</option>
                 @endforeach
             @endif
         </select>
+        @endif
       </div>
       {{ csrf_field() }}
       
@@ -202,8 +225,9 @@
                                 </div>
                                 <div class="avatar-container  blink{{$i}}">
                                     {{-- <img class="avatar-img" src="{{asset('public/assets/img/avatars/8.jpg')}}"> --}}
-                                    
-                                    <img class="avatar-img" src="{{asset($sale['profile_image'])}}">
+                                    <a href="{{asset($sale['profile_image'])}}" target="_blank">
+                                      <img class="avatar-img" src="{{asset($sale['profile_image'])}}"/>
+                                    </a>
                                 </div>
                                 <div class="item-info">
                                     <div class="item-stt">{{$i}}</div>
@@ -236,6 +260,16 @@
 {{-- <script type="text/javascript" src="{{asset('public/js/dateRangePicker/dateRangePicker-vi.js')}}"></script> --}}
 <script>
 $(document).ready(function() {
+    
+    // Khởi tạo Select2 cho filter groupUser
+    $('#groupUser-filter').select2();
+    
+    // Xử lý URL parameter cho groupUser filter
+    let groupUser = $.urlParam('groupUser') 
+    if (groupUser && groupUser != 999) {
+        $('#groupUser-filter option[value="' + groupUser +'"]').attr('selected','selected');
+        $('#groupUser-filter').parent().addClass('selectedClass');
+    }
     
     $('input[name="daterange"]').daterangepicker({
       ranges: {
@@ -313,6 +347,7 @@ $(document).ready(function() {
     $("#btn-filter").on("click", function() {
       let date =  $("input[name='daterange']").val();
       date = date.split("-");
+      let groupUser = $("#groupUser-filter :selected").val();
       var _token    = $("input[name='_token']").val();
       
       $('#loader-overlay').css('display', 'flex');
@@ -322,6 +357,7 @@ $(document).ready(function() {
             data: {
               _token: _token,
               date,
+              groupUser,
             },
             success: function(data) {
               var rs = '';
@@ -332,9 +368,10 @@ $(document).ready(function() {
                 rs += '<div class="king-sale">';
                 rs += '<img src="' + baseLink + '/public/images/bxh2.png">';
                 rs += '</div>';
-                rs += '<div class="avatar-container  blink' + i + '">';
+                rs += '<a href="' + baseLink + element.profile_image +'" target="_blank"> <div class="avatar-container  blink' + i + '">';
 
-                rs += '<img class="avatar-img" src="' + baseLink + element.profile_image +'">';
+                rs += '<img class="avatar-img" src="' + baseLink + element.profile_image +'"/>';
+                rs += '</a>';
                 rs += '</div>';
                 rs += '<div class="item-info">';
                 rs += '<div class="item-stt">' + i + '</div>'

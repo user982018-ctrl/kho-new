@@ -245,7 +245,6 @@
     }
 
 </style>
-
 {{-- update filter --}}
 <form id="saleForm" action="{{route('sale-index')}}" method="get" class="pb-4">
     {{ csrf_field() }}
@@ -257,7 +256,18 @@
                         <a class="home-sale-index" href="{{{route('sale-index')}}}"><span class="text">Sale tác nghiệp</span></a>
                     </div>
                     <div class="col-md-12 col-sm-12  col-lg-10 form-group header-filter-wraper">
-                        
+                        @if ($checkAll)
+                        <div class="col-xs-12 col-sm-6 col-md-2 form-group mb-1">
+                        <select name="groupUser" id="groupUser-filter" class="form-select">
+                            <option value="999">--Nhóm sale--</option>  
+                            @if (isset($groupUser))
+                                @foreach($groupUser as $group)
+                                <option value="{{$group->id}}">{{$group->name}}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                        </div>
+                        @endif
                         @if ($checkAll || $isLeadSale)
                         <div class="col-12 col-sm-3 col-md-3 col-lg-2 form-group" style="padding:0 15px;"> 
                             <select name="group" id="group-filter" class="border-select-box-se">
@@ -327,8 +337,10 @@
                 </select>
             </div>
 
+           
             @if ($checkAll  || $isLeadSale || $isLeadDigital)
             <div class="col-xs-12 col-sm-6 col-md-2 form-group">
+                
                 <select name="mkt" id="mkt-filter" class="border-select-box-se">
                     <option value="999">--chọn Marketing--</option>
                     @foreach ($listMktUser->get() as $user)
@@ -411,6 +423,15 @@
                             @endif
                         </th>
                         <th class="text-center" style="top: 0.5px;">
+                            <div style="min-width: 200px;">
+                                <div style="border-bottom: 1px solid #d8dbe0; padding-bottom: 5px; margin-bottom: 5px;">Mã đơn</div>
+                                <div style="display: flex; justify-content: space-around;">
+                                    <span style="flex: 1; border-right: 1px solid #d8dbe0;">Đơn mới chốt</span>
+                                    <span style="flex: 1;">Đơn từ CSKH</span>
+                                </div>
+                            </div>
+                        </th>
+                        <th class="text-center" style="top: 0.5px;">
                             <span style="display: inline-block; min-width: 200px;">Nguồn dữ liệu</span><br>
                             Ngày data về
                         </th>
@@ -451,6 +472,21 @@
                             @else 
                             <span class="chk-item">{{$i}}</span>
                             @endif  
+                        </td>
+                        <?php $preOrder = $item->group ? $item->group->prefix_order : '';?>
+                        <td class="text-center">
+                            <div style="display: flex; justify-content: space-around; align-items: center;">
+                                <div style="flex: 1; border-right: 1px solid #d8dbe0; padding: 5px;">
+                                    @if($item->id_order_new)
+                                   <a href="{{route('view-order', ['id' => $item->id_order_new])}}" target="_blank"> #{{$preOrder}}{{$item->id_order_new}}</a>
+                                    @endif
+                                </div>
+                                <div style="flex: 1; padding: 5px;">
+                                    @if($item->id_order)
+                                    <a href="{{route('view-order', ['id' => $item->id_order])}}" target="_blank"> #{{$preOrder}}{{$item->id_order}}</a>
+                                    @endif
+                                </div>
+                            </div>
                         </td>
                         <td class="text-center" style= "max-width: 200px">
                             <?php
@@ -1069,6 +1105,12 @@
         $('#product-filter').parent().addClass('selectedClass');
     }
 
+    let groupUser = $.urlParam('groupUser') 
+    if (groupUser && groupUser != 999) {
+        $('#groupUser-filter option[value="' + groupUser +'"]').attr('selected','selected');
+        $('#groupUser-filter').parent().addClass('selectedClass');
+    }
+
     let search = $.urlParam('search')
     if (search) {
         search = decodeURIComponent(search);
@@ -1274,6 +1316,13 @@
         $('#statusTN-filter').select2();
         $('#product-filter').select2();
         $('#group-filter').select2();
+        $('#groupUser-filter').select2();
+        
+        // Event listener cho các filter
+        $('#src-filter, #mkt-filter, #status-filter, #type_customer-filter, #resultTN-filter, #typeDate-filter, #statusTN-filter, #product-filter, #group-filter, #groupUser-filter').on('change', function() {
+            // Trigger click vào radio button hiện tại để refresh data
+            $("input[name='cateCall']:checked").trigger('click');
+        });
         
     });
 </script>
@@ -1344,6 +1393,7 @@
         var type_customer = $("#type_customer-filter :selected").val();
         var status = $("#status-filter :selected").val();
         var sale = $("#sale-filter :selected").val();
+        var groupUser = $("#groupUser-filter :selected").val();
 
         var link = "{{URL::to('/tac-nghiep-sale')}}";
         var isAjax = true;
@@ -1355,7 +1405,7 @@
             url: link,
             type: "GET",
             data: {
-                cateCall:typeTN, daterange, typeDate, src, mkt, product, statusTN, resultTN, type_customer, status, sale,
+                cateCall:typeTN, daterange, typeDate, src, mkt, product, statusTN, resultTN, type_customer, status, sale, groupUser,
                 isAjax,
                 _token: _token,
             },

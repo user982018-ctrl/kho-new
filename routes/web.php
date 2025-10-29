@@ -26,6 +26,7 @@ use App\Http\Controllers\SheetDbController;
 use App\Http\Controllers\SpamController;
 use App\Http\Controllers\VoipController;
 use App\Http\Controllers\ToolController;
+use App\Http\Controllers\UserActivityLogController;
 
 
 Route::match(['get', 'post'], '/webhook-fb', [FbWebHookController::class, 'handle']);
@@ -39,7 +40,7 @@ Route::match(['get', 'post'], '/webhook-fb', [FbWebHookController::class, 'handl
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-Route::middleware('admin-auth')->group(function () {
+Route::middleware(['admin-auth', 'log.activity'])->group(function () {
 
     Route::get('/danh-sach-spam',  [SpamController::class, 'index'])->name('spam');
     Route::get('/them-spam',  [SpamController::class, 'viewAddUpdate'])->name('add-spam');
@@ -222,6 +223,16 @@ Route::middleware('admin-auth')->group(function () {
     // Route::get('/marketing-tim-kiem',  [MarketingController::class, 'marketingSearch'])->name('marketing-search');
     
     Route::get('/tool', [ToolController::class, 'tool'])->name('tool');
+
+    /** User Activity Logs - Lịch sử hoạt động */
+    Route::get('/lich-su-hoat-dong', [UserActivityLogController::class, 'index'])->name('user-activity-logs');
+    Route::get('/lich-su-hoat-dong/{id}', [UserActivityLogController::class, 'view'])->name('user-activity-log-detail');
+    Route::get('/lich-su-user/{userId}', [UserActivityLogController::class, 'userHistory'])->name('user-activity-history');
+    Route::get('/thong-ke-hoat-dong', [UserActivityLogController::class, 'statistics'])->name('user-activity-statistics');
+    Route::post('/xoa-log-cu', [UserActivityLogController::class, 'deleteOldLogs'])->name('delete-old-logs');
+    Route::get('/xuat-lich-su-hoat-dong', [UserActivityLogController::class, 'export'])->name('export-activity-logs');
+    Route::get('/api/hoat-dong-gan-nhat/{userId}/{limit?}', [UserActivityLogController::class, 'recentActivities'])->name('api-recent-activities');
+    Route::get('/api/so-sanh-thay-doi/{id}', [UserActivityLogController::class, 'compareChanges'])->name('api-compare-changes');
 });
 
 Route::get('/login',  [UserController::class, 'login'])->name('login');
@@ -271,3 +282,10 @@ Route::get('/test/fetch-all-viettel-subwards', [TestController::class, 'fetchAll
 
 
 Route::get('/src', [TestController::class, 'updateSrcId'])->name('update-src-id');
+Route::get('/name', [ToolController::class, 'updateName'])->name('update-src-id');
+Route::get('/id', [ToolController::class, 'getID']);
+Route::get('/set-id', [ToolController::class, 'setID']);
+Route::get('/src2', [TestController::class, 'updateSrcId2'])->name('update-src-id2');
+
+
+

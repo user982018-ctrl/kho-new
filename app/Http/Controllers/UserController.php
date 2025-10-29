@@ -8,6 +8,7 @@ use App\Models\GroupUser;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\UserActivityLog;
 use Hash;
 use Illuminate\Support\Facades\Auth;
 use Validator;
@@ -45,8 +46,20 @@ class UserController extends Controller
             return response()->json(['error'=>'Lỗi']);
         }
 
+        $oldStatus = $user->status;
         $user->status = $r->status;
         $user->save();
+        
+        // Log hoạt động thay đổi trạng thái
+        UserActivityLog::logActivity(
+            'update',
+            'users',
+            $user->id,
+            'Thay đổi trạng thái user: ' . ($user->real_name ?? $user->name) . ' từ ' . ($oldStatus ? 'Active' : 'Inactive') . ' sang ' . ($r->status ? 'Active' : 'Inactive'),
+            ['status' => $oldStatus],
+            ['status' => $r->status]
+        );
+        
         return response()->json(['success'=>'OK']);
     }
 
@@ -81,6 +94,10 @@ class UserController extends Controller
 
     public function postLogin(Request $r) {
         if (Auth::attempt(['name' => $r->name, 'password' => $r->password, 'status' => 1])) {
+            // Log hoạt động đăng nhập
+            $user = Auth::user();
+            UserActivityLog::logLogin($user->id, $user->name);
+            
             return redirect()->route('home');
         } 
 
@@ -89,6 +106,12 @@ class UserController extends Controller
     }
 
     public function logOut() {
+        // Log hoạt động đăng xuất
+        if (Auth::check()) {
+            $user = Auth::user();
+            UserActivityLog::logLogout($user->id, $user->name);
+        }
+        
         Auth::logout();
         return redirect()->route('login');
     }
@@ -127,6 +150,10 @@ class UserController extends Controller
         if ($validator->passes()) {
             if(isset($req->id) && $req->id != 'undefined') {
                 $user           = User::find($req->id);
+                
+                // Lưu giá trị cũ để log
+                $oldValues = $user->only(['name', 'real_name', 'email', 'status', 'role', 'is_sale', 'is_digital', 'is_CSKH', 'is_kho']);
+                
                 if ($checkAll)  {
                     $user->status   = $req->status;
                 }
@@ -192,6 +219,31 @@ class UserController extends Controller
                 }
 
                 $user->save();
+                
+                // Log hoạt động
+                if(isset($req->id) && $req->id != 'undefined') {
+                    // Cập nhật user
+                    $newValues = $user->only(['name', 'real_name', 'email', 'status', 'role', 'is_sale', 'is_digital', 'is_CSKH', 'is_kho']);
+                    
+                    UserActivityLog::logActivity(
+                        'update',
+                        'users',
+                        $user->id,
+                        'Cập nhật thông tin user: ' . $user->real_name,
+                        $oldValues ?? null,
+                        $newValues
+                    );
+                } else {
+                    // Tạo mới user
+                    UserActivityLog::logActivity(
+                        'create',
+                        'users',
+                        $user->id,
+                        'Tạo mới user: ' . $user->real_name,
+                        null,
+                        $user->only(['name', 'real_name', 'email', 'role'])
+                    );
+                }
 
             } catch (\Throwable $th) {
                 dd($th);
@@ -227,13 +279,28 @@ class UserController extends Controller
 
     public function delete($id)  
     {
-        $product = User::find($id);
-        if($product){
-            $product->delete();
+        $user = User::find($id);
+        if($user){
+            // Lưu thông tin trước khi xóa
+            $userName = $user->real_name ?? $user->name;
+            $oldValues = $user->only(['name', 'real_name', 'email', 'status', 'role']);
+            
+            $user->delete();
+            
+            // Log hoạt động xóa
+            UserActivityLog::logActivity(
+                'delete',
+                'users',
+                $id,
+                'Xóa user: ' . $userName,
+                $oldValues,
+                null
+            );
+            
             return redirect('/quan-ly-thanh-vien')->with('success', 'Thành viên xoá thành công!');            
         } 
 
-        return redirect('/danh-sach-san-pham') ->with('error', 'Đã xảy ra lỗi khi xoá thành viên!');
+        return redirect('/quan-ly-thanh-vien')->with('error', 'Đã xảy ra lỗi khi xoá thành viên!');
     }
 
     public function search(Request $str)

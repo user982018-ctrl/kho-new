@@ -174,7 +174,9 @@ class MarketingController extends Controller
         $list = SrcPage::orderBy('id', 'desc');
 
         if ($req->search) {
-            $list = $list->where('name', 'like', '%' . $req->search . '%');
+            $list = $list->where('name', 'like', '%' . $req->search . '%')
+            ->orWhere('id_page', 'like', '%' . $req->search . '%')
+            ->orWhere('link', 'like', '%' . $req->search . '%');
         }
         
         if (($req->mkt_user && $req->mkt_user != -1)) {
@@ -193,7 +195,8 @@ class MarketingController extends Controller
 
         return view('pages.marketing.src.index')->with('list', $list)
             ->with('listMktUser', $listMktUser)
-            ->with('listGroup', $listGroup);
+            ->with('listGroup', $listGroup)
+            ->with('searchValue', $req->search);
     }
 
     public function getListMktReport()
