@@ -40,7 +40,7 @@ Route::match(['get', 'post'], '/webhook-fb', [FbWebHookController::class, 'handl
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-Route::middleware(['admin-auth', 'log.activity'])->group(function () {
+Route::middleware(['admin-auth', 'log.activity', 'require.password.change'])->group(function () {
 
     Route::get('/danh-sach-spam',  [SpamController::class, 'index'])->name('spam');
     Route::get('/them-spam',  [SpamController::class, 'viewAddUpdate'])->name('add-spam');
@@ -239,6 +239,12 @@ Route::get('/login',  [UserController::class, 'login'])->name('login');
 Route::post('/login',  [UserController::class, 'postLogin'])->name('login-post');
 Route::get('/log-out',  [UserController::class, 'logOut'])->name('log-out');
 
+// Route đổi mật khẩu bắt buộc (không cần middleware admin-auth)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/doi-mat-khau',  [UserController::class, 'changePassword'])->name('change-password');
+    Route::post('/doi-mat-khau',  [UserController::class, 'postChangePassword'])->name('change-password-post');
+});
+
 Route::get('/filter-total',  [HomeController::class, 'filterTotal'])->name('filter-total');
 Route::get('/filter-total-sales',  [HomeController::class, 'ajaxFilterDashboard'])->name('filter-total-sales');
 Route::get('/filter-total-cskh-dt',  [HomeController::class, 'ajaxFilterDashboardCskhDT'])->name('filter-total-cskh-dt');
@@ -255,7 +261,7 @@ Route::get('/hieu',  [TestController::class, 'hieu'])->name('hieu');
 Route::get('/trang',  [TestController::class, 'trang'])->name('trang');
 
 Route::get('/xuat-file', [TestController::class, 'export']);
-Route::get('/tax', [TestController::class, 'exportTaxV3']);
+Route::get('/tax', [TestController::class, 'exportTaxV4']);
 Route::get('/make', [TestController::class, 'wakeUp']);
 
 Route::get('/fix', [TestController::class, 'fix']);

@@ -1501,9 +1501,9 @@ WHERE  NOT EXISTS
     
   }
 
-  public function exportTaxV3()
+  public function exportTaxV4()
   {
-    $time = ['10/10/2025', '17/10/2025'];
+    $time = ['18/10/2025', '18/10/2025'];
     $timeBegin  = str_replace('/', '-', $time[0]);
     $timeEnd    = str_replace('/', '-', $time[1]);
     $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
@@ -1516,9 +1516,10 @@ WHERE  NOT EXISTS
       ->whereDate('orders.created_at', '>=', $dateBegin)
       ->whereDate('orders.created_at', '<=', $dateEnd)
       ->where('sale_care.group_id', '!=', 11)
-      // ->where('orders.id', '24502')
+      ->where('orders.id', '26070')
       ->orderBy('orders.id', 'desc');
 
+      // dd($list->get());
     $dataExport[] = [
       'Số thứ tự hóa đơn (*)' , 'Ngày hóa đơn', 'Tên đơn vị mua hàng', 'Mã khách hàng', 'Địa chỉ', 'Mã số thuế', 'Người mua hàng',
       'Email', 'Hình thức thanh toán', 'Loại tiền', 'Tỷ giá', 'Tỷ lệ CK(%)', 'Tiền CK', 'Tên hàng hóa/dịch vụ (*)', 'Mã hàng', 
@@ -1533,7 +1534,7 @@ WHERE  NOT EXISTS
       $orderTmp[] = $data->id;
       $listProduct = json_decode($data->id_product,true);
        //trường hợp đơn chỉ cho 1 sp
-      $percenTax = '5';
+      $percenTax = '8';
       $totalGTGT = '';
       if (count($listProduct) == 1) {
         $item = $listProduct[0];
@@ -1644,7 +1645,7 @@ WHERE  NOT EXISTS
         /** số tổng sản phẩm lớn hơn 1 */
       } else {
         $j = $i;
-        $percenTax = '5';
+        $percenTax = '8';
         $totalGTGT = '';
 
         $qtyNPK = 0;
@@ -1658,6 +1659,7 @@ WHERE  NOT EXISTS
             return $giftA - $giftB;
         });
 
+        // dd($listProduct);
         foreach ($listProduct as $key => $item) {
           $product = getProductByIdHelper($item['id']);
           $productName = ($product->tax_name) ? $product->tax_name : $product->name;
@@ -1671,7 +1673,7 @@ WHERE  NOT EXISTS
           $totalOrder = $data->total;
           $productPrice = $product->price;
           $qty = $item['val'];
-          $percenTax = '5';
+          $percenTax = '8';
           $totalGTGT = '';
           
           $productName = ($product->tax_name) ? $product->tax_name : $product->name;
@@ -1753,7 +1755,7 @@ WHERE  NOT EXISTS
       $i++;
     }
     // dd($dataExport);
-    return Excel::download(new UsersExport($dataExport), 'GHN-(10-10)-(17-10)-2025.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'GHN-18-10-2025.xlsx');
   }
 
   public function exportTaxV2()

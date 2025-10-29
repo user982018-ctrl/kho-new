@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\UserActivityLog;
-use Hash;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 
 class UserController extends Controller
@@ -98,6 +98,12 @@ class UserController extends Controller
             $user = Auth::user();
             UserActivityLog::logLogin($user->id, $user->name);
             
+            // Kiểm tra nếu password trùng với username
+            if (Hash::check($user->name, $user->password)) {
+                return redirect()->route('change-password')
+                    ->with('warning', 'Vui lòng đổi mật khẩu của bạn để tiếp tục sử dụng hệ thống.');
+            }
+            
             return redirect()->route('home');
         } 
 
@@ -114,6 +120,87 @@ class UserController extends Controller
         
         Auth::logout();
         return redirect()->route('login');
+    }
+
+    public function changePassword() {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        $user = Auth::user();
+        
+        // Kiểm tra nếu password không trùng với username, cho phép truy cập bình thường
+        if (!Hash::check($user->name, $user->password)) {
+            return redirect()->route('home');
+        }
+        
+        return view('pages.users.change-password');
+    }
+
+    public function postChangePassword(Request $r) {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        $user = Auth::user();
+        
+        // Validate
+        $validator = \Illuminate\Support\Facades\Validator::make($r->all(), [
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed',
+        ], [
+            'current_password.required' => 'Vui lòng nhập mật khẩu hiện tại',
+            'new_password.required' => 'Vui lòng nhập mật khẩu mới',
+            'new_password.min' => 'Mật khẩu mới phải có ít nhất 6 ký tự',
+            'new_password.confirmed' => 'Xác nhận mật khẩu không khớp',
+        ]);
+        
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+        
+        // Kiểm tra mật khẩu hiện tại (có thể là username hoặc password cũ)
+        $currentPassword = $r->current_password;
+        
+        // Nếu password hiện tại là username (chưa đổi lần nào)
+        $isCurrentPasswordValid = false;
+        
+        if (Hash::check($user->name, $user->password)) {
+            // Password đang trùng với username, kiểm tra xem input có phải là username không
+            if ($currentPassword == $user->name) {
+                $isCurrentPasswordValid = true;
+            }
+        } else {
+            // Password đã được đổi, kiểm tra password thông thường
+            if (Hash::check($currentPassword, $user->password)) {
+                $isCurrentPasswordValid = true;
+            }
+        }
+        
+        if (!$isCurrentPasswordValid) {
+            return redirect()->back()
+                ->with('error', 'Mật khẩu hiện tại không đúng.')
+                ->withInput();
+        }
+        
+        // Kiểm tra mật khẩu mới không được trùng với username
+        if ($r->new_password == $user->name) {
+            return redirect()->back()
+                ->with('error', 'Mật khẩu mới không được trùng với tên đăng nhập.')
+                ->withInput();
+        }
+        
+        // Cập nhật mật khẩu mới
+        $user->password = Hash::make($r->new_password);
+        $user->save();
+        
+        // Log hoạt động đổi mật khẩu
+        UserActivityLog::logActivity('update', 'users', $user->id, 'Đổi mật khẩu', null, ['action' => 'password_changed']);
+        
+        return redirect()->route('home')
+            ->with('success', 'Đổi mật khẩu thành công!');
     }
 
     public function index() 
