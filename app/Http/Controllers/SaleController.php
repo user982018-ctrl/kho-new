@@ -593,56 +593,92 @@ class SaleController extends Controller
 
     public function searchInSaleCare($dataFilter)
     {
-        $seach = $dataFilter['search'];
-        $listIDLink = [];
-
-        $listIdHasHis = SaleCareHistoryTN::join('sale_care', 'sale_care.id', '=', 'sale_care_history_tn.sale_id')
-            ->orwhere('sale_care_history_tn.note', 'like', '%' .  $seach. '%')
-            ->pluck('sale_care.id')->toArray();
-        $listId = SaleCare::orWhere('full_name', 'like', '%' . $seach . '%')
-            ->orWhere('phone', 'like', '%' . $seach . '%')
-            ->orWhere('full_name', 'like', '%' . $seach . '%')
-            ->pluck('id')->toArray();
-
-        $list = SaleCare::orWhereIn('id', $listIdHasHis)
-            ->orWhereIn('id', $listId)
-            ->orderBy('created_at', 'desc');
+        $seach = trim($dataFilter['search']);
         
-        foreach ($list->get() as $sc) {
+        // Nếu có ký tự # ở bất kỳ vị trí nào, lấy từ sau ký tự thứ 2 kể từ #
+        if (is_string($seach)) {
+            $hashPos = function_exists('mb_strpos') ? mb_strpos($seach, '#') : strpos($seach, '#');
+            if ($hashPos !== false) {
+                $startIndex = $hashPos + 1;
+                $term = function_exists('mb_substr') ? mb_substr($seach, $startIndex) : substr($seach, $startIndex);
+                $term = trim((string) $term);
+                $list = SaleCare::where('sale_care.id_order_new', 'like', '%' . $term . '%');
+                return $list;
+            }
+        }
+        
+        // Build candidate IDs via batched queries and minimize loops
+        $ids = [];
+
+        // 1) Match by sale history notes
+        $listIdHasHis = SaleCareHistoryTN::where('sale_care_history_tn.note', 'like', '%' . $seach . '%')
+            ->pluck('sale_care_history_tn.sale_id')
+            ->toArray();
+
+        // 2) Direct matches on SaleCare (name/phone)
+        $listIdDirect = SaleCare::where(function($q) use ($seach) {
+                $q->where('full_name', 'like', '%' . $seach . '%')
+                  ->orWhere('phone', 'like', '%' . $seach . '%');
+            })
+            ->pluck('id')
+            ->toArray();
+
+        $ids = array_merge($ids, $listIdHasHis, $listIdDirect);
+
+        // Fetch current candidates once
+        $candidateIds = array_unique($ids);
+        $candidates = [];
+        if (!empty($candidateIds)) {
+            $candidates = SaleCare::whereIn('id', $candidateIds)->get();
+        }
+
+        // 3) IDs linked through order relationship
+        $linkedIdsFromOrder = [];
+        foreach ($candidates as $sc) {
             if ($sc->order && !empty($sc->order->sale_care)) {
-                $listIDLink[] = $sc->order->sale_care;
+                $linkedIdsFromOrder[] = $sc->order->sale_care;
             }
         }
 
-        if ($listIDLink) {
-            $list->orWhereIn('id', $listIDLink);
-        }
-
-        $ids = $newList = [];
-        foreach ($list->get() as $sc) {
-            $ids[] = $sc->id;
-            if ($sc->orderNew && $sc->orderNew->phone != $sc->phone) {
-                $newList = SaleCare::where('phone', 'like', '%' . $sc->orderNew->phone. '%')
-                    ->pluck('id')->toArray();
-
-                foreach ($newList as $item) {
-                    if ($item != $sc->id) {
-                        $ids[] = $item;
-                    }
-                }
+        // 4) Batch phone-based expansion when orderNew phone differs
+        $phonesToExpand = [];
+        foreach ($candidates as $sc) {
+            if ($sc->orderNew && $sc->orderNew->phone && $sc->orderNew->phone != $sc->phone) {
+                $phonesToExpand[] = $sc->orderNew->phone;
             }
         }
+        $phonesToExpand = array_values(array_unique(array_filter($phonesToExpand)));
+        $expandedIdsByPhone = [];
+        if (!empty($phonesToExpand)) {
+            $expandedIdsByPhone = SaleCare::whereIn('phone', $phonesToExpand)
+                ->pluck('id')
+                ->toArray();
+        }
 
-         /** tìm theo mã vận đợn nếu có */
-        $IdTrackings = ShippingOrder::where('order_code', 'like', '%' . $seach . '%');
-        foreach ($IdTrackings->get() as $track) {
+        // 5) Tracking codes -> related saleCare IDs
+        $trackingSaleCareIds = [];
+        $IdTrackings = ShippingOrder::where('order_code', 'like', '%' . $seach . '%')->get();
+        foreach ($IdTrackings as $track) {
             if (!empty($track->order->saleCare->id)) {
-                $ids[] = $track->order->saleCare->id;
+                $trackingSaleCareIds[] = $track->order->saleCare->id;
             }
         }
- 
-        $ids = array_unique($ids);
-        $list = SaleCare::whereIn('id', $ids)->orderBy('created_at', 'desc');
+
+        // Merge all
+        $finalIds = array_values(array_unique(array_merge(
+            $candidateIds,
+            $linkedIdsFromOrder,
+            $expandedIdsByPhone,
+            $trackingSaleCareIds
+        )));
+
+        $list = SaleCare::orderBy('created_at', 'desc');
+        if (!empty($finalIds)) {
+            $list = $list->whereIn('id', $finalIds);
+        } else {
+            // No matches, keep query that returns none efficiently
+            $list = $list->whereRaw('1 = 0');
+        }
 
         /** có chọn 1 nguồn */
         if (isset($dataFilter['src'])) {

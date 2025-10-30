@@ -1511,12 +1511,12 @@ WHERE  NOT EXISTS
 
     $list = Orders::select('orders.*')->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->join('sale_care', 'sale_care.id', '=', 'orders.sale_care')
-      ->where('shipping_order.vendor_ship', 'GHN')
+      // ->where('shipping_order.vendor_ship', 'GHN')
       ->where('orders.status', 3)
       ->whereDate('orders.created_at', '>=', $dateBegin)
       ->whereDate('orders.created_at', '<=', $dateEnd)
       ->where('sale_care.group_id', '!=', 11)
-      ->where('orders.id', '26070')
+      ->where('orders.id', '26068')
       ->orderBy('orders.id', 'desc');
 
       // dd($list->get());
@@ -1534,7 +1534,7 @@ WHERE  NOT EXISTS
       $orderTmp[] = $data->id;
       $listProduct = json_decode($data->id_product,true);
        //trường hợp đơn chỉ cho 1 sp
-      $percenTax = '8';
+      $percenTax = '5';
       $totalGTGT = '';
       if (count($listProduct) == 1) {
         $item = $listProduct[0];
@@ -1568,6 +1568,11 @@ WHERE  NOT EXISTS
               $productName .= ' 20kg';
             }
           }
+        }
+        $rateTax = 1.05; // tax = 5
+        if ($product->tax == 8) {
+          $rateTax = 1.08;
+          $percenTax = '8';
         }
         if (strpos($productName, "Hàng tặng") !== false ) {
           $percenTax = '../..';
@@ -1645,7 +1650,7 @@ WHERE  NOT EXISTS
         /** số tổng sản phẩm lớn hơn 1 */
       } else {
         $j = $i;
-        $percenTax = '8';
+        $percenTax = '5';
         $totalGTGT = '';
 
         $qtyNPK = 0;
@@ -1673,10 +1678,11 @@ WHERE  NOT EXISTS
           $totalOrder = $data->total;
           $productPrice = $product->price;
           $qty = $item['val'];
-          $percenTax = '8';
+          $percenTax = '5';
           $totalGTGT = '';
           
           $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+          dd($productName);
           if ($product->id == 83) {
             $variantId = $item['variantId'];
             $variant = HelperProduct::getProductVariantById($variantId);
@@ -1685,12 +1691,18 @@ WHERE  NOT EXISTS
               $productName .= ' 5kg';
             } else {
               $weight = $variant->weight;
-            if ($weight == 5000.0) {
-              $productName .= ' 5kg';
-            } else {
-              $productName .= ' 20kg';
+              if ($weight == 5000.0) {
+                $productName .= ' 5kg';
+              } else {
+                $productName .= ' 20kg';
+              }
             }
-            }
+          }
+
+          $rateTax = 1.05; // tax = 5
+          if ($product->tax == 8) {
+            $rateTax = 1.08;
+            $percenTax = '8';
           }
 
           if ($voucher == "true") {
@@ -1700,7 +1712,7 @@ WHERE  NOT EXISTS
             $productPrice = '';
             $total = '';
           } else {
-            $taxBeforeTotal = $totalOrder / 1.05;
+            $taxBeforeTotal = $totalOrder / $rateTax;
             $taxbeforeProduct = $taxBeforeTotal / $qty;
             $productPrice = $taxbeforeProduct;
             $totalGTGT = $totalOrder - $taxBeforeTotal;
@@ -1714,47 +1726,95 @@ WHERE  NOT EXISTS
           //   $totalGTGT = '../..';
           //   $productPrice = '';
           // }
-        
-          if ($j != $i) {
-            $tmp = ['', '', '', '', '', '',  '', '','', '', '','', '', $productName,'', $product->unit, $qty, $productPrice,
-              '', '', $percenTax, $totalGTGT, $total,   
-            ];  
-          } else {
-              // dd($product->name);
-            $tmp = [
-            $i,//Số thứ tự hóa đơn (*)
-            date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
-            '',// Tên đơn vị mua hàng
-              '',// Mã khách hàng
-              $data->address,// Địa chỉ
-              '',// Mã số thuế
-              $data->name,// Người mua hàng
-              '',// Email
-              '',// Hình thức thanh toán
-              '',// Loại tiền
-              '',// Tỷ giá
-              '',// Tỷ lệ CK(%)
-              '',// Tiền CK
-              $productName,// Tên hàng hóa/dịch vụ (*)
-              '',// Mã hàng
-              $product->unit,// 'ĐVT',
-              $qty,//  'Số lượng', 
-              $productPrice,//  'Đơn giá', 
-              '',//  'Tỷ lệ CK (%)', 
-              '',//  'Tiền CK',
-              $percenTax, // '% thuế GTGT',
-              $totalGTGT, //  'Tiền thuế GTGT',
-              $total,   // 'Thành tiền(*)'
-            ];
+         
+          $kg = 0;
+          if ($product->unit == 'lít' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
+            //5000g => chia 1000 => 5kg
+            $kg = $product->weight/1000;
+            $qty = $qty * $kg;
           }
+
+          $bottlesInfo = [
+            'Thùng nhựa 11L có nắp (Hàng tặng không thu tiền)' => 'Bộ',
+            'Chai nhựa 1 lít (Hàng tặng không thu tiền)' => 'Cái',
+            'Can Nhựa 5L (Hàng tặng không thu tiền)' => 'Bộ',
+          ]
+          ;
+            if ($j != $i) {
+              $tmp = ['', '', '', '', '', '',  '', '','', '', '','', '', $productName,'', $product->unit, $qty, $productPrice,
+                '', '', $percenTax, $totalGTGT, $total,   
+              ];  
+              $dataExport[] = $tmp;
+            } else {
+                // dd($product->name);
+              $tmp = [
+              $i,//Số thứ tự hóa đơn (*)
+              date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
+              '',// Tên đơn vị mua hàng
+                '',// Mã khách hàng
+                $data->address,// Địa chỉ
+                '',// Mã số thuế
+                $data->name,// Người mua hàng
+                '',// Email
+                '',// Hình thức thanh toán
+                '',// Loại tiền
+                '',// Tỷ giá
+                '',// Tỷ lệ CK(%)
+                '',// Tiền CK
+                $productName,// Tên hàng hóa/dịch vụ (*)
+                '',// Mã hàng
+                $product->unit,// 'ĐVT',
+                $qty,//  'Số lượng', 
+                $productPrice,//  'Đơn giá', 
+                '',//  'Tỷ lệ CK (%)', 
+                '',//  'Tiền CK',
+                $percenTax, // '% thuế GTGT',
+                $totalGTGT, //  'Tiền thuế GTGT',
+                $total,   // 'Thành tiền(*)'
+              ];
+              $dataExport[] = $tmp;
+
+              if ($kg > 0) {
+                
+                $tmp = [
+                  '',//Số thứ tự hóa đơn (*)
+                  '', // Ngày hóa đơn
+                  '',// Tên đơn vị mua hàng
+                  '',// Mã khách hàng
+                  '',// Địa chỉ
+                  '',// Mã số thuế
+                  '',// Người mua hàng
+                  '',// Email
+                  '',// Hình thức thanh toán
+                  '',// Loại tiền
+                  '',// Tỷ giá
+                  '',// Tỷ lệ CK(%)
+                  '',// Tiền CK
+                  $product->bottle,// Tên hàng hóa/dịch vụ (*)
+                  '',// Mã hàng
+                  $bottlesInfo[$product->bottle],// 'ĐVT',
+                  $qty/$kg,//  'Số lượng', 
+                  '',//  'Đơn giá', 
+                  '',//  'Tỷ lệ CK (%)', 
+                  '',//  'Tiền CK',
+                  '../..', // '% thuế GTGT',
+                  '../..', //  'Tiền thuế GTGT',
+                  '',   // 'Thành tiền(*)'
+                ];
+                $dataExport[] = $tmp;
+              }
+                
+            }
+            
+
           
-          $dataExport[] = $tmp;
+          
           $j++;
         }
       }
       $i++;
     }
-    // dd($dataExport);
+    dd($dataExport);
     return Excel::download(new UsersExport($dataExport), 'GHN-18-10-2025.xlsx');
   }
 

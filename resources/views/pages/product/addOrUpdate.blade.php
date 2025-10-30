@@ -13,51 +13,51 @@
                     <div class="card-header"><strong>Cập nhật sản phẩm mới </span></div>
                     @if(isset($product))
                     <div class="card-body">
-                        <div class="example">
-                            <div class="body flex-grow-1">
-                                <div class="tab-content rounded-bottom">
-                                    <form>
-                                        {{ csrf_field() }}
-                                        <input value="{{$product->id}}" name="id" type="hidden">
-                                        <div class="tab-pane p-3 active preview" role="tabpanel" id="preview-1000">
-                                            <div class="row">
-                                                <div class="mb-3 col-4">
-                                                    <label class="form-label" for="nameIP">Tên sản phẩm</label>
-                                                    <input class="form-control" value="{{$product->name}}" name="name"
-                                                        id="nameIP" type="text">
-                                                    <p class="error_msg" id="name"></p>
-                                                </div>
-                                                <div class="mb-3 col-4">
-                                                    <label class="form-label" for="nameTaxIP">Tên thuế</label>
-                                                    <input class="form-control" value="{{$product->tax_name}}" name="nameTax"
-                                                        id="nameTaxIP" type="text">
-                                                    <p class="error_msg" id="nameTax"></p>
-                                                </div>
-                                                <div class="mb-3 col-4">
-                                                    <label class="form-label" for="priceIP">Giá</label>
-                                                    <input class="form-control" value="{{$product->price}}" name="price"
-                                                        id="priceIP">
-                                                    <p class="error_msg" id="price"></p>
-                                                </div>
-                                                <div class="mb-3 col-4">
-                                                    <label class="form-label" for="weightIP">Khối lượng (gam)</label>
-                                                    <input class="form-control" value="{{$product->weight}}" name="weight"
-                                                        id="weightIP">
-                                                    <p class="error_msg" id="weight"></p>
-                                                </div>
-                                                <div class="mb-3 col-4">
-                                                    <label class="form-label" for="unitIP">Đơn vị tính</label>
-                                                    <input class="form-control" value="{{$product->unit}}" name="unit"
-                                                        id="unitIP">
-                                                    <p class="error_msg" id="unit"></p>
-                                                </div>
-                                                <div class="mb-3 col-4">
-                                                    <label class="form-label" for="orderIP">Thứ tự</label>
-                                                    <input class="form-control" value="{{$product->orderBy}}" name="orderBy"
-                                                        id="orderIP">
-                                                    <p class="error_msg" id="orderBy"></p>
-                                                </div>
+                        <div class="body flex-grow-1">
+                            <div class="tab-content rounded-bottom">
+                                <form>
+                                    {{ csrf_field() }}
+                                    <input value="{{$product->id}}" name="id" type="hidden">
+                                    <div class="tab-pane p-3 active preview" role="tabpanel" id="preview-1000">
+                                        <div class="row">
+                                            <div class="mb-3 col-4">
+                                                <label class="form-label" for="nameIP">Tên sản phẩm</label>
+                                                <input class="form-control" value="{{$product->name}}" name="name"
+                                                    id="nameIP" type="text">
+                                                <p class="error_msg" id="name"></p>
                                             </div>
+                                            <div class="mb-3 col-4">
+                                                <label class="form-label" for="nameTaxIP">Tên thuế</label>
+                                                <input class="form-control" value="{{$product->tax_name}}" name="nameTax"
+                                                    id="nameTaxIP" type="text">
+                                                <p class="error_msg" id="nameTax"></p>
+                                            </div>
+                                            <div class="mb-3 col-4">
+                                                <label class="form-label" for="priceIP">Giá</label>
+                                                <input class="form-control" value="{{$product->price}}" name="price"
+                                                    id="priceIP">
+                                                <p class="error_msg" id="price"></p>
+                                            </div>
+                                            <div class="mb-3 col-4">
+                                                <label class="form-label" for="weightIP">Khối lượng (gam)</label>
+                                                <input class="form-control" value="{{$product->weight}}" name="weight"
+                                                    id="weightIP">
+                                                <p class="error_msg" id="weight"></p>
+                                            </div>
+                                            <div class="mb-3 col-4">
+                                                <label class="form-label" for="unitIP">Đơn vị tính</label>
+                                                <input class="form-control" value="{{$product->unit}}" name="unit"
+                                                    id="unitIP">
+                                                <p class="error_msg" id="unit"></p>
+                                            </div>
+                                            <div class="mb-3 col-4">
+                                                <label class="form-label" for="orderIP">Thứ tự</label>
+                                                <input class="form-control" value="{{$product->orderBy}}" name="orderBy"
+                                                    id="orderIP">
+                                                <p class="error_msg" id="orderBy"></p>
+                                            </div>
+                                        </div>
+                                        <div class="row">
                                             @if(isset($listCategory))
                                             <div class="mb-3 col-4">
                                                 <label class="form-label" for="category_id">Danh mục</label>
@@ -76,55 +76,67 @@
                                             <div class="mb-3 col-2">
                                                 <label class="form-label" for="qtyIP">Số lượng</label>
                                                 <input class="form-control" value="{{$product->qty}}" name="qty"
-                                                    id="qtyIP" type="bumber">
+                                                    id="qtyIP" type="number">
                                                 <p class="error_msg" id="qty"></p>
                                             </div>
-                                        <div class="row">
                                             <div class="mb-3 col-2">
-                                                <label class="form-label" for="qtyIP">Trạng Thái</label>
-                                                <div class="form-check">
-                                                    <input <?=  $product->status == 1 ? 'checked' : '' ?> class="form-check-input" type="radio" name="status" value="1"
-                                                        id="flexRadioDefault1">
-                                                    <label class="form-check-label" for="flexRadioDefault1">
-                                                        Bật
-                                                    </label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input <?=  $product->status == 0 ? 'checked' : '' ?> class="form-check-input" type="radio" name="status" value="0"
-                                                        id="flexRadioDefault2" >
-                                                    <label  class="form-check-label" for="flexRadioDefault2">
-                                                        Tắt
-                                                    </label>
-                                                </div>
+                                                <label class="form-label" for="qtyIP">% Thuế (để trống = 5)</label>
+                                                <input class="form-control" value="{{$product->tax}}" name="tax"
+                                                    id="taxIP" type="number">
+                                                <p class="error_msg" id="tax"></p>
                                             </div>
-                                            
-                                                <div class="mb-3 col-4">
-                                                    <label class="form-label" for="qtyIP">Quyền truy cập</label>
-                                                    <div class="form-check">
-                                                        <input <?=  $product->roles == 1 ? 'checked' : '' ?>  id="role-all" name="role" type="radio" class="form-check-input" value="1">
-                                                        <label class="form-check-label" for="role-all">Tất cả</label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        
-                                                        <input <?=  $product->roles == 2 ? 'checked' : '' ?> id="role-paulo" name="role" type="radio" class="form-check-input" value="2">
-                                                        <label class="form-check-label" for="role-paulo">Paulo</label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        
-                                                        <input <?=  $product->roles == 3 ? 'checked' : '' ?> id="role-fer" name="role" type="radio" class="form-check-input" value="3">
-                                                        <label class="form-check-label" for="role-fer">Phân bón</label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        
-                                                        <input <?=  $product->roles == 4 ? 'checked' : '' ?> id="other" name="role" type="radio" class="form-check-input" value="4">
-                                                        <label class="form-check-label" for="other">Khác</label>
-                                                    </div>
-                                                </div>
+                                            <div class="mb-3 col-4">
+                                                <label class="form-label" for="qtyIP">Vỏ đựng</label>
+                                                <input class="form-control" value="{{$product->bottle}}" name="bottle"
+                                                    id="bottleIP" type="text">
+                                                <p class="error_msg" id="bottle"></p>
                                             </div>
-                                            <button id="submit" class="btn btn-primary">Cập nhật</button>
                                         </div>
-                                    </form>
-                                </div>
+                                    <div class="row">
+                                        <div class="mb-3 col-2">
+                                            <label class="form-label" for="qtyIP">Trạng Thái</label>
+                                            <div class="form-check">
+                                                <input <?=  $product->status == 1 ? 'checked' : '' ?> class="form-check-input" type="radio" name="status" value="1"
+                                                    id="flexRadioDefault1">
+                                                <label class="form-check-label" for="flexRadioDefault1">
+                                                    Bật
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input <?=  $product->status == 0 ? 'checked' : '' ?> class="form-check-input" type="radio" name="status" value="0"
+                                                    id="flexRadioDefault2" >
+                                                <label  class="form-check-label" for="flexRadioDefault2">
+                                                    Tắt
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3 col-4">
+                                            <label class="form-label" for="qtyIP">Quyền truy cập</label>
+                                            <div class="form-check">
+                                                <input <?=  $product->roles == 1 ? 'checked' : '' ?>  id="role-all" name="role" type="radio" class="form-check-input" value="1">
+                                                <label class="form-check-label" for="role-all">Tất cả</label>
+                                            </div>
+                                            <div class="form-check">
+                                                
+                                                <input <?=  $product->roles == 2 ? 'checked' : '' ?> id="role-paulo" name="role" type="radio" class="form-check-input" value="2">
+                                                <label class="form-check-label" for="role-paulo">Paulo</label>
+                                            </div>
+                                            <div class="form-check">
+                                                
+                                                <input <?=  $product->roles == 3 ? 'checked' : '' ?> id="role-fer" name="role" type="radio" class="form-check-input" value="3">
+                                                <label class="form-check-label" for="role-fer">Phân bón</label>
+                                            </div>
+                                            <div class="form-check">
+                                                
+                                                <input <?=  $product->roles == 4 ? 'checked' : '' ?> id="other" name="role" type="radio" class="form-check-input" value="4">
+                                                <label class="form-check-label" for="other">Khác</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button id="submit" class="btn btn-primary">Cập nhật</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -303,6 +315,8 @@ $(document).ready(function() {
         var orderBy = $("input[name='orderBy']").val();
         let roles =  $("input[name='role']:checked").val();
         var nameTax = $("input[name='nameTax']").val();
+        var tax = $("input[name='tax']").val();
+        var bottle = $("input[name='bottle']").val();
         // $("input[name='roles[]']:checked").each(function() {
         //     roles.push($(this).val());
         // });
@@ -316,6 +330,8 @@ $(document).ready(function() {
                 nameTax,
                 price: price,
                 qty: qty,
+                tax: tax,
+                bottle: bottle,
                 id,
                 status,
                 category_id,

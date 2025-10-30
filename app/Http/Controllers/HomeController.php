@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\AddressController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use App\Models\Category;
 use App\Models\SaleCare;
 use App\Helpers\Helper;
@@ -509,7 +510,8 @@ class HomeController extends Controller
 
     public function getOrdersReport($user, $dataFilter = null, $checkAllAPI = false) 
     {
-        $list   = Orders::select('qty', 'total', 'id', 'sale_care');
+        // Chỉ rõ table name ngay từ đầu để tránh ambiguous khi có JOIN sau này
+        $list   = Orders::select('orders.qty', 'orders.total', 'orders.id', 'orders.sale_care', 'orders.created_at');
         if ($dataFilter) {
             if (isset($dataFilter['daterange'])) {
                 $time       = $dataFilter['daterange'];
@@ -519,8 +521,9 @@ class HomeController extends Controller
                 $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
                 $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
 
-                $list->whereDate('created_at', '>=', $dateBegin)
-                ->whereDate('created_at', '<=', $dateEnd);
+                // Chỉ rõ table name để tránh ambiguous khi có JOIN
+                $list->whereDate('orders.created_at', '>=', $dateBegin)
+                ->whereDate('orders.created_at', '<=', $dateEnd);
             }
 
             if (isset($dataFilter['status'])) {
@@ -528,59 +531,84 @@ class HomeController extends Controller
             }
 
             if (isset($dataFilter['category'])) {
+                // Tối ưu: chỉ select id_product và id, không cần get tất cả field
+                $orders = $list->select('orders.id', 'orders.id_product')->get();
                 $ids = [];
-                foreach ($list->get() as $order) {
+                foreach ($orders as $order) {
                     $products = json_decode($order->id_product);
-                    $isProductOfCategory = Helper::checkProductsOfCategory($products, $dataFilter['category']);
-                    if ($isProductOfCategory) {
-                        $ids[] = $order->id;
-                    }
-                }
-
-                $list = Orders::select('qty', 'total')->whereIn('id', $ids);
-            }
-
-            if (isset($dataFilter['product'])) {
-                $ids = [];
-                
-                foreach ($list->get() as $order) {
-                    $products = json_decode($order->id_product);
-                    foreach ($products as $product) {
-                        if ($product->id == $dataFilter['product']) {
+                    if ($products) {
+                        $isProductOfCategory = Helper::checkProductsOfCategory($products, $dataFilter['category']);
+                        if ($isProductOfCategory) {
                             $ids[] = $order->id;
-                            break;
                         }
                     }
                 }
 
-                $list = Orders::select('qty', 'total')->whereIn('id', $ids);
+                if (empty($ids)) {
+                    // Nếu không có order nào match, return empty query
+                    $list = Orders::whereRaw('1 = 0');
+                } else {
+                    // Chỉ rõ table name để tránh ambiguous
+                    $list = Orders::select('orders.qty', 'orders.total', 'orders.id', 'orders.sale_care', 'orders.phone', 'orders.created_at')->whereIn('orders.id', $ids);
+                }
+            }
+
+            if (isset($dataFilter['product'])) {
+                // Tối ưu: chỉ select id_product và id
+                $orders = $list->select('orders.id', 'orders.id_product')->get();
+                $ids = [];
+                
+                foreach ($orders as $order) {
+                    $products = json_decode($order->id_product);
+                    if ($products) {
+                        foreach ($products as $product) {
+                            if (isset($product->id) && $product->id == $dataFilter['product']) {
+                                $ids[] = $order->id;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (empty($ids)) {
+                    // Nếu không có order nào match, return empty query
+                    $list = Orders::whereRaw('1 = 0');
+                } else {
+                    // Chỉ rõ table name để tránh ambiguous
+                    $list = Orders::select('orders.qty', 'orders.total', 'orders.id', 'orders.sale_care', 'orders.phone', 'orders.created_at')->whereIn('orders.id', $ids);
+                }
             }
 
             if (isset($dataFilter['group'])) {
-                $group = Group::find($dataFilter['group']);
-                if ($group) {
-
-                    $listId = $list->pluck('id')->toArray();
-                    $listOrder = Orders::select('orders.id')->join('sale_care', 'orders.sale_care', '=', 'sale_care.id')
-                        ->where('sale_care.group_id', $dataFilter['group'])
-                        ->whereIn('orders.id', $listId);
-                    $list = $list->whereIn('id', $listOrder->pluck('id')->toArray());
-                }
+                // Tối ưu: join trực tiếp thay vì pluck rồi whereIn
+                // Lưu ý: sau JOIN, cần chỉ rõ table name cho các column
+                $list = $list->join('sale_care', 'orders.sale_care', '=', 'sale_care.id')
+                    ->where('sale_care.group_id', $dataFilter['group'])
+                    ->select('orders.qty', 'orders.total', 'orders.id', 'orders.sale_care', 'orders.phone', 'orders.created_at');
             }
 
             if (isset($dataFilter['groupUser'])) {
                 $groupUS = GroupUser::find($dataFilter['groupUser']);
                 if ($groupUS) {
-                    $listSale = $groupUS->users;
-                    $list = $list->whereIn('assign_user', $listSale->pluck('id')->toArray());
+                    // Tối ưu: eager load users và chỉ lấy ids một lần
+                    $groupUS->load('users:id');
+                    $saleIds = $groupUS->users->pluck('id')->toArray();
+                    if (empty($saleIds)) {
+                        $list = Orders::whereRaw('1 = 0');
+                    } else {
+                        // Chỉ rõ table name để tránh ambiguous
+                        $list = $list->whereIn('orders.assign_user', $saleIds);
+                    }
                 }
             }
 
             if (isset($dataFilter['src'])) {
-
+                // Tối ưu: eager load saleCare để tránh N+1 query
+                $orders = $list->with('saleCare:id,src_id,page_id,page_link,page_name')->get();
                 $idTmps = [];
-                foreach ($list->get() as $order) {
-                    $mktCtl = new MarketingController();
+                $mktCtl = new MarketingController();
+                
+                foreach ($orders as $order) {
                     if ($order->saleCare) {
                         $srcPage = $mktCtl->getSrcPageFromSaleCare($order->saleCare);
                         if ($srcPage) {
@@ -589,7 +617,13 @@ class HomeController extends Controller
                     }
                 }
 
-                $list = Orders::select('qty', 'total')->whereIn('id', $idTmps);
+                if (empty($idTmps)) {
+                    // Nếu không có order nào match, return empty query
+                    $list = Orders::whereRaw('1 = 0');
+                } else {
+                    // Chỉ rõ table name để tránh ambiguous
+                    $list = Orders::select('orders.qty', 'orders.total', 'orders.id', 'orders.sale_care', 'orders.phone', 'orders.created_at')->whereIn('orders.id', $idTmps);
+                }
             } 
         }
 
@@ -601,10 +635,11 @@ class HomeController extends Controller
 
         if ((isset($dataFilter['sale']) && $dataFilter['sale'] != 999) && ($checkAll || $isLeadSale)) {
             /** user đang login = full quyền và đang lọc 1 sale */
-            $list = $list->where('assign_user', $dataFilter['sale']);
+            // Chỉ rõ table name để tránh ambiguous sau JOIN
+            $list = $list->where('orders.assign_user', $dataFilter['sale']);
         } else if ((!$checkAll || !$isLeadSale) && !$user->is_digital && $user->is_sale) {
             /** sale đag xem report của mình */
-            $list = $list->where('assign_user', $user->id);
+            $list = $list->where('orders.assign_user', $user->id);
         }
 
         return $list;
@@ -684,10 +719,13 @@ class HomeController extends Controller
             }
 
              if (isset($dataFilter['mkt'])) {
-                $listSrcByMkt = SrcPage::orderBy('id', 'desc')->where('user_digital', $dataFilter['mkt']);
-                $srcIDs = $listSrcByMkt->get()->pluck('id')->toArray();
-                if ($srcIDs) {
+                // Tối ưu: chỉ select id, không cần orderBy khi chỉ lấy ids
+                $srcIDs = SrcPage::where('user_digital', $dataFilter['mkt'])->pluck('id')->toArray();
+                if (!empty($srcIDs)) {
                     $list->whereIn('src_id', $srcIDs);
+                } else {
+                    // Nếu không có src nào, return empty query
+                    $list = SaleCare::whereRaw('1 = 0');
                 }
             }
 
@@ -697,27 +735,39 @@ class HomeController extends Controller
 
             if (isset($dataFilter['product'])) {
                 $list->whereNotNull('id_order_new');
+                // Tối ưu: eager load orderNew để tránh N+1 query
+                $saleCares = $list->with('orderNew:id,id_product')->get();
                 $newSCare = [];
-                foreach ($list->get() as $scare) {
-                    $order = $scare->orderNew;
-                    $products = json_decode($order->id_product);
-                    foreach ($products as $product) {
-                        if ($product->id == $dataFilter['product']) {
-                            $newSCare[] = $scare->id;
-                            break;
+                
+                foreach ($saleCares as $scare) {
+                    if ($scare->orderNew) {
+                        $products = json_decode($scare->orderNew->id_product);
+                        if ($products) {
+                            foreach ($products as $product) {
+                                if (isset($product->id) && $product->id == $dataFilter['product']) {
+                                    $newSCare[] = $scare->id;
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
 
-                $list   = SaleCare::select('id')->whereIn('id', $newSCare);
+                if (empty($newSCare)) {
+                    // Nếu không có sale care nào match, return empty query
+                    $list = SaleCare::whereRaw('1 = 0');
+                } else {
+                    $list = SaleCare::select('id', 'src_id')->whereIn('id', $newSCare);
+                }
             }
         }
 
         if ((isset($dataFilter['sale']) && $dataFilter['sale'] != 999) && ($checkAll || $isLeadSale)) {
             /** user đang login = full quyền và đang lọc 1 sale */
-            $list = $list->where('assign_user', $dataFilter['sale']);     
+            // Chỉ rõ table name để tránh ambiguous
+            $list = $list->where('sale_care.assign_user', $dataFilter['sale']);     
         } else if ((!$checkAll || !$isLeadSale ) && !$user->is_digital && $user->is_sale) {
-            $list = $list->where('assign_user', $user->id);
+            $list = $list->where('sale_care.assign_user', $user->id);
         }
 
         return $list;
@@ -740,79 +790,101 @@ class HomeController extends Controller
         $countSaleCareOld = $countSaleCareNew = $countOrderNew = $countOrderOld = $avgOrders = 0;
 
         $listOrder = $this->getOrdersReport(Auth::user(), $dataFilter, $checkAllAPI);
-        $countOrders = $listOrder->count();
+        
+        // Eager load saleCare relationship để tránh N+1 query
+        $listOrder->with('saleCare:id,old_customer,phone');
+        
+        // Lấy orders với các field cần thiết
+        // Đảm bảo chỉ rõ table name để tránh ambiguous sau JOIN
+        $orders = $listOrder->select('orders.id', 'orders.qty', 'orders.total', 'orders.phone', 'orders.sale_care', 'orders.created_at')->get();
+        $countOrders = $orders->count();
 
         if($countOrders == 0) {
             $newCustomer['order'] = 0;
             $oldCustomer['order'] = 0;
         } else {
-            $filterNew = $filterOld = [];
-            foreach ($listOrder->get() as $k => $order) {
-                /** loại phần tử ko thoả khỏi list order */
-                //xử lý type 0,1,2 về 1,2 để so sánh với req->type_customer
+            // Tính toán trực tiếp thay vì query lại
+            $newTotal = $newQty = $newCountOrder = 0;
+            $oldTotal = $oldQty = $oldCountOrder = 0;
+            $phonesToCheck = [];
+            
+            // Thu thập tất cả phones cần check (type = 2) để query một lần
+            foreach ($orders as $order) {
+                $saleCare = $order->saleCare;
+                if ($saleCare && $saleCare->old_customer == 2) {
+                    $phone = $order->phone ?? $saleCare->phone ?? null;
+                    if ($phone) {
+                        $phonesToCheck[] = $phone;
+                    }
+                }
+            }
+            
+            // Load tất cả old customers theo phone một lần
+            $oldCustomerPhones = [];
+            if (!empty($phonesToCheck)) {
+                $oldCustomerPhones = SaleCare::whereIn('phone', array_unique($phonesToCheck))
+                    ->where('old_customer', 1)
+                    ->pluck('phone')
+                    ->flip()
+                    ->toArray(); // Dùng làm hash map để check nhanh O(1)
+            }
+
+            // Phân loại và tính toán trong một vòng lặp
+            foreach ($orders as $k => $order) {
                 $typeCutomer = 0;
                 $saleCare = $order->saleCare;
+                $qty = (float)($order->qty ?? 0);
+                $total = (float)($order->total ?? 0);
 
                 if ($saleCare) {
-                    $typeCutomer = $saleCare->old_customer;
+                    $typeCutomer = $saleCare->old_customer ?? 0;
                 }
                 
                 if ($typeCutomer == 2) {
                     /** check khách cũ/khách mới khi type = 2 (hotline) */
-                    $phone = $order->phone;
-                    $isOldCustomer = SaleCare::where('phone', $phone)
-                        ->where('old_customer', 1)
-                        ->first();
-                    if ($isOldCustomer) {
+                    $phone = $order->phone ?? $saleCare->phone ?? null;
+                    if ($phone && isset($oldCustomerPhones[$phone])) {
                         $typeCutomer = 1;
                     }
                 }
+                
                 if ($typeCutomer == 1) {
-                    $filterOld[] = $order->id;
-                }
-                if ($typeCutomer == 0) {
-                    $filterNew[] = $order->id;
+                    $oldCountOrder++;
+                    $oldTotal += $total;
+                    $oldQty += $qty;
+                } else if ($typeCutomer == 0) {
+                    $newCountOrder++;
+                    $newTotal += $total;
+                    $newQty += $qty;
                 } 
             }
 
             /** new */
-            if (count($filterNew) == 0) {
+            if ($newCountOrder == 0) {
                 $newCustomer['order'] = 0;
                 $newCustomer['total'] = 0;
                 $newCustomer['product'] = 0;
                 $newCustomer['avg'] = 0;
                 $newCustomer['rate'] = 0;
             } else {
-                $listOrderNew = Orders::select('qty', 'total')->whereIn('id', $filterNew);
-                $countOrderNew = $listOrderNew->count();
-                $newCustomer['order'] = $countOrderNew;
-                $newCustomer['total'] = round($listOrderNew->sum('total'), 0);
-                $newCustomer['product'] = $listOrderNew->sum('qty');
-
-                if ($countOrderNew > 0) {
-                    $avgOrders = $newCustomer['total'] / $countOrderNew;
-                    $newCustomer['avg'] = round($avgOrders, 0);
-                }
+                $newCustomer['order'] = $newCountOrder;
+                $newCustomer['total'] = round($newTotal, 0);
+                $newCustomer['product'] = $newQty;
+                $newCustomer['avg'] = round($newTotal / $newCountOrder, 0);
             }
 
             /** old */
-            if (count($filterOld) == 0) {
+            if ($oldCountOrder == 0) {
                 $oldCustomer['order'] = 0;
                 $oldCustomer['total'] = 0;
                 $oldCustomer['product'] = 0;
                 $oldCustomer['avg'] = 0;
                 $oldCustomer['rate'] = 0;
             } else {
-                $listOrderOld = Orders::select('qty', 'total')->whereIn('id', $filterOld);
-                $countOrderOld = $listOrderOld->count();
-                $oldCustomer['order'] = $countOrderOld;
-                $oldCustomer['total'] = round($listOrderOld->sum('total'), 0);
-                $oldCustomer['product'] = $listOrderOld->sum('qty');
-
-                if ($countOrderOld > 0) {
-                    $avgOrdersOld = round($oldCustomer['total'] / $countOrderOld, 0);
-                    $oldCustomer['avg'] = round($avgOrdersOld, 0);
-                }
+                $oldCustomer['order'] = $oldCountOrder;
+                $oldCustomer['total'] = round($oldTotal, 0);
+                $oldCustomer['product'] = $oldQty;
+                $oldCustomer['avg'] = round($oldTotal / $oldCountOrder, 0);
             }
         }
 
@@ -829,33 +901,34 @@ class HomeController extends Controller
                 $oldCustomer['order'] = $oldCustomer['total'] = $oldCustomer['product'] = $oldCustomer['avg'] = $oldCustomer['rate'] = 0;
                 
             }
-            $saleCareIDs = $saleCare->get()->pluck('id')->toArray();
-            $saleCareOld = SaleCare::select('id')->whereIn('id', $saleCareIDs)
-                ->where('old_customer', 1);  
-            $countSaleCareOld = $saleCareOld->count();
+            // Tối ưu: query trực tiếp với điều kiện thay vì get->pluck rồi query lại
+            $saleCareOldQuery = clone $saleCare;
+            $countSaleCareOld = $saleCareOldQuery->where('old_customer', 1)->count();
             $oldCustomer['contact'] = $countSaleCareOld;
            
-            $saleCareNew = SaleCare::select('id')->whereIn('id', $saleCareIDs)
-                ->whereIn('old_customer', [0,2]);
-
-            $countSaleCareNew = $saleCareNew->count();
+            $saleCareNewQuery = clone $saleCare;
+            $countSaleCareNew = $saleCareNewQuery->whereIn('old_customer', [0,2])->count();
             $newCustomer['contact'] = $countSaleCareNew;
         }             
+
+        // Đảm bảo biến đếm đơn đã được khởi tạo trước khi tính rate
+        $newCountOrder = $newCustomer['order'] ?? 0;
+        $oldCountOrder = $oldCustomer['order'] ?? 0;
 
         /** tỷ lệ chốt = số đơn/số data */
         /** new */
         if ($countSaleCareNew == 0) {
-            $rateSuccessNew = $countOrderNew * 100;
+            $rateSuccessNew = $newCountOrder * 100;
         } else {
-            $rateSuccessNew = $countOrderNew / $countSaleCareNew * 100;
+            $rateSuccessNew = $newCountOrder / $countSaleCareNew * 100;
         }
         $newCustomer['rate'] = round($rateSuccessNew, 2);
 
         /** old */
         if ($countSaleCareOld == 0) {
-            $rateSuccessOld = $countOrderOld * 100;
+            $rateSuccessOld = $oldCountOrder * 100;
         } else {
-            $rateSuccessOld = $countOrderOld / $countSaleCareOld * 100;
+            $rateSuccessOld = $oldCountOrder / $countSaleCareOld * 100;
         }
         $oldCustomer['rate'] = round($rateSuccessOld, 2);
        
@@ -876,22 +949,30 @@ class HomeController extends Controller
         $data = $this->getSaleByTypeV2($dataFilter, $checkAllAPI);
         $newCustomer = $data['new_customer'];
         $oldCustomer = $data['old_customer'];
-        $newCountOrder = $newCustomer['order'];
-        if (count($newCustomer) == 3 && count($oldCustomer) == 3) {
+        
+        // Tối ưu: check số keys thay vì count toàn bộ array
+        $newKeys = array_keys($newCustomer);
+        $oldKeys = array_keys($oldCustomer);
+        // Nếu cả 2 đều chỉ có 3 keys (order, total, product = empty data), return false
+        if (count($newKeys) == 3 && count($oldKeys) == 3 && 
+            !isset($newCustomer['contact']) && !isset($oldCustomer['contact'])) {
             return false;
         }
 
-        $result = [];
-        if (isset($newCustomer['total'])) {
-            $newTotal = Helper::stringToNumberPrice($newCustomer['total']);
-        } if (isset($oldCustomer['total'])) {
-            $oldTotal = Helper::stringToNumberPrice($oldCustomer['total']);
-        }
+        // Tối ưu: newCustomer['total'] đã là số từ getSaleByTypeV2, chỉ cần convert nếu là string
+        $newTotal = isset($newCustomer['total']) ? 
+            (is_numeric($newCustomer['total']) ? (float)$newCustomer['total'] : Helper::stringToNumberPrice($newCustomer['total'])) : 0;
+        $oldTotal = isset($oldCustomer['total']) ? 
+            (is_numeric($oldCustomer['total']) ? (float)$oldCustomer['total'] : Helper::stringToNumberPrice($oldCustomer['total'])) : 0;
         
-        $oldCountOrder = $oldCustomer['order'];
+        $newCountOrder = $newCustomer['order'] ?? 0;
+        $oldCountOrder = $oldCustomer['order'] ?? 0;
         $totalSum = $newTotal + $oldTotal;
+        
         if ($newCountOrder != 0 || $oldCountOrder != 0) {
             $avgSum = $totalSum / ($newCountOrder + $oldCountOrder);
+        } else {
+            $avgSum = 0;
         }
 
         $rateSum = 0;
@@ -978,6 +1059,7 @@ class HomeController extends Controller
             $dataFilter['group'] = $group;
         }
 
+        $show = $req->show ?? 20;
         $groupUser = $req->groupUser;
         $list = [];
         
@@ -985,21 +1067,36 @@ class HomeController extends Controller
             $groupUs = GroupUser::find($groupUser);
             
             if ($groupUs) {
-                $listSale = $groupUs->users;
+                // Tối ưu: eager load và chỉ select fields cần thiết
+                $listSale = $groupUs->users()->select('id', 'real_name', 'profile_image')->get();
+                
                 foreach ($listSale as $sale) {
-                    $data = $this->getReportUserSaleV2($sale, $dataFilter, false, true);
+                    $saleArray = is_object($sale) ? $sale->toArray() : $sale;
+                    $saleId = $saleArray['id'] ?? null;
+                    $cacheKey = 'cskhdt:v2:' . $saleId . ':' . md5(json_encode($dataFilter));
+                    
+                    $data = Cache::remember($cacheKey, 120, function () use ($saleArray, $dataFilter) {
+                        return $this->getReportUserSaleV2($saleArray, $dataFilter, false, true);
+                    });
+                    
                     if ($data) {
                         $list[] = $data;
                     }
                 }
             }
         } else if (isset($dataFilter['sale'])) {
-             /**
+            /**
              * bắt đầu lọc 
-             * chọn 1 sale xxxxx
+             * chọn 1 sale
             */
             $sale = Helper::getSaleById($dataFilter['sale']);
-            $data = $this->getReportUserSaleV2($sale, $dataFilter, false, true);
+            $saleId = is_array($sale) ? ($sale['id'] ?? null) : ($sale->id ?? null);
+            $cacheKey = 'cskhdt:v2:' . $saleId . ':' . md5(json_encode($dataFilter));
+            
+            $data = Cache::remember($cacheKey, 120, function () use ($sale, $dataFilter) {
+                return $this->getReportUserSaleV2($sale, $dataFilter, false, true);
+            });
+            
             if ($data) {
                 $list[] = $data;
             }
@@ -1009,26 +1106,71 @@ class HomeController extends Controller
             $isLeadSale = Helper::isLeadSale(Auth::user()->role);
             if ($checkAll || $isLeadSale) {
                 $listSale = Helper::getListSaleByGroupWork(5);
+                // Xử lý cả Query Builder và Collection
+                if ($listSale instanceof \Illuminate\Database\Eloquent\Builder) {
+                    $listSale = $listSale->select('id', 'real_name', 'profile_image')->get();
+                }
+                
                 foreach ($listSale as $sale) {
-                    $data = $this->getReportUserSaleV2($sale, $dataFilter, false, true);
+                    $saleArray = is_object($sale) ? $sale->toArray() : $sale;
+                    $saleId = $saleArray['id'] ?? null;
+                    $cacheKey = 'cskhdt:v2:' . $saleId . ':' . md5(json_encode($dataFilter));
+                    
+                    $data = Cache::remember($cacheKey, 120, function () use ($saleArray, $dataFilter) {
+                        return $this->getReportUserSaleV2($saleArray, $dataFilter, false, true);
+                    });
+                    
                     if ($data) {
                         $list[] = $data;
                     }
                 }
             } else {
                 /**sale đang xem thông tin */
-                $data = $this->getReportUserSaleV2(Auth::user(), $dataFilter, false, true);
+                $sale = Auth::user();
+                $saleId = $sale->id ?? null;
+                $cacheKey = 'cskhdt:v2:' . $saleId . ':' . md5(json_encode($dataFilter));
+                
+                $data = Cache::remember($cacheKey, 120, function () use ($sale, $dataFilter) {
+                    return $this->getReportUserSaleV2($sale, $dataFilter, false, true);
+                });
+                
                 if ($data) {
                     $list[] = $data;
                 }
             }
         }
 
-        $result['data'] = $list;
-        if (count($result['data']) == 0) {
-            return $result['data'];
-        }
-
+        // Lọc bỏ các record có tất cả giá trị = 0
+        $list = array_filter($list, function($item) {
+            $newCustomer = $item['new_customer'] ?? [];
+            $oldCustomer = $item['old_customer'] ?? [];
+            $summaryTotal = $item['summary_total'] ?? [];
+            
+            $newOrder = $newCustomer['order'] ?? 0;
+            $newContact = $newCustomer['contact'] ?? 0;
+            $newRate = $newCustomer['rate'] ?? 0;
+            
+            $oldOrder = $oldCustomer['order'] ?? 0;
+            $oldContact = $oldCustomer['contact'] ?? 0;
+            $oldRate = $oldCustomer['rate'] ?? 0;
+            
+            $total = $summaryTotal['total'] ?? 0;
+            $avg = $summaryTotal['avg'] ?? 0;
+            $rate = $summaryTotal['rate'] ?? 0;
+            
+            return ($newOrder > 0 || $newContact > 0 || $newRate > 0 || 
+                    $oldOrder > 0 || $oldContact > 0 || $oldRate > 0 || 
+                    $total > 0 || $avg > 0 || $rate > 0);
+        });
+        
+        // Sắp xếp các record giảm dần theo summary_total.total
+        usort($list, function($a, $b) {
+            $totalA = $a['summary_total']['total'] ?? 0;
+            $totalB = $b['summary_total']['total'] ?? 0;
+            return $totalB <=> $totalA;
+        });
+        
+        // Tính tổng TRƯỚC trên TẤT CẢ records (không bị giới hạn bởi $show)
         $totalSum = $avgSum = $newContact = $newOrder = $newRate = $newProduct = $newTotal  = $oldTotal = $oldProduct = $oldRate  = $oldContact = $oldOrder= 0;
         $sumNewCustomer = $sumOldCustomer = [
             'contact' => 0,
@@ -1108,6 +1250,13 @@ class HomeController extends Controller
                 'rate' => $rateSumX,
             ]
         ];
+        
+        // Giới hạn số record hiển thị theo tham số $show (sau khi đã tính tổng tất cả)
+        $result['data'] = array_slice($list, 0, $show);
+        
+        if (count($result['data']) == 0) {
+            return $result['data'];
+        }
 
         return $result;
     }
@@ -1166,12 +1315,17 @@ class HomeController extends Controller
             $groupUs = GroupUser::find($groupUser);
             
             if ($groupUs) {
-                $listSale = $groupUs->users->toArray();
+                $listSale = $groupUs->users()
+                    ->select('id', 'real_name')
+                    // ->limit($show)
+                    ->get()
+                    ->toArray();
 
-                // dd($listSale->toArray());
-                $listSale = array_slice($listSale, 0, $show);
                 foreach ($listSale as $sale) {
-                    $data = $this->getReportUserSaleV2($sale, $dataFilter);
+                    $cacheKey = 'dash:v2:' . ($sale['id'] ?? null) . ':' . md5(json_encode($dataFilter));
+                    $data = Cache::remember($cacheKey, 120, function () use ($sale, $dataFilter) {
+                        return $this->getReportUserSaleV2($sale, $dataFilter);
+                    });
                     if ($data) {
                         $list[] = $data;
                     }
@@ -1182,7 +1336,11 @@ class HomeController extends Controller
              * bắt đầu lọc, chọn 1 sale
             */
             $sale = Helper::getSaleById($dataFilter['sale']);
-            $data = $this->getReportUserSaleV2($sale, $dataFilter);
+            $saleId = is_array($sale) ? ($sale['id'] ?? null) : ($sale->id ?? null);
+            $cacheKey = 'dash:v2:' . $saleId . ':' . md5(json_encode($dataFilter));
+            $data = Cache::remember($cacheKey, 120, function () use ($sale, $dataFilter) {
+                return $this->getReportUserSaleV2($sale, $dataFilter);
+            });
             if ($data) {
                 $list[] = $data;
             }
@@ -1199,15 +1357,41 @@ class HomeController extends Controller
                     if ($gr->id == 5) {
                         continue;
                     }
-                    $listSale =  Helper::getListSaleV3(Auth::user(), $isLeadSale, $gr->id)->select('id', 'real_name')->toArray();
-                    $listSaleAllow[] = $listSale;
+                    // Bỏ limit để lấy TẤT CẢ sales (sẽ limit khi hiển thị sau)
+                    $listSaleResult = Helper::getListSaleV3(Auth::user(), $isLeadSale, $gr->id);
+                    
+                    // Xử lý cả Query Builder và Collection/Array
+                    if ($listSaleResult instanceof \Illuminate\Database\Eloquent\Builder) {
+                        // Query Builder - lấy tất cả không limit
+                        $listSale = $listSaleResult
+                            ->select('id', 'real_name')
+                            ->get()
+                            ->toArray();
+                    } else {
+                        // Collection hoặc Array - lấy tất cả
+                        $listSaleArray = $listSaleResult instanceof \Illuminate\Support\Collection 
+                            ? $listSaleResult->toArray() 
+                            : $listSaleResult;
+                        
+                        // Chỉ lấy các field cần thiết, không limit
+                        $listSale = [];
+                        foreach ($listSaleArray as $sale) {
+                            if (is_object($sale)) {
+                                $listSale[] = ['id' => $sale->id ?? null, 'real_name' => $sale->real_name ?? ''];
+                            } else {
+                                $listSale[] = ['id' => $sale['id'] ?? null, 'real_name' => $sale['real_name'] ?? ''];
+                            }
+                        }
+                    }
+                    
+                    $listSaleAllow = array_merge($listSaleAllow, $listSale);
                 }
 
-                $listSaleAllow = array_merge(...$listSaleAllow);
-                // Chỉ lấy 20 phần tử đầu tiên
-                $listSaleAllow = array_slice($listSaleAllow, 0, $show);
                 foreach ($listSaleAllow as $sale) {
-                    $data = $this->getReportUserSaleV2($sale, $dataFilter);
+                    $cacheKey = 'dash:v2:' . ($sale['id'] ?? null) . ':' . md5(json_encode($dataFilter));
+                    $data = Cache::remember($cacheKey, 120, function () use ($sale, $dataFilter) {
+                        return $this->getReportUserSaleV2($sale, $dataFilter);
+                    });
 
                     if ($data) {
                         $list[] = $data;
@@ -1216,18 +1400,51 @@ class HomeController extends Controller
             } else if ((Auth::user()->is_CSKH || Auth::user()->is_sale) && !Helper::isCskhDt(Auth::user())) {
 
                 /**sale đang xem thông tin */
-                $data = $this->getReportUserSaleV2(Auth::user(), $dataFilter);
+                $sale = Auth::user();
+                $saleId = $sale->id ?? null;
+                $cacheKey = 'dash:v2:' . $saleId . ':' . md5(json_encode($dataFilter));
+                $data = Cache::remember($cacheKey, 120, function () use ($sale, $dataFilter) {
+                    return $this->getReportUserSaleV2($sale, $dataFilter);
+                });
                 if ($data) {
                     $list[] = $data;
                 }
             }
         }
   
-        $result['data'] = $list;
-        if (count($result['data']) == 0) {
-            return $result['data'];
-        }
-
+        // Lọc bỏ các record có tất cả giá trị = 0
+        $list = array_filter($list, function($item) {
+            $newCustomer = $item['new_customer'] ?? [];
+            $oldCustomer = $item['old_customer'] ?? [];
+            $summaryTotal = $item['summary_total'] ?? [];
+            
+            // Kiểm tra nếu tất cả giá trị quan trọng đều = 0
+            $newOrder = $newCustomer['order'] ?? 0;
+            $newContact = $newCustomer['contact'] ?? 0;
+            $newRate = $newCustomer['rate'] ?? 0;
+            
+            $oldOrder = $oldCustomer['order'] ?? 0;
+            $oldContact = $oldCustomer['contact'] ?? 0;
+            $oldRate = $oldCustomer['rate'] ?? 0;
+            
+            $total = $summaryTotal['total'] ?? 0;
+            $avg = $summaryTotal['avg'] ?? 0;
+            $rate = $summaryTotal['rate'] ?? 0;
+            
+            // Giữ lại nếu có ít nhất 1 giá trị > 0
+            return ($newOrder > 0 || $newContact > 0 || $newRate > 0 || 
+                    $oldOrder > 0 || $oldContact > 0 || $oldRate > 0 || 
+                    $total > 0 || $avg > 0 || $rate > 0);
+        });
+        
+        // Sắp xếp các record giảm dần theo summary_total.total
+        usort($list, function($a, $b) {
+            $totalA = $a['summary_total']['total'] ?? 0;
+            $totalB = $b['summary_total']['total'] ?? 0;
+            return $totalB <=> $totalA; // Sắp xếp giảm dần
+        });
+        
+        // Tính tổng TRƯỚC trên TẤT CẢ records (không bị giới hạn bởi $show)
         $totalSum = $avgSum = $newContact = $newOrder = $newRate = $newProduct = $newTotal  = $oldTotal = $oldProduct = $oldRate  = $oldContact = $oldOrder= 0;
         $sumNewCustomer = $sumOldCustomer = [
             'contact' => 0,
@@ -1305,6 +1522,13 @@ class HomeController extends Controller
                 'rate' => $rateSumX,
             ]
         ];
+        
+        // Giới hạn số record hiển thị theo tham số $show (sau khi đã tính tổng tất cả)
+        $result['data'] = array_slice($list, 0, $show);
+        
+        if (count($result['data']) == 0) {
+            return $result['data'];
+        }
 
         return $result;
     }
@@ -1316,38 +1540,29 @@ class HomeController extends Controller
             $dataFilter['daterange'] = $req->date;
         }
 
-        $status = $req->status;
-        $category = $req->category;
-        $product = $req->product;
-        $sale = $req->sale;
-        $mkt = $req->mkt;
-        $src = $req->src;
-        $group = $req->group;
-        $groupUser = $req->groupUser;
-        $groupDigital = $req->groupDigital;
-        $show = $req->show;
-        if (isset($status) && $status != 999) {
-            $dataFilter['status'] = $status;
-        } if ($category && $category != 999) {
-            $dataFilter['category'] = $category;
-        } if ($req->product && $product != 999) {
-            $dataFilter['product'] = $product;
-        } if ($sale && $sale != 999) {
-            $dataFilter['sale'] = $req->sale;
-        } if ($mkt && $mkt != 999) {
-            $dataFilter['mkt'] = $mkt;
-        } if ($src && $src != 999) {
-            $dataFilter['src'] = $src;
-            $newFilter['src'] = $src;
-        } if ($group && $group != 999) {
-            $dataFilter['group'] = $group;
-        } if ($req->groupUser && $groupUser != 999) {
-            $dataFilter['groupUser'] = $groupUser;
-        } if ($show && $show != 20) {
-            $dataFilter['show'] = $show;
-        } else {
-            $show = 20;
+        // Tối ưu: xử lý filter parameters một cách gọn gàng
+        $filters = [
+            'status' => $req->status,
+            'category' => $req->category,
+            'product' => $req->product,
+            'sale' => $req->sale,
+            'mkt' => $req->mkt,
+            'src' => $req->src,
+            'group' => $req->group,
+            'groupUser' => $req->groupUser,
+            'groupDigital' => $req->groupDigital,
+        ];
+        
+        foreach ($filters as $key => $value) {
+            if ($value && $value != 999) {
+                $dataFilter[$key] = $value;
+                if ($key === 'src') {
+                    $newFilter['src'] = $value;
+                }
+            }
         }
+        
+        $show = $req->show ?? 20;
         // if ($groupDigital && $groupDigital != 999) {
         //     $groupDi = GroupUser::find($groupDigital);
         //     if ($groupDi) {
@@ -1366,10 +1581,54 @@ class HomeController extends Controller
         //     }
         // }
 
-        $listResult = [];
-        $listResult = $this->getReportUserDigitalV3($dataFilter);
+        // Thêm cache cho getReportUserDigitalV3
+        $cacheKey = 'digital:v3:' . md5(json_encode($dataFilter));
+        $listResult = Cache::remember($cacheKey, 120, function () use ($dataFilter) {
+            return $this->getReportUserDigitalV3($dataFilter);
+        });
+        // Lọc bỏ các record có tất cả giá trị = 0
+        // Nhưng giữ lại nếu record có 'name' (có thể là digital user cần hiển thị)
+        $listResult = array_filter($listResult, function($item) {
+            // Nếu có name, luôn giữ lại (có thể là digital user cần hiển thị)
+            if (isset($item['name']) && !empty($item['name'])) {
+                return true;
+            }
+            
+            $newCustomer = $item['new_customer'] ?? [];
+            $oldCustomer = $item['old_customer'] ?? [];
+            
+            $newOrder = $newCustomer['count_order'] ?? 0;
+            $newContact = $newCustomer['contact'] ?? 0;
+            $newTotal = $newCustomer['total'] ?? 0;
+            $newProduct = $newCustomer['product'] ?? 0;
+            $newRate = $newCustomer['rate'] ?? 0;
+            $newAvg = $newCustomer['avg'] ?? 0;
+            
+            $oldOrder = $oldCustomer['count_order'] ?? 0;
+            $oldContact = $oldCustomer['contact'] ?? 0;
+            $oldTotal = $oldCustomer['total'] ?? 0;
+            $oldProduct = $oldCustomer['product'] ?? 0;
+            $oldRate = $oldCustomer['rate'] ?? 0;
+            $oldAvg = $oldCustomer['avg'] ?? 0;
+            
+            // Giữ lại nếu có ít nhất 1 giá trị > 0
+            return ($newOrder > 0 || $newContact > 0 || $newTotal > 0 || $newProduct > 0 || $newRate > 0 || $newAvg > 0 ||
+                    $oldOrder > 0 || $oldContact > 0 || $oldTotal > 0 || $oldProduct > 0 || $oldRate > 0 || $oldAvg > 0);
+        });
+        
+        // Reset keys để đảm bảo array có index liên tục (cần thiết cho array_slice)
+        $listResult = array_values($listResult);
+        
+        // Sắp xếp các record giảm dần theo total
+        usort($listResult, function($a, $b) {
+            $totalA = ($a['new_customer']['total'] ?? 0) + ($a['old_customer']['total'] ?? 0);
+            $totalB = ($b['new_customer']['total'] ?? 0) + ($b['old_customer']['total'] ?? 0);
+            return $totalB <=> $totalA;
+        });
+        
+        // Tính tổng TRƯỚC trên TẤT CẢ records (không bị giới hạn bởi $show)
         $totalSum = $avgSum = $newContact = $newOrder = $newRate = $newProduct = $newTotal = 0;
-        $oldAvg = $oldTotal = $oldProduct = $oldRate = $oldContact = $oldOrder= 0;
+        $oldTotal = $oldProduct = $oldRate = $oldContact = $oldOrder = 0;
         $sumNewCustomer = $sumOldCustomer = [
             'contact' => 0,
             'count_order' => 0,
@@ -1379,34 +1638,25 @@ class HomeController extends Controller
             'avg' => 0,
         ];
        
-        $newProduct = $newTotal = $oldProduct = $oldTotal = $oldRate = 0;
-        foreach ($listResult as $k => $data) {
+        foreach ($listResult as $data) {
             if (isset($data['new_customer'])) {
-                $newContact += $data['new_customer']['contact'];
-                $newOrder += $data['new_customer']['count_order'];
+                $newContact += $data['new_customer']['contact'] ?? 0;
+                $newOrder += $data['new_customer']['count_order'] ?? 0;
 
-                if ($data['new_customer']['contact'] > 0 || $data['new_customer']['count_order'] > 0) {
-                    $newProduct += $data['new_customer']['product'];
-                    $newTotal += ($data['new_customer']['total']);
+                if (($data['new_customer']['contact'] ?? 0) > 0 || ($data['new_customer']['count_order'] ?? 0) > 0) {
+                    $newProduct += $data['new_customer']['product'] ?? 0;
+                    $newTotal += $data['new_customer']['total'] ?? 0;
                 }
-            } if (isset($data['old_customer'])) {
+            }
+            
+            if (isset($data['old_customer'])) {
+                $oldContact += $data['old_customer']['contact'] ?? 0;
+                $oldOrder += $data['old_customer']['count_order'] ?? 0;
 
-                if (isset($data['old_customer']['contact'])) { 
-                    $oldContact += $data['old_customer']['contact'];
-                } else {
-                    $oldContact += 0;
-                }
-               
-                if (isset($data['old_customer']['count_order'])) {
-                    $oldOrder += $data['old_customer']['count_order'];
-                } else {
-                    $oldOrder += 0;
-                }
-
-                if (isset($data['old_customer']['contact']) && isset($data['old_customer']['count_order']) && $data['old_customer']['contact'] > 0 && $data['old_customer']['count_order'] > 0) {
-                    $oldRate += $data['old_customer']['rate'];
-                    $oldProduct += $data['old_customer']['product'];
-                    $oldTotal += ($data['old_customer']['total']);
+                if (($data['old_customer']['contact'] ?? 0) > 0 && ($data['old_customer']['count_order'] ?? 0) > 0) {
+                    $oldRate += $data['old_customer']['rate'] ?? 0;
+                    $oldProduct += $data['old_customer']['product'] ?? 0;
+                    $oldTotal += $data['old_customer']['total'] ?? 0;
                 }
             }
         }
@@ -1448,7 +1698,6 @@ class HomeController extends Controller
         }
 
         $rateSumX = round($rateSumX, 2);
-        $result['data'] = array_values($listResult);
         $result['trSum'] = [
             'new_customer' => $sumNewCustomer,
             'old_customer' => $sumOldCustomer,
@@ -1458,6 +1707,13 @@ class HomeController extends Controller
                 'rate' => $rateSumX,
             ]
         ];
+        
+        // Giới hạn số record hiển thị theo tham số $show (sau khi đã tính tổng tất cả)
+        $result['data'] = array_values(array_slice($listResult, 0, (int)$show));
+        
+        if (count($result['data']) == 0) {
+            return $result['data'];
+        }
 
         return $result;
     }
@@ -1479,13 +1735,21 @@ class HomeController extends Controller
         }
 
         $listOrders = $ordersController->getListOrderByPermisson($userAdmin, $req);
+        
+        // Tối ưu: eager load relationships để tránh N+1 queries
+        $listOrders = $listOrders->with(['saleCare.getSrcPage.userDigital:id,real_name']);
+        
         foreach ($listOrders->get() as $order) {
-            if (!empty($order->saleCare) && !empty($order->saleCare->getSrcPage)) {
-                $sc = $order->saleCare;
-                $srcPageOfOrder = $sc->getSrcPage;
-                $srcId = $srcPageOfOrder->id;
-                $digitalSrc = $srcPageOfOrder->userDigital;
-                if (isset($listSrc[$digitalSrc->id])) {
+            if (empty($order->saleCare) || empty($order->saleCare->getSrcPage) || empty($order->saleCare->getSrcPage->userDigital)) {
+                Log::channel('c')->info('Mã đơn hàng - data ko xác định data/ nguồn: ' . $order->id . '-' . $order->sale_care);
+                continue;
+            }
+            
+            $sc = $order->saleCare;
+            $srcPageOfOrder = $sc->getSrcPage;
+            $srcId = $srcPageOfOrder->id;
+            $digitalSrc = $srcPageOfOrder->userDigital;
+            if (isset($listSrc[$digitalSrc->id])) {
                     if (($sc->old_customer == 0 || $sc->old_customer == 2) && isset($listSrc[$digitalSrc->id]['new_customer'])) {
                         $listSrc[$digitalSrc->id]['new_customer']['total'] += $order->total;
                         $listSrc[$digitalSrc->id]['new_customer']['product'] += $order->qty;
@@ -1500,44 +1764,37 @@ class HomeController extends Controller
                     }
 
                 } else {
-                    
-                    $listSrcIds = Helper::getSrcByPermission(Auth::user(), $req);
-                    if (in_array($srcId, $listSrcIds)) {
-                        $listSrc[$digitalSrc->id]['name'] = $digitalSrc->real_name;
-                        if ($sc->old_customer == 0 || $sc->old_customer == 2) {
-                            $listSrc[$digitalSrc->id]['new_customer']['total'] = $order->total;
-                            $listSrc[$digitalSrc->id]['new_customer']['count_order'] = 1;
-                            $listSrc[$digitalSrc->id]['new_customer']['product'] = $order->qty;
-                            $listSrc[$digitalSrc->id]['new_customer']['total'] = $order->total;
-                            $listSrc[$digitalSrc->id]['new_customer']['contact'] = 0;
-                            $listSrc[$digitalSrc->id]['new_customer']['id'] = $digitalSrc->id;
-                        } else {
-                            $listSrc[$digitalSrc->id]['old_customer']['total'] = $order->total;
-                            $listSrc[$digitalSrc->id]['old_customer']['count_order'] = 1;
-                            $listSrc[$digitalSrc->id]['old_customer']['product'] = $order->qty;
-                            $listSrc[$digitalSrc->id]['old_customer']['total'] = $order->total;
-                            $listSrc[$digitalSrc->id]['old_customer']['contact'] = 0;
-                            $listSrc[$digitalSrc->id]['old_customer']['id'] = $digitalSrc->id;
-                        }
-                        
-                    } else {
-                        // $orderNoSrc[] = $order->id;
-                        Log::channel('c')->info('Mã đơn hàng - data ko xác định data/ nguồn: ' . $order->id . '-' . $order->sale_care);
+                    // Tối ưu: cache listSrcIds để tránh gọi Helper nhiều lần
+                    if (!isset($listSrcIdsCache)) {
+                        $listSrcIdsCache = Helper::getSrcByPermission(Auth::user(), $req);
                     }
                     
+                    if (in_array($srcId, $listSrcIdsCache)) {
+                        $listSrc[$digitalSrc->id]['name'] = $digitalSrc->real_name ?? '';
+                        if ($sc->old_customer == 0 || $sc->old_customer == 2) {
+                            $listSrc[$digitalSrc->id]['new_customer'] = [
+                                'total' => $order->total,
+                                'count_order' => 1,
+                                'product' => $order->qty,
+                                'contact' => 0,
+                                'id' => $digitalSrc->id
+                            ];
+                        } else {
+                            $listSrc[$digitalSrc->id]['old_customer'] = [
+                                'total' => $order->total,
+                                'count_order' => 1,
+                                'product' => $order->qty,
+                                'contact' => 0,
+                                'id' => $digitalSrc->id
+                            ];
+                        }
+                    } else {
+                        Log::channel('c')->info('Mã đơn hàng - data ko xác định data/ nguồn: ' . $order->id . '-' . $order->sale_care);
+                    }
                 }
-            } else {
-                // $orderNoSrc[] = $order->id;
-                Log::channel('c')->info('Mã đơn hàng - data ko xác định data/ nguồn: ' . $order->id . '-' . $order->sale_care);
-            }
-
         }
  
-        if (isset($req['show']) && $req['show'] && $req['show'] != 20) {
-            $listSrc = array_slice($listSrc, 0, $req['show']);
-        } else {
-            $listSrc = array_slice($listSrc, 0, 20);
-        }
+        // Bỏ logic array_slice ở đây vì đã xử lý ở ajaxFilterDashboardDigitalV3
         foreach ($listSrc as $k => $data) {
             $orderNew = $totalNew = $contactNew = $avgNew = $rateNew = 0;
             $orderOld = $totalOld = $contactOld = $avgOld = $rateOld = 0;
@@ -1948,43 +2205,52 @@ class HomeController extends Controller
             $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
             $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
 
-            $list = $list->whereDate('created_at', '>=', $dateBegin)
-                ->whereDate('created_at', '<=', $dateEnd);
+            // Chỉ rõ table name để tránh ambiguous (sale_care là table chính trong function này)
+            $list = $list->whereDate('sale_care.created_at', '>=', $dateBegin)
+                ->whereDate('sale_care.created_at', '<=', $dateEnd);
         }
        
         if (isset($req['group']) || !empty($req->group)) {
             $groupId = (isset($req['group'])) ? $req['group'] : $req->group;
-            $list = $list->where('group_id', $groupId);
+            // Chỉ rõ table name để tránh ambiguous
+            $list = $list->where('sale_care.group_id', $groupId);
         }
 
         if (isset($req['groupUser']) || !empty($req->groupUser)) {
             $groupUS = GroupUser::find($req['groupUser']);
             if ($groupUS) {
-                $listSale = $groupUS->users;
-                $list = $list->whereIn('assign_user', $listSale->pluck('id')->toArray());
+                // Tối ưu: eager load users và chỉ lấy IDs một lần
+                $saleIds = $groupUS->users()->pluck('id')->toArray();
+                if (!empty($saleIds)) {
+                    // Chỉ rõ table name để tránh ambiguous
+                    $list = $list->whereIn('sale_care.assign_user', $saleIds);
+                } else {
+                    $list = $list->whereRaw('1 = 0'); // Return empty query
+                }
             }
         }
          
         if (isset($req->type_customer) && (int)$req->type_customer != -1) {
-            $list = $list->where('old_customer', $req->type_customer);
+            // Chỉ rõ table name để tránh ambiguous
+            $list = $list->where('sale_care.old_customer', $req->type_customer);
         }
 
         $listSrcId = Helper::getSrcByPermission(Auth::user(), $req);
-        foreach ($list->get() as $s) {
-            if (!in_array($s->src_id, $listSrcId)) {
-                Log::channel('c')->info('Mã đơn hàng - data ko xác định data/ nguồn:' . $s->id);
-            }
-        }
-
         if ($listSrcId) {
-            $list = $list->whereIn('src_id', $listSrcId);
+            // Chỉ rõ table name để tránh ambiguous
+            $list = $list->whereIn('sale_care.src_id', $listSrcId);
+        } else {
+            // Nếu không có permission thì return empty result
+            return [];
         }
 
+        // Tối ưu: eager load relationships để tránh N+1 queries
+        $list = $list->with(['getSrcPage.userDigital:id,real_name']);
+        
         foreach ($list->get() as $s) {          
             if (!$s->getSrcPage || !$s->getSrcPage->userDigital) {
-                continue;
-            } else {
                 Log::channel('c')->info('Mã đơn hàng - data ko xác định data/ nguồn:' . $s->id);
+                continue;
             }
      
             $digital = $s->getSrcPage->userDigital;

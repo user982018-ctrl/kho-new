@@ -449,7 +449,7 @@
   </div>
 
  <!-- Dòng chữ chạy chân trang -->
- <div id="running-text-footer" style="position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 10px 0; z-index: 9998; overflow: hidden; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);">
+ {{-- <div id="running-text-footer" style="position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 10px 0; z-index: 9998; overflow: hidden; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);">
   <div style="display: flex; animation: scroll-left 10s linear infinite; white-space: nowrap;">
       <span style="padding-right: 100px; font-weight: bold; font-size: 16px;">
           🏆 CHÚC MỪNG TOP SALES: Phạm Thị Ánh Tuyết - Nguyễn Thị Quỳnh - Nguyễn Thị Quỳnh Như 
@@ -477,7 +477,7 @@
           ⭐ TUYÊN DƯƠNG NHÂN VIÊN XUẤT SẮC THÁNG NÀY 
       </span>
   </div>
-</div>
+</div> --}}
 <script type="text/javascript" src="{{asset('public/js/dateRangePicker/daterangepicker.min.js')}}"></script>
 
 <script>
@@ -556,48 +556,8 @@
         });
     });
 
-    $("#btn-filter").on( "click", function() {
-      let value =  $("input[name='daterange']").val();
-      let arr = value.split("-");
-
-      var _token    = $("input[name='_token']").val();
-      var status    = $("select[name='status']").val();
-      var category  = $("select[name='category']").val();
-      var product   = $("select[name='product']").val();
-      var sale      = $("select[name='sale']").val();
-      var mkt       = $("select[name='mkt']").val();
-      var src       = $("select[name='src']").val();
-      var group     = $("select[name='group']").val();
-      var groupUser = $("select[name='groupUser']").val();
-      var groupDigital = $("select[name='groupDigital']").val();
-      var show = $("select[name='show']").val();
-      
-      data = {
-        _token : _token,
-        type : 'daterange',
-        date : value
-      };
-
-      if (status != '999' && status != undefined) {
-        data.status = status;
-      } if (category != '999' && category != undefined) {
-        data.category = category;
-      } if (product != '999' && product != undefined) {
-        data.product = product;
-      } if (sale != '999' && sale != undefined) {
-        data.sale = sale;
-      } if (mkt != '999' && mkt != undefined) {
-        data.mkt = mkt;
-      } if (src != '999' && src != undefined) {
-        data.src = src;
-      } if (group != '999' && group != undefined) {
-        data.group = group;
-      } if (groupUser != '999' && groupUser != undefined) {
-        data.groupUser = groupUser;
-      } if (show != '20' && show != undefined) { 
-        data.show = show;
-      }
-
+    $("#btn-filter").on("click", function() {
+      const data = buildFilterData();
       ajaxGetListCskhDt(data);
       ajaxGetListSale(data);
       ajaxGetListDigital(data);
@@ -689,6 +649,17 @@
 
 </script>
 <script>
+  // Cache jQuery selectors
+  const $cached = {
+    token: $("input[name='_token']"),
+    daterange: $("input[name='daterange']"),
+    loader: $('.loader'),
+    tableDigital: $('.table_digital'),
+    tableCskhDt: $('.table_cskh_DT'),
+    tableSale: $('.table_sale')
+  };
+
+  // Helper: Format number
   function number_format_js(number) {
     if (!number) {
       return 0;
@@ -697,27 +668,89 @@
     return number.replace(/,/g, '.').replace(/\./g, ',');
   }
 
+  // Helper: Calculate percentage
+  function calcPercent(value, total) {
+    return total != 0 ? (value / total * 100) : 0;
+  }
+
+  // Helper: Create progress bar cell
+  function createProgressCell(percent, value, cssClass = '') {
+    return `<td class="tdProgress ${cssClass}">
+      <div class="box-progress">
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" aria-valuenow="${percent}" 
+               aria-valuemin="0" aria-valuemax="100" style="width: ${percent}%"></div>
+        </div>
+        <span class="progress-text">${value}</span>
+      </div>
+    </td>`;
+  }
+
+  // Helper: Show/hide table loader
+  function toggleTableLoader(tableSelector, show) {
+    const $table = $(tableSelector);
+    if ($table.length) {
+      const $loader = $table.find('.loader');
+      const $tableEl = $table.find('.table-multi-select');
+      if (show) {
+        $loader.show();
+        $tableEl.css({ "opacity": "0.5", "position": "relative" });
+      } else {
+        $loader.hide();
+        $tableEl.css({ "opacity": "1", "position": "relative" });
+      }
+    }
+  }
+
+  // Helper: Build filter data object
+  function buildFilterData() {
+    const filters = {
+      status: $("select[name='status']").val(),
+      category: $("select[name='category']").val(),
+      product: $("select[name='product']").val(),
+      sale: $("select[name='sale']").val(),
+      mkt: $("select[name='mkt']").val(),
+      src: $("select[name='src']").val(),
+      group: $("select[name='group']").val(),
+      groupUser: $("select[name='groupUser']").val(),
+      groupDigital: $("select[name='groupDigital']").val(),
+      show: $("select[name='show']").val()
+    };
+
+    const data = {
+      _token: $cached.token.val(),
+      type: 'daterange',
+      date: $cached.daterange.val()
+    };
+
+    // Only add non-default values
+    Object.keys(filters).forEach(key => {
+      const value = filters[key];
+      if (value && value != '999' && value != '20') {
+        data[key] = value;
+      }
+    });
+
+    return data;
+  }
+
   function ajaxGetListDigital(dataInput)
   {
-    if ($('.table_digital').length > 0) {
-      $('.table_digital .loader').show();
-      $('.table_digital .table-multi-select').css("opacity", "0.5");
-      $('.table_digital .table-multi-select').css("position", "relative");
+    if ($cached.tableDigital.length > 0) {
+      toggleTableLoader('.table_digital', true);
         $.ajax({
           url: "{{ route('filter-total-digital') }}",
           type: 'GET',
           data: dataInput,
           success: function(data) {
-            $('.table_digital .loader').hide();
-            $('.table_digital .table-multi-select').css("opacity", "1");
-            $('.table_digital .table-multi-select').css("position", "relative");
+            toggleTableLoader('.table_digital', false);
 
             if (data.length == 0) {
               $("#body-digital").html('');
             } else if (data.data.length > 0) {
               /* lọc data digital*/
               var str = '';
-              console.log('data', data.data)
+              // console.log('data', data.data) // Commented for production
               var newCusomerTrSum = data.trSum.new_customer;
               var oldCusomerTrSum = data.trSum.old_customer;
               var summaryCusomerTrSum = data.trSum.sumary_total;
@@ -750,20 +783,21 @@
               $("#tr-sum-digital").html(strTdSum);
 
               data.data.forEach((element, k) => {
-                perCentContactNew = (newCusomerTrSum.contact != 0) ? (element.new_customer.contact / newCusomerTrSum.contact * 100) : 0;
-                perCentOrderNew =  (newCusomerTrSum.count_order != 0) ? (element.new_customer.count_order / newCusomerTrSum.count_order * 100) : 0;
-                perCentProductNew = (newCusomerTrSum.product != 0) ? (element.new_customer.product / newCusomerTrSum.product * 100) : 0;
-                perCentTotalNew = (newCusomerTrSum.total != 0) ? (element.new_customer.total / newCusomerTrSum.total * 100) : 0;
-                perCentAvgNew = (newCusomerTrSum.avg != 0) ? (element.new_customer.avg / newCusomerTrSum.avg * 100) : 0;
+                // Calculate percentages using helper function
+                const perCentContactNew = calcPercent(element.new_customer.contact, newCusomerTrSum.contact);
+                const perCentOrderNew = calcPercent(element.new_customer.count_order, newCusomerTrSum.count_order);
+                const perCentProductNew = calcPercent(element.new_customer.product, newCusomerTrSum.product);
+                const perCentTotalNew = calcPercent(element.new_customer.total, newCusomerTrSum.total);
+                const perCentAvgNew = calcPercent(element.new_customer.avg, newCusomerTrSum.avg);
 
-                perCentContactOld = (oldCusomerTrSum.contact != 0) ? (element.old_customer.contact / oldCusomerTrSum.contact * 100) : 0;
-                perCentOrderOld =  (oldCusomerTrSum.count_order != 0) ? (element.old_customer.count_order / oldCusomerTrSum.count_order * 100) : 0;
-                perCentProductOld = (oldCusomerTrSum.product != 0) ? (element.old_customer.product / oldCusomerTrSum.product * 100) : 0;
-                perCentTotalOld = (oldCusomerTrSum.total != 0) ? (element.old_customer.total / oldCusomerTrSum.total * 100) : 0;
-                perCentAvgOld = (oldCusomerTrSum.avg != 0) ? (element.old_customer.avg / oldCusomerTrSum.avg * 100) : 0;
+                const perCentContactOld = calcPercent(element.old_customer.contact, oldCusomerTrSum.contact);
+                const perCentOrderOld = calcPercent(element.old_customer.count_order, oldCusomerTrSum.count_order);
+                const perCentProductOld = calcPercent(element.old_customer.product, oldCusomerTrSum.product);
+                const perCentTotalOld = calcPercent(element.old_customer.total, oldCusomerTrSum.total);
+                const perCentAvgOld = calcPercent(element.old_customer.avg, oldCusomerTrSum.avg);
 
-                perCentTotalSum = (summaryCusomerTrSum.total != 0) ? (element.summary_total.total / summaryCusomerTrSum.total * 100) : 0;
-                perCentAvgSum = (maxAvcElem.avg != 0) ? (element.summary_total.avg / maxAvcElem * 100) : 0;
+                const perCentTotalSum = calcPercent(element.summary_total.total, summaryCusomerTrSum.total);
+                const perCentAvgSum = calcPercent(element.summary_total.avg, maxAvcElem);
                        
                 str += '<tr>'
                   + '<td class="text-center">' + (k+1) + '</td>'
@@ -825,10 +859,8 @@
 
   function ajaxGetListCskhDt(dataInput)
   {
-    if ($('.table_cskh_DT').length > 0) {
-      $('.table_cskh_DT .loader').show();
-      $('.table_cskh_DT .table-multi-select').css("opacity", "0.5");
-      $('.table_cskh_DT .table-multi-select').css("position", "relative");
+    if ($cached.tableCskhDt.length > 0) {
+      toggleTableLoader('.table_cskh_DT', true);
       $.ajax({
         url: "{{ route('filter-total-cskh-dt') }}",
         type: 'GET',
@@ -842,7 +874,7 @@
             var oldCusomerTrSum = data.trSum.old_customer;
             var summaryCusomerTrSum = data.trSum.sumary_total;
             var maxAvcElem = data.data[0].summary_total.avg;
-            console.log(summaryCusomerTrSum)
+            // console.log(summaryCusomerTrSum) // Commented for production
             /** lấy ra trung bình đơn lớn nhất của trong list sale**/
             data.data.forEach((element, k) => {
               if (element.old_customer.avg > maxAvcElem) {
@@ -944,9 +976,7 @@
               $("#tr-sum-cskh-DT").html(strTdSum);
           }
 
-          $('.table_cskh_DT .loader').hide();
-          $('.table_cskh_DT .table-multi-select').css("opacity", "1");
-          $('.table_cskh_DT .table-multi-select').css("position", "relative");
+          toggleTableLoader('.table_cskh_DT', false);
         }
       });
     }
@@ -954,21 +984,17 @@
 
   function ajaxGetListSale(dataInput)
   { 
-    if ($('.table_sale').length == 0) {
+    if ($cached.tableSale.length == 0) {
       return;
     }
 
-    $('.table_sale .loader').show();
-    $('.table_sale .table-multi-select').css("opacity", "0.5");
-    $('.table_sale .table-multi-select').css("position", "relative");
+    toggleTableLoader('.table_sale', true);
     $.ajax({
       url: "{{ route('filter-total-sales') }}",
       type: 'GET',
       data: dataInput,
         success: function(data) {
-          $('.table_sale .loader').hide();
-          $('.table_sale .table-multi-select').css("opacity", "1");
-          $('.table_sale .table-multi-select').css("position", "relative");
+          toggleTableLoader('.table_sale', false);
           if (data.length == 0) {
             $("#body-sale").html('');
           } else if (data.data.length > 0) {
@@ -1093,42 +1119,7 @@
   
   function loadDataReportHome()
   {
-    let value =  $("input[name='daterange']").val();
-    // let arr = value.split("-");
-    var _token    = $("input[name='_token']").val();
-    var status    = $("select[name='status']").val();
-    var category  = $("select[name='category']").val();
-    var product   = $("select[name='product']").val();
-    var sale      = $("select[name='sale']").val();
-    var mkt       = $("select[name='mkt']").val();
-    var src       = $("select[name='src']").val();
-    var group     = $("select[name='group']").val();
-    var groupUser = $("select[name='groupUser']").val();
-
-    data = {
-      _token : _token,
-      type : 'daterange',
-      date : value
-    };
-
-    if (status != '999' && status != undefined) {
-      data.status = status;
-    } if (category != '999' && category != undefined) {
-      data.category = category;
-    } if (product != '999' && product != undefined) {
-      data.product = product;
-    } if (sale != '999' && sale != undefined) {
-      data.sale = sale;
-    } if (mkt != '999' && mkt != undefined) {
-      data.mkt = mkt;
-    } if (src != '999' && src != undefined) {
-      data.src = src;
-    } if (group != '999' && group != undefined) {
-      data.group = group;
-    } if (groupUser != '999' && groupUser != undefined) {
-      data.groupUser = groupUser;
-    }
-
+    const data = buildFilterData();
     ajaxGetListSale(data);
     ajaxGetListCskhDt(data);
     ajaxGetListDigital(data);

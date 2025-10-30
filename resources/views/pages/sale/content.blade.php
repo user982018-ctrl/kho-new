@@ -296,7 +296,7 @@
                         @endif
 
                         <div class="col-12 col-sm-6 col-md-3 form-group">
-                            <input name="search" type="text"  value="{{ isset($search) ? $search : null}}" class="form-control" placeholder="Họ tên, số điện thoại">
+                            <input name="search" type="text"  value="{{ isset($search) ? $search : null}}" class="form-control" placeholder="Họ tên, số điện thoại, đơn nội bộ: #1234">
                         </div>
                     
                         <div class="col-12 col-sm-6 col-md-3 col-lg-3 form-group" style="max-width: 180px;" >
@@ -423,12 +423,8 @@
                             @endif
                         </th>
                         <th class="text-center" style="top: 0.5px;">
-                            <div style="min-width: 200px;">
-                                <div style="border-bottom: 1px solid #d8dbe0; padding-bottom: 5px; margin-bottom: 5px;">Mã đơn</div>
-                                <div style="display: flex; justify-content: space-around;">
-                                    <span style="flex: 1; border-right: 1px solid #d8dbe0;">Đơn mới chốt</span>
-                                    <span style="flex: 1;">Đơn từ CSKH</span>
-                                </div>
+                            <div>
+                                <div>Mã đơn</div>
                             </div>
                         </th>
                         <th class="text-center" style="top: 0.5px;">
@@ -475,18 +471,9 @@
                         </td>
                         <?php $preOrder = $item->group ? $item->group->prefix_order : '';?>
                         <td class="text-center">
-                            <div style="display: flex; justify-content: space-around; align-items: center;">
-                                <div style="flex: 1; border-right: 1px solid #d8dbe0; padding: 5px;">
-                                    @if($item->id_order_new)
-                                   <a href="{{route('view-order', ['id' => $item->id_order_new])}}" target="_blank"> #{{$preOrder}}{{$item->id_order_new}}</a>
-                                    @endif
-                                </div>
-                                <div style="flex: 1; padding: 5px;">
-                                    @if($item->id_order)
-                                    <a href="{{route('view-order', ['id' => $item->id_order])}}" target="_blank"> #{{$preOrder}}{{$item->id_order}}</a>
-                                    @endif
-                                </div>
-                            </div>
+                            @if($item->id_order_new)
+                            <a href="{{route('view-order', ['id' => $item->id_order_new])}}" target="_blank"> {{$preOrder}}#{{$item->id_order_new}}</a>
+                            @endif
                         </td>
                         <td class="text-center" style= "max-width: 200px">
                             <?php
@@ -568,7 +555,7 @@
                             @endif
 
                             <div>{{$item->full_name}}</div>
-                            <a href="tel:{{$item->phone}}" style="width: calc(100% - 90px);">{{$item->phone}}</a>
+                            <a class="phone-copy" href="tel:{{$item->phone}}" style="width: calc(100% - 90px);">{{$item->phone}}</a>
                             <span style="width: 85px;">
 
                                 @if ($item->old_customer == 1 || $item->has_old_order == 1)

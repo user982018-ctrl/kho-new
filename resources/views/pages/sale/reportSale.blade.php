@@ -499,7 +499,7 @@ img.avatar {
   </div>
 
  <!-- Dòng chữ chạy chân trang -->
- <div id="running-text-footer" style="position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 10px 0; z-index: 9998; overflow: hidden; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);">
+ {{-- <div id="running-text-footer" style="position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 10px 0; z-index: 9998; overflow: hidden; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);">
   <div style="display: flex; animation: scroll-left 10s linear infinite; white-space: nowrap;">
       <span style="padding-right: 100px; font-weight: bold; font-size: 16px;">
           🏆 CHÚC MỪNG TOP SALES: Phạm Thị Ánh Tuyết - Nguyễn Thị Quỳnh - Nguyễn Thị Quỳnh Như 
@@ -527,7 +527,7 @@ img.avatar {
           ⭐ TUYÊN DƯƠNG NHÂN VIÊN XUẤT SẮC THÁNG NÀY 
       </span>
   </div>
-</div>
+</div> --}}
 
 <script type="text/javascript" src="{{asset('public/js/dateRangePicker/daterangepicker.min.js')}}"></script>
 

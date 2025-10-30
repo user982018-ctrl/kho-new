@@ -33,7 +33,6 @@ class ProductController extends Controller
         return $listAttribute;
     }
 
-
     public function getVariantsProductById(Request $req)
     {
         $result = $list_attribute = [];
@@ -122,6 +121,8 @@ class ProductController extends Controller
             $product->orderBy       = $request->orderBy;
             $product->category_id   = $request->category_id;
             $product->roles         = $request->roles;
+            $product->tax           = $request->tax;
+            $product->bottle        = $request->bottle;
             $product->save();
             return response()->json(['success'=>$text]);
         }
