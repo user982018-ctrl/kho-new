@@ -18,6 +18,7 @@ use DateTime;
 use PHPUnit\TextUI\Help;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use App\Http\Controllers\ShippingOrderController;
+use App\Http\Controllers\ToolController;
 
 class Kernel extends ConsoleKernel
 {
@@ -52,12 +53,23 @@ class Kernel extends ConsoleKernel
         $this->updatePrintStatusGHTK();
         // $this->testCron();
       })->everyMinute();
+
+      $schedule->call(function() {
+        $this->updateName();
+        $this->testCron('updateName');
+      })->everyTenMinutes();
     }
 
-    public static function testCron()
-    {
-      Log::channel('d')->info('Welcome cron');
-    }
+  public static function testCron($string = '')
+  {
+    Log::channel('d')->info('Welcome cron' . $string);
+  }
+
+  public function updateName()
+  {
+    $toolController = new ToolController();
+    $toolController->updateName();
+  }
 
   /**
    * Register the commands for the application.

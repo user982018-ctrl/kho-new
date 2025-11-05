@@ -323,6 +323,7 @@ class SaleController extends Controller
         $src_id = $r->src_id;
         $srcPage = SrcPage::find($src_id);
         $shareDataSale = $r->shareDataSale;
+        // dd($srcPage);
         if ($srcPage) {
             $linkPage = $srcPage->link;
             $namePage = $srcPage->name;
@@ -385,6 +386,7 @@ class SaleController extends Controller
             'src_id' => $src_id,
             'type_TN' => 1, 
         ];
+        // dd($data);
 
         $r->replace($data);
         $save = $this->save($r);
@@ -408,6 +410,7 @@ class SaleController extends Controller
             'phone.regex' => 'Định dạng số điện thoại chưa đúng',
         ]);
 
+        dd(!$req->access && Helper::isSeeding($req->phone));
         if (!$req->access && Helper::isSeeding($req->phone)) {
             notify()->error('Số điện thoại đã nằm trong danh sách spam/seeding..', 'Thất bại!');
             return back();

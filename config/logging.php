@@ -151,6 +151,10 @@ return [
             'driver' => 'single',
             'path' => storage_path('logs/report_digital.log'),
         ],
+        'usu' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/usu.log'),
+        ],
     ],
 
 ];

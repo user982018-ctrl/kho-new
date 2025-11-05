@@ -470,9 +470,9 @@
                             @endif  
                         </td>
                         <?php $preOrder = $item->group ? $item->group->prefix_order : '';?>
-                        <td class="text-center">
+                        <td class="text-center id-order-copy" title="Nhấn để sao chép" style="cursor: pointer;" data-copy="{{$preOrder}}#{{$item->id_order_new}}">
                             @if($item->id_order_new)
-                            <a href="{{route('view-order', ['id' => $item->id_order_new])}}" target="_blank"> {{$preOrder}}#{{$item->id_order_new}}</a>
+                            <a href=""> {{$preOrder}}#{{$item->id_order_new}}</a>
                             @endif
                         </td>
                         <td class="text-center" style= "max-width: 200px">
@@ -554,8 +554,8 @@
                             </div>
                             @endif
 
-                            <div>{{$item->full_name}}</div>
-                            <a class="phone-copy" href="tel:{{$item->phone}}" style="width: calc(100% - 90px);">{{$item->phone}}</a>
+                            <div class="name-copy" title="Nhấn để sao chép" style="cursor: pointer;" data-copy="{{$item->full_name}}">{{$item->full_name}}</div>
+                            <a class="phone-copy" title="Nhấn để sao chép" href="tel:{{$item->phone}}" style="width: calc(100% - 90px);">{{$item->phone}}</a>
                             <span style="width: 85px;">
 
                                 @if ($item->old_customer == 1 || $item->has_old_order == 1)
@@ -655,8 +655,8 @@
                             <table class="tb-in-sp">
                                 <tbody>
                                     <tr>
-                                        <td title="Tổng tiền đơn hàng" style="font-weight: bold; font-size: 13px;">
-                                            {{number_format($order->total)}}
+                                        <td title="Tổng tiền đơn hàng, nhấn để sao chép" style="font-weight: bold; font-size: 13px;">
+                                            <div class="total-order-copy" title="Nhấn để sao chép" style="cursor: pointer;" data-copy="{{number_format($order->total)}}">{{number_format($order->total)}}</div>
                                         </td>
                                     </tr>
                                 </tbody>

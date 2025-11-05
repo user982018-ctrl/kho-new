@@ -8,6 +8,12 @@ use Illuminate\Support\Facades\Log;
 
 class FbWebHookController extends Controller
 {
+    public function webhookUsu(Request $request)
+    {
+        $input = $request->all();
+        Log::channel('usu')->info(json_encode($input));
+        // dd($input);
+    }
     // Hàm gửi tin nhắn sử dụng Facebook Send API
     function sendTextMessage($senderPsid, $message)
     {
@@ -178,7 +184,7 @@ class FbWebHookController extends Controller
         //     $this->callDataPc($data);
         // }
          $input = $request->all();
-        // Log::channel('a')->info(json_encode($input));
+        Log::channel('a')->info(json_encode($input));
         
         // $input = json_decode($request->all(), true);
         if ($input['object'] === 'page') {
@@ -217,7 +223,7 @@ class FbWebHookController extends Controller
                                 'receivedMessage' => $receivedMessage
                             ];
                             
-                            sleep(35);
+                            // sleep(35);
                             $this->callDataPc($dataParam);
                             
                         }
@@ -253,9 +259,7 @@ class FbWebHookController extends Controller
         $str  .= 'mid: ' . $mid . '<br>';
         $str  .= 'receivedMessage: ' . $receivedMessage . '<br>';
 
-        
         $group = Helper::getGroupByPageId($pageId);
-             
         if (!$group) {
             Log::channel('a')->info('no group');
             return;
@@ -267,22 +271,23 @@ class FbWebHookController extends Controller
             return;
         }
 
-        $token = $pageSrc->token;
-        $endpoint = "https://pancake.vn/api/v1/pages/$pageId/conversations/";
-        $endpoint .= "search?q=$phone&access_token=$token";
-        $responseJson = file_get_contents($endpoint);
-        $response = json_decode($responseJson, true);
+        // $token = $pageSrc->token;
+        // $endpoint = "https://pancake.vn/api/v1/pages/$pageId/conversations/";
+        // $endpoint .= "search?q=$phone&access_token=$token";
+        // $responseJson = file_get_contents($endpoint);
+        // $response = json_decode($responseJson, true);
 
-        $name = 'Loading';
-        if ($response) {
-            if (!$response['success'] || !$response['conversations']) {
-                $name = 'Loading';
-            } else {
-                $data = $response['conversations'][0];
-                $name = $data['customers'][0]['name'];
+        
+        // if ($response) {
+        //     if (!$response['success'] || !$response['conversations']) {
+        //         $name = 'Loading';
+        //     } else {
+        //         $data = $response['conversations'][0];
+        //         $name = $data['customers'][0]['name'];
                 
-            }
-        }
+        //     }
+        // }
+        $name = 'Loading';
         if (Helper::isSeeding($phone)) {
                 Log::channel('new')->info('Số điện thoại đã nằm trong danh sách spam/seeding fb..' . $phone);
                 return;

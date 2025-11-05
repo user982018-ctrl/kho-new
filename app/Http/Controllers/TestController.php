@@ -29,6 +29,25 @@ class TestController extends Controller
 {
   use WithoutMiddleware;
 
+  public function trung()
+  {
+    $i = 0;
+    $listOrder = Orders::
+    whereDate('orders.created_at', '>=', '2025-10-01')
+    ->whereDate('orders.created_at', '<=', '2025-10-30')
+    ->get();
+    foreach ($listOrder as $order) {
+      $saleCare = $order->saleCare;
+      if (!$saleCare) {
+        $i++;
+        dd($order);
+      }
+    }
+    echo $i;
+    // dd($listOrder);
+  
+    // dd($listSale);
+  }
   public function updateSrcId2(){
     // $list = Orders::query()->get();
     // foreach ($list as $order) {
@@ -987,24 +1006,21 @@ class TestController extends Controller
     }
   }
 
-  public function crawlerGroup()
+  public function huyen()
   {
-    $groups = Group::where('status', 1);
-    foreach ($groups->get() as $group) {
-
-      $pages = $group->srcs;
-      foreach ($pages as $page) {
-        // if ($page->id_page != '787560754445901') {
-        //   continue;
-        // }
-        if ($page->type == 'pc' ) {
-          $this->crawlerPancakePage($page, $group);
-        }
+    $pages = SrcPage::whereIn('id_page', ['795722283629759', '787560754445901'])->get();
+    foreach ($pages as $page) {
+      // if ($page->id_page != '787560754445901') {
+      //   continue;
+      // }
+      $group = $page->group;
+      if ($page->type == 'pc' ) {
+        $this->crawlerPancakePageHuyen($page, $group);
       }
     }
   }
 
-  public function crawlerPancakePage($page, $group)
+  public function crawlerPancakePageHuyen($page, $group)
   { 
     $srcId = $page->id;
     $pIdPan = $page->id_page;
@@ -1023,7 +1039,157 @@ class TestController extends Controller
 
       $endpoint = "https://pancake.vn/api/v1/pages/$pIdPan/conversations";
       $today    = strtotime(date("Y/m/d H:i"));
-      $before   = strtotime ( '-10 hour' , strtotime ( date("Y/m/d H:i") ) ) ;
+      $before   = strtotime ( '-480 hour' , strtotime ( date("Y/m/d H:i") ) ) ;
+      $before   = date ( 'Y/m/d H:i' , $before );
+      $before   = strtotime($before);
+
+      $today = date('2-10-2025 00:00');
+      $todayInt = strtotime($today);
+
+      $before = date('22-10-2025 00:00');
+      $beforeInt = strtotime($before);
+      // $n = date('Y/m/d H:i', $todayStr);
+      // dd($n);
+
+      // echo "endpoint: $endpoint \n" . '<br>';
+      // dd($endpoint);
+      $endpoint = "$endpoint?type=PHONE,DATE:$beforeInt+-+$todayInt&access_token=$token";
+
+      // $endpoint = "https://pancake.vn/api/v1/pages/$pIdPan/conversations?&mode=NONE&&access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZvIjp7Im9zIjoxLCJjbGllbnRfaXAiOiIxNzEuMjQzLjQ4Ljk4IiwiYnJvd3NlciI6MSwiZGV2aWNlX3R5cGUiOjN9LCJuYW1lIjoiTOG6rXAgw5RuZyIsImV4cCI6MTc2ODgzNDg0MiwiYXBwbGljYXRpb24iOjEsInVpZCI6IjdkZTIyZjI0LWU5ZTktNDU2OC1hYWRlLTg5NTJhYzk4ZTIzZCIsInNlc3Npb25faWQiOiI4MmVlZjAxNC05MGViLTQ0ZTAtOGM4Zi03NGU1YzJmYTI0ZDAiLCJpYXQiOjE3NjEwNTg4NDIsImZiX2lkIjoiMTIyMTU3NjA3Mzc2MjMxMzI4IiwibG9naW5fc2Vzc2lvbiI6bnVsbCwiZmJfbmFtZSI6Ikzhuq1wIMOUbmcifQ.hDyjPLilUHXaXaUSVzl6P51IcXBdJdnJ3hHxWIQfMsY&cursor_mode=true&from_platform=web";
+      $response = Http::withHeaders(['access_token' => $token])->get($endpoint);
+      // dd($response);
+      if ($response->status() == 200) {
+        $content  = json_decode($response->body());
+        // dd($content);
+         //thông báo lỗi nếu ko có hội thoại
+        if ($content->success) {
+          $data     = $content->conversations;
+
+          foreach ($data as $item) {
+            
+            try {
+              $recentPhoneNumbers = $item->recent_phone_numbers[0];
+              $mId      = $recentPhoneNumbers->m_id;
+              
+              $phone    = isset($recentPhoneNumbers) ? $recentPhoneNumbers->phone_number : '';
+              $name     = isset($item->customers[0]) ? $item->customers[0]->name : '';
+              $messages = (isset($recentPhoneNumbers) && !empty($recentPhoneNumbers->m_content)) ? $recentPhoneNumbers->m_content : '';
+              $phone = Helper::getCustomPhoneNum($phone);
+              
+              $is_duplicate = $hasOldOrder = $isOldCustomer = $assgin_user = 0;
+              $checkSaleCareOld = Helper::checkOrderSaleCarebyPhoneV5($phone, $mId, $is_duplicate, $hasOldOrder);
+              $typeCSKH = 2;
+
+              if (Helper::isSeeding($phone)) {
+                  Log::channel('ladi')->info('Số điện thoại đã nằm trong danh sách spam/seeding tesst..');
+                  return;
+              }
+
+              if ($name && $checkSaleCareOld) {
+                $assignSale = Helper::assignSaleFB($hasOldOrder, $group, $phone, $typeCSKH, $isOldCustomer);
+                if (!$assignSale) {
+                  continue;
+                }
+                /** kiểm tra thời gian insert tin nhắn => lâu hơn 3 ngày ko nhận lại */
+                  // $inputTime = strtotime($item->inserted_at);
+                  // $now = time();
+                  // $secondsIn3Days = 3 * 24 * 60 * 60;
+                  // echo 'inputTime: ' . $item->inserted_at . '<br>';
+                  //  echo '$now - $inputTime: ' . $now - $inputTime;
+                  //  echo '<br>';
+                  //   echo '$secondsIn3Days: ' . $secondsIn3Days;
+                  //   // dd($now - $inputTime >= $secondsIn3Days);
+                  // if ($now - $inputTime >= $secondsIn3Days) {
+                  //     echo "Đã quá 3 ngày " . $phone;
+                  //     echo "<br>";
+                  //     echo $item->inserted_at;
+                  //   //   dd($item);
+                  //     // continue;
+                  // } 
+
+                $assgin_user = $assignSale->id;
+                $is_duplicate = ($is_duplicate) ? 1 : 0;
+                if ($isOldCustomer == 1) {
+                  $chatId = $group->tele_cskh_data;
+                }
+                
+                $sale = new SaleController();
+                $data = [
+                  'page_link' => $linkPage,
+                  'page_name' => $namePage,
+                  'sex'       => 0,
+                  'old_customer' => $isOldCustomer,
+                  'address'   => '',
+                  'messages'  => $messages,
+                  'name'      => $name,
+                  'phone'     => $phone,
+                  'page_id'   => $pIdPan,
+                  'text'      => 'Page ' . $namePage,
+                  'chat_id'   => $chatId,
+                  'm_id'      => $mId,
+                  'assgin'    => $assgin_user,
+                  'is_duplicate' => $is_duplicate,
+                  'group_id'  => $group->id,
+                  'has_old_order'  => $hasOldOrder,
+                  'src_id'  => $srcId,
+                  'type_TN' => $typeCSKH, 
+                ];
+                
+                $request = new \Illuminate\Http\Request();
+                $request->replace($data);
+                $sale->save($request);
+              }
+            
+            } catch (\Exception $e) {
+               return $e;
+              // echo '$phone: ' . $phone;
+              // dd($e);
+              // return redirect()->route('home');
+            }
+          }
+        }
+      }           
+    }
+  }
+
+  public function crawlerGroup()
+  {
+    $groups = Group::where('status', 1);
+    foreach ($groups->get() as $group) {
+
+      $pages = $group->srcs;
+      foreach ($pages as $page) {
+        // if ($page->id_page != '700216549848133') {
+        //   continue;
+        // }
+        if ($page->type == 'pc' ) {
+          $this->crawlerPancakePage($page, $group);
+        }
+      }
+    }
+  }
+
+  public function crawlerPancakePage($page, $group)
+  { 
+    $srcId = $page->id;
+    $pIdPan = $page->id_page;
+    $token  = $page->token;
+    $namePage = $page->name;
+    $linkPage = $page->link;
+    $chatId = $group->tele_hot_data;
+
+    echo '----------------------------------------'. '<br>';
+    echo "pIdPan: $pIdPan " . '<br>';
+    echo "namePage: $namePage \n" . '<br>';
+    echo "linkPage: $linkPage \n" . '<br>';
+    echo "token: $token \n" . '<br>';
+    
+    // dd('hi');
+    if ( $pIdPan != '' && $token != '' && $namePage != '' && $linkPage != '') {
+
+      $endpoint = "https://pancake.vn/api/v1/pages/$pIdPan/conversations";
+      $today    = strtotime(date("Y/m/d H:i"));
+      $before   = strtotime ( '-72 hour' , strtotime ( date("Y/m/d H:i") ) ) ;
       $before   = date ( 'Y/m/d H:i' , $before );
       $before   = strtotime($before);
 
@@ -1031,7 +1197,7 @@ class TestController extends Controller
       // dd($endpoint);
       $endpoint = "$endpoint?type=PHONE,DATE:$before+-+$today&access_token=$token";
       $response = Http::withHeaders(['access_token' => $token])->get($endpoint);
-      // dd($response);
+      // dd($endpoint);
       if ($response->status() == 200) {
         $content  = json_decode($response->body());
         // dd($content);
@@ -1068,15 +1234,13 @@ class TestController extends Controller
                   $inputTime = strtotime($item->inserted_at);
                   $now = time();
                   $secondsIn3Days = 3 * 24 * 60 * 60;
-                  echo 'inputTime: ' . $item->inserted_at . '<br>';
-                   echo '$now - $inputTime: ' . $now - $inputTime;
-                   echo '<br>';
-                    echo '$secondsIn3Days: ' . $secondsIn3Days;
+                  // echo 'inputTime: ' . $item->inserted_at . '<br>';
+                  //  echo '$now - $inputTime: ' . $now - $inputTime;
+                  //  echo '<br>';
+                  //   echo '$secondsIn3Days: ' . $secondsIn3Days;
                     // dd($now - $inputTime >= $secondsIn3Days);
                   if ($now - $inputTime >= $secondsIn3Days) {
-                      echo "Đã quá 3 ngày " . $phone;
-                      echo "<br>";
-                      echo $item->inserted_at;
+                      echo $phone . " Đã quá 3 ngày " . $item->inserted_at . '<br>';
                     //   dd($item);
                       continue;
                   } 
@@ -1112,6 +1276,7 @@ class TestController extends Controller
                 $request = new \Illuminate\Http\Request();
                 $request->replace($data);
                 $sale->save($request);
+                echo 'save: ' . $phone . '<br>';
               }
             
             } catch (\Exception $e) {
@@ -1300,29 +1465,30 @@ class TestController extends Controller
 
   public function export()
   {
-    // $user = User::find(159);
-    // $listSaleOfLeader = Helper::getListSaleV2($user)->get();
+    // $user = User::find(74);
+    // $listSaleOfLeader = Helper::getListSaleV2($user);
+    // dd($listSaleOfLeader);
     // $listSaleId = $listSaleOfLeader->pluck('id')->toArray();
-    // dd($listSaleOfLeader->pluck('id')->toArray());
     // dd($listSaleId);
     $sale = new SaleController();
     $req = new Request();
-    $req['daterange'] = ['01/09/2025', '30/09/2025'];
-    $req['sale'] = '76';
+    $req['daterange'] = ['31/10/2025', '31/10/2025'];
+    // $req['sale'] = '76';
     // $req['typeDate'] = '2';
     // $sales = ['171','70'];
 
     $list = $sale->getListSalesByPermisson(Auth::user(), $req);
     $list->whereNull('id_order_new');
-    $list->whereNull('id_order');
-    $list->where('old_customer', 0);
+    // $list->whereNull('id_order');
+
+    $list->where('old_customer', 1);
     // $list->where('is_duplicate', 0);
-    $list->where('group_id', '!=', '11');
+    $list->where('group_id', '10');
     // $list->paginate(1000, ['*'], 'page', 4);
     // $list->whereIn('assign_user', $listSaleId);
     // dd($list->pluck('assign_user')->toArray());
     $dataExport[] = [
-      'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách'
+      'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách', 'CSKH'
     ];
 
     // dd($list->get());
@@ -1341,13 +1507,13 @@ class TestController extends Controller
         $i,
         date_format($data->created_at,"d-m-Y "),
         $data->phone,
-        $data->full_name
-        // $data->user->real_name,
+        $data->full_name,
+        $data->user->real_name ?? '',
       ];
       $i++;
     }
 
-    return Excel::download(new UsersExport($dataExport), 'thang9-Sinh.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'cskh-npk-31-10.xlsx');
   }
   
   public function wakeUp()
@@ -1503,7 +1669,7 @@ WHERE  NOT EXISTS
 
   public function exportTaxV4()
   {
-    $time = ['18/10/2025', '18/10/2025'];
+    $time = ['26/10/2025', '31/10/2025'];
     $timeBegin  = str_replace('/', '-', $time[0]);
     $timeEnd    = str_replace('/', '-', $time[1]);
     $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
@@ -1511,18 +1677,18 @@ WHERE  NOT EXISTS
 
     $list = Orders::select('orders.*')->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->join('sale_care', 'sale_care.id', '=', 'orders.sale_care')
-      // ->where('shipping_order.vendor_ship', 'GHN')
+      ->where('shipping_order.vendor_ship', 'GHTK')
       ->where('orders.status', 3)
       ->whereDate('orders.created_at', '>=', $dateBegin)
       ->whereDate('orders.created_at', '<=', $dateEnd)
       ->where('sale_care.group_id', '!=', 11)
-      ->where('orders.id', '26068')
+      // ->where('orders.id', '26623')
       ->orderBy('orders.id', 'desc');
 
       // dd($list->get());
     $dataExport[] = [
       'Số thứ tự hóa đơn (*)' , 'Ngày hóa đơn', 'Tên đơn vị mua hàng', 'Mã khách hàng', 'Địa chỉ', 'Mã số thuế', 'Người mua hàng',
-      'Email', 'Hình thức thanh toán', 'Loại tiền', 'Tỷ giá', 'Tỷ lệ CK(%)', 'Tiền CK', 'Tên hàng hóa/dịch vụ (*)', 'Mã hàng', 
+      'Email', 'Hình thức thanh toán', 'Loại tiền', 'Tỷ giá', 'Tỷ lệ CK(%)', 'Tiền CK', 'Số điện thoại', 'Tên hàng hóa/dịch vụ (*)', 'Mã hàng', 
       'ĐVT', 'Số lượng', 'Đơn giá', 'Tỷ lệ CK (%)', 'Tiền CK', '% thuế GTGT', 'Tiền thuế GTGT', 'Thành tiền(*)'
     ];
 
@@ -1530,17 +1696,26 @@ WHERE  NOT EXISTS
     $orderTmp = [];
     $list = $list->get();
     // dd($list);
+
+    $bottlesInfo = [
+      'Thùng nhựa 11L có nắp (Hàng tặng không thu tiền)' => 'Bộ',
+      'Chai nhựa 1 lít (Hàng tặng không thu tiền)' => 'Cái',
+      'Can Nhựa 5L (Hàng tặng không thu tiền)' => 'Bộ',
+      'Can nhựa NPK' => 'Bộ',
+    ];
     foreach ($list as $data) {
       $orderTmp[] = $data->id;
       $listProduct = json_decode($data->id_product,true);
        //trường hợp đơn chỉ cho 1 sp
       $percenTax = '5';
       $totalGTGT = '';
+      
       if (count($listProduct) == 1) {
         $item = $listProduct[0];
         $product = getProductByIdHelper($item['id']);
-        
+        $unit = $product->unit;
         $total = $data->total;
+        $weight = $product->weight;
         if (!$product) {
           continue;
         }
@@ -1553,21 +1728,37 @@ WHERE  NOT EXISTS
         // có dấu + là sản phẩm combo
         $totalBefore = $product->price;
         $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+        $bottleName = $product->bottle;
+
         if ($product->id == 83) {
           $variantId = $item['variantId'];
           $variant = HelperProduct::getProductVariantById($variantId);
           $weight = $variant->weight;
-
-          if (!isset($variant->weight)) {
-            $productName .= ' 5kg';
-          } else {
-            $weight = $variant->weight;
-            if ($weight == 5000.0) {
-              $productName .= ' 5kg';
-            } else {
-              $productName .= ' 20kg';
-            }
+          $bottleName = $variant->bottle;
+          // dd($variant);
+          $productName = $variant->tax_name;
+          $unit = 'Bộ';
+          if ($variant->tax_name) {
+            $productName = $variant->tax_name;
           }
+
+          // if (!isset($variant->weight)) {
+          //   $productName .= ' 5kg';
+          // } else {
+          //   $weight = $variant->weight;
+          //   if ($weight == 5000.0) {
+          //     $productName .= ' 5kg';
+          //   } else {
+          //     $productName .= ' 20kg';
+          //   }
+          // }
+        }
+        $kg = 0;
+        $qty = $data->qty;
+        if ($product->unit == 'lít' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
+          //5000g => chia 1000 => 5kg
+          $kg = (int)($weight/1000);
+          $qty = $qty * $kg;
         }
         $rateTax = 1.05; // tax = 5
         if ($product->tax == 8) {
@@ -1580,16 +1771,15 @@ WHERE  NOT EXISTS
         } else {
           $qty = $data->qty;
           $totalOrder = $total;
-          $totalBefore = $totalOrder / 1.05;
+          $totalBefore = $totalOrder / $rateTax;
           $taxbeforeProduct = $totalBefore / $qty;
           $productPrice = $taxbeforeProduct;
           $totalGTGT = $totalOrder - $totalBefore;
           $total = $totalOrder;
         }
-        // 38095
-        // 76190
 
         // }
+
         if ($k != $i) {
           $tmp = [
             '',//Số thứ tự hóa đơn (*)
@@ -1631,6 +1821,7 @@ WHERE  NOT EXISTS
             '',// Tỷ giá
             '',// Tỷ lệ CK(%)
             '',// Tiền CK
+            $data->phone,
             $productName,// Tên hàng hóa/dịch vụ (*)
             '',// Mã hàng
             $product->unit,// 'ĐVT',
@@ -1643,8 +1834,37 @@ WHERE  NOT EXISTS
             $total,   // 'Thành tiền(*)'
           ];
         }
-        
         $dataExport[] = $tmp;
+        
+        if ($kg > 0) {
+          $tmp = [
+            '',//Số thứ tự hóa đơn (*)
+            '', // Ngày hóa đơn
+            '',// Tên đơn vị mua hàng
+            '',// Mã khách hàng
+            '',// Địa chỉ
+            '',// Mã số thuế
+            '',// Người mua hàng
+            '',// Email
+            '',// Hình thức thanh toán
+            '',// Loại tiền
+            '',// Tỷ giá
+            '',// Tỷ lệ CK(%)
+            '',// Tiền CK
+            '',
+            $bottleName,// Tên hàng hóa/dịch vụ (*)
+            '',// Mã hàng
+            $unit,// 'ĐVT',
+            (int)($qty/$kg),//  'Số lượng', 
+            '',//  'Đơn giá', 
+            '',//  'Tỷ lệ CK (%)', 
+            '',//  'Tiền CK',
+            '../..', // '% thuế GTGT',
+            '../..', //  'Tiền thuế GTGT',
+            '',   // 'Thành tiền(*)'
+          ];
+          $dataExport[] = $tmp;
+        }
         $k++;
 
         /** số tổng sản phẩm lớn hơn 1 */
@@ -1682,29 +1902,41 @@ WHERE  NOT EXISTS
           $totalGTGT = '';
           
           $productName = ($product->tax_name) ? $product->tax_name : $product->name;
-          dd($productName);
+          $weight = $product->weight;
+          $bottleName = $product->bottle;
+          $unit = $product->unit;
           if ($product->id == 83) {
             $variantId = $item['variantId'];
             $variant = HelperProduct::getProductVariantById($variantId);
-            
-            if (!isset($variant->weight)) {
-              $productName .= ' 5kg';
-            } else {
-              $weight = $variant->weight;
-              if ($weight == 5000.0) {
-                $productName .= ' 5kg';
-              } else {
-                $productName .= ' 20kg';
-              }
+            $bottleName = $variant->bottle;
+            $weight = $variant->weight;
+            $unit = 'Bộ';
+            if ($variant->tax_name) {
+              $productName = $variant->tax_name;
             }
           }
 
+          $kg = 0;
+          if ($product->unit == 'lít' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
+            //5000g => chia 1000 => 5kg
+            $kg = (int)($weight/1000);
+            $qty = $qty * $kg;
+          }
           $rateTax = 1.05; // tax = 5
           if ($product->tax == 8) {
             $rateTax = 1.08;
             $percenTax = '8';
           }
 
+          // Fulvic Acid
+          if ($productName == 'Fulvic Acid') {
+            $qty = $item['val']/2;
+            $bottleName = 'Chai 0,5 lít (nhựa) (Hàng tặng không thu tiền) ';
+            $unit = 'Cái';
+          }
+
+          // echo $productName . ' weight: '.$weight.'<br>';
+          // echo $product->unit . ' unit: '.$product->unit.'<br>';
           if ($voucher == "true") {
             $productName .= " (Hàng tặng không thu tiền)";
             $percenTax = '../..';
@@ -1719,103 +1951,118 @@ WHERE  NOT EXISTS
             $total = $totalOrder;
           }
          
+          if ($j != $i) {
+            $tmp = ['', '', '', '', '', '',  '', '','', '', '','', '', '', $productName,'', $product->unit, $qty, $productPrice,
+              '', '', $percenTax, $totalGTGT, $total,   
+            ];  
+            $dataExport[] = $tmp;
 
-          // if (strpos($productName, "Áo mưa (hàng tặng không bán)") !== false ) {
-          //   $percenTax = '../..';
-          //   $total = '0';
-          //   $totalGTGT = '../..';
-          //   $productPrice = '';
-          // }
-         
-          $kg = 0;
-          if ($product->unit == 'lít' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
-            //5000g => chia 1000 => 5kg
-            $kg = $product->weight/1000;
-            $qty = $qty * $kg;
-          }
-
-          $bottlesInfo = [
-            'Thùng nhựa 11L có nắp (Hàng tặng không thu tiền)' => 'Bộ',
-            'Chai nhựa 1 lít (Hàng tặng không thu tiền)' => 'Cái',
-            'Can Nhựa 5L (Hàng tặng không thu tiền)' => 'Bộ',
-          ]
-          ;
-            if ($j != $i) {
-              $tmp = ['', '', '', '', '', '',  '', '','', '', '','', '', $productName,'', $product->unit, $qty, $productPrice,
-                '', '', $percenTax, $totalGTGT, $total,   
-              ];  
-              $dataExport[] = $tmp;
-            } else {
-                // dd($product->name);
+            if ($kg > 0 || $productName == 'Fulvic Acid (Hàng tặng không thu tiền)') {
+              if ($productName == 'Fulvic Acid (Hàng tặng không thu tiền)') {
+                $qtyTmp = $item['val'];
+              } else {
+                $qtyTmp = (int)($qty/$kg);
+              }
               $tmp = [
-              $i,//Số thứ tự hóa đơn (*)
-              date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
-              '',// Tên đơn vị mua hàng
+                '',//Số thứ tự hóa đơn (*)
+                '', // Ngày hóa đơn
+                '',// Tên đơn vị mua hàng
                 '',// Mã khách hàng
-                $data->address,// Địa chỉ
+                '',// Địa chỉ
                 '',// Mã số thuế
-                $data->name,// Người mua hàng
+                '',// Người mua hàng
                 '',// Email
                 '',// Hình thức thanh toán
                 '',// Loại tiền
                 '',// Tỷ giá
                 '',// Tỷ lệ CK(%)
                 '',// Tiền CK
-                $productName,// Tên hàng hóa/dịch vụ (*)
+                '',
+                $bottleName,// Tên hàng hóa/dịch vụ (*)
                 '',// Mã hàng
-                $product->unit,// 'ĐVT',
-                $qty,//  'Số lượng', 
-                $productPrice,//  'Đơn giá', 
+                $unit,// 'ĐVT',
+                $qtyTmp,//  'Số lượng', 
+                '',//  'Đơn giá', 
                 '',//  'Tỷ lệ CK (%)', 
                 '',//  'Tiền CK',
-                $percenTax, // '% thuế GTGT',
-                $totalGTGT, //  'Tiền thuế GTGT',
-                $total,   // 'Thành tiền(*)'
+                '../..', // '% thuế GTGT',
+                '../..', //  'Tiền thuế GTGT',
+                '',   // 'Thành tiền(*)'
               ];
               $dataExport[] = $tmp;
-
-              if ($kg > 0) {
-                
-                $tmp = [
-                  '',//Số thứ tự hóa đơn (*)
-                  '', // Ngày hóa đơn
-                  '',// Tên đơn vị mua hàng
-                  '',// Mã khách hàng
-                  '',// Địa chỉ
-                  '',// Mã số thuế
-                  '',// Người mua hàng
-                  '',// Email
-                  '',// Hình thức thanh toán
-                  '',// Loại tiền
-                  '',// Tỷ giá
-                  '',// Tỷ lệ CK(%)
-                  '',// Tiền CK
-                  $product->bottle,// Tên hàng hóa/dịch vụ (*)
-                  '',// Mã hàng
-                  $bottlesInfo[$product->bottle],// 'ĐVT',
-                  $qty/$kg,//  'Số lượng', 
-                  '',//  'Đơn giá', 
-                  '',//  'Tỷ lệ CK (%)', 
-                  '',//  'Tiền CK',
-                  '../..', // '% thuế GTGT',
-                  '../..', //  'Tiền thuế GTGT',
-                  '',   // 'Thành tiền(*)'
-                ];
-                $dataExport[] = $tmp;
-              }
-                
             }
-            
+          } else {
+              // dd($product->name);
+            $tmp = [
+            $i,//Số thứ tự hóa đơn (*)
+            date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
+            '',// Tên đơn vị mua hàng
+              '',// Mã khách hàng
+              $data->address,// Địa chỉ
+              '',// Mã số thuế
+              $data->name,// Người mua hàng
+              '',// Email
+              '',// Hình thức thanh toán
+              '',// Loại tiền
+              '',// Tỷ giá
+              '',// Tỷ lệ CK(%)
+              '',// Tiền CK
+              $data->phone,
+              $productName,// Tên hàng hóa/dịch vụ (*)
+              '',// Mã hàng
+              $product->unit,// 'ĐVT',
+              $qty,//  'Số lượng', 
+              $productPrice,//  'Đơn giá', 
+              '',//  'Tỷ lệ CK (%)', 
+              '',//  'Tiền CK',
+              $percenTax, // '% thuế GTGT',
+              $totalGTGT, //  'Tiền thuế GTGT',
+              $total,   // 'Thành tiền(*)'
+            ];
+            $dataExport[] = $tmp;
 
-          
-          
+
+            // echo $productName . ' kg :'.$kg.'<br>';
+            if ($kg > 0) {
+              
+              $tmp = [
+                '',//Số thứ tự hóa đơn (*)
+                '', // Ngày hóa đơn
+                '',// Tên đơn vị mua hàng
+                '',// Mã khách hàng
+                '',// Địa chỉ
+                '',// Mã số thuế
+                '',// Người mua hàng
+                '',// Email
+                '',// Hình thức thanh toán
+                '',// Loại tiền
+                '',// Tỷ giá
+                '',// Tỷ lệ CK(%)
+                '',// Tiền CK
+                '',
+                $bottleName,// Tên hàng hóa/dịch vụ (*)
+                '',// Mã hàng
+                $unit,// 'ĐVT',
+                (int)($qty/$kg),//  'Số lượng', 
+                '',//  'Đơn giá', 
+                '',//  'Tỷ lệ CK (%)', 
+                '',//  'Tiền CK',
+                '../..', // '% thuế GTGT',
+                '../..', //  'Tiền thuế GTGT',
+                '',   // 'Thành tiền(*)'
+              ];
+              $dataExport[] = $tmp;
+            }
+              
+          }
           $j++;
         }
       }
       $i++;
     }
-    dd($dataExport);
-    return Excel::download(new UsersExport($dataExport), 'GHN-18-10-2025.xlsx');
+    // die();
+    // dd($dataExport);
+    return Excel::download(new UsersExport($dataExport), 'GHN-26-31.xlsx');
   }
 
   public function exportTaxV2()

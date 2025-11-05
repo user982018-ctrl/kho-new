@@ -10,9 +10,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Validator;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\TestController;
 
 class ToolController extends Controller
 {
+    public function thuy()
+    {
+        $listSrc = SrcPage::where('user_digital', 114)->where('type', 'pc')
+            ->where('status', 1)
+            ->get();
+        foreach ($listSrc as $page) {
+            $group = $page->group;
+            if (!$group) {
+                continue;
+            }
+            $testCtl = new TestController();
+            $testCtl->crawlerPancakePage($page, $group);
+        }
+
+    }
+
     public function getID(){
         $orders = Orders::whereDate('orders.created_at', '>=', '2025-09-01')
         ->whereDate('orders.created_at', '<=', '2025-10-23')
@@ -139,8 +156,8 @@ class ToolController extends Controller
     }
     public function updateName(){
         $list = SaleCare::where('old_customer', 0)
-        ->whereDate('created_at', '>=', '2025-10-21')
-        ->whereDate('created_at', '<=', '2025-10-30')
+        ->whereDate('created_at', '>=', '2025-10-31')
+        ->whereDate('created_at', '<=', '2025-11-5')
         ->whereFullName('Loading')
         // ->limit(100)
         // ->where('id', 99145)
@@ -158,8 +175,12 @@ class ToolController extends Controller
                 // dd($endpoint);
                 if ($response->status() == 200) {
                     $content  = json_decode($response->body());
-                    // dd($content);
+                    
+                    // if (isset($content->success) && $content->success == false) {
+                    //     dd($content);
+                    // }
                     if (isset($content->conversations) && count($content->conversations) > 0) {
+                        // dd($content);
                         $data     = $content->conversations;
                         $customer = $data[0]->customers[0];
                         $name = $customer->name;

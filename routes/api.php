@@ -36,3 +36,4 @@ Route::get('/webhook-fb', [FbWebHookController::class, 'webhook'])->name('webhoo
 Route::get('/nap-du-lieu-pc/{phone}', [ToolController::class, 'getPhonePc'])->name('api.getPhonePc');
 
 Route::post('/update-status-user', [UserController::class, 'updateStatus'])->name('api-update-status-user');
+Route::get('/webhook-usu', [FbWebHookController::class, 'webhookUsu'])->name('webhook-usu');
