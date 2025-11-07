@@ -97,7 +97,7 @@ if (Helper::isOldCustomerV2($order->phone)) {
                     <td id="phone-order">
                         <?php 
                         $phone = $order->phone;
-                        if (!$checkAll || Auth::user()->id == $order->assign_user) {
+                        if (!$isKho && (!$checkAll || Auth::user()->id == $order->assign_user)) {
                             $lastTwo = substr($phone, -2);
                             $masked = str_repeat('x', strlen($phone) - 2) . $lastTwo;
                             echo $masked;
@@ -112,7 +112,7 @@ if (Helper::isOldCustomerV2($order->phone)) {
                     <td id="name-order">
                         <?php 
                         $name .= $order->name;
-                        if ((!$checkAll || Auth::user()->id == $order->assign_user) && strlen($name) >= 4 ) {
+                        if ((!$isKho && (!$checkAll || Auth::user()->id == $order->assign_user)) && strlen($name) >= 4 ) {
                             $lastThree = substr($name, -4);
                             $maskedName = str_repeat('-', strlen($name) - 4) . $lastThree;
                             echo $maskedName;

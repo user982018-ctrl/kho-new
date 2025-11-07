@@ -184,7 +184,7 @@ class FbWebHookController extends Controller
         //     $this->callDataPc($data);
         // }
          $input = $request->all();
-        Log::channel('a')->info(json_encode($input));
+        // Log::channel('a')->info(json_encode($input));
         
         // $input = json_decode($request->all(), true);
         if ($input['object'] === 'page') {

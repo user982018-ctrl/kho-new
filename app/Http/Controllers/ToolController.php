@@ -156,8 +156,8 @@ class ToolController extends Controller
     }
     public function updateName(){
         $list = SaleCare::where('old_customer', 0)
-        ->whereDate('created_at', '>=', '2025-10-31')
-        ->whereDate('created_at', '<=', '2025-11-5')
+        ->whereDate('created_at', '>=', '2025-11-05')
+        ->whereDate('created_at', '<=', '2025-11-30')
         ->whereFullName('Loading')
         // ->limit(100)
         // ->where('id', 99145)

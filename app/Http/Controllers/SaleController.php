@@ -219,12 +219,46 @@ class SaleController extends Controller
 
     public function getReportCountTNByType($listSaleCare, $listCateCall)
     {
-        $result = [];   
+        $result = [];
+        
+        // Tối ưu: Lấy IDs từ query builder một lần
+        // Note: Nếu query quá lớn, có thể cần limit hoặc tối ưu thêm
         $listId = $listSaleCare->pluck('id')->toArray();
 
+        // Tối ưu: Nếu không có ID nào, trả về kết quả rỗng
+        if (empty($listId)) {
+            foreach ($listCateCall as $cate) {
+                $result[] = [
+                    'data' => $cate,
+                    'sum' => 0,
+                    'yetTN' => 0,
+                ];
+            }
+            return $result;
+        }
+
+        // Tối ưu: Lấy tất cả counts trong một query duy nhất sử dụng groupBy
+        // Thay vì gọi N*2 queries (N = số categories), chỉ cần 1 query
+        $counts = SaleCare::whereIn('id', $listId)
+            ->selectRaw('type_TN, has_TN, COUNT(*) as count')
+            ->groupBy('type_TN', 'has_TN')
+            ->get()
+            ->groupBy('type_TN');
+
         foreach ($listCateCall as $cate) {
-            $sum = $this->getCountTNByType($listId, $cate->id);
-            $yetTN = $this->getCountTNByType($listId, $cate->id, false);
+            $cateId = $cate->id;
+            $sum = 0;
+            $yetTN = 0;
+
+            if (isset($counts[$cateId])) {
+                foreach ($counts[$cateId] as $count) {
+                    $sum += $count->count;
+                    if ($count->has_TN == 0) {
+                        $yetTN += $count->count;
+                    }
+                }
+            }
+
             $result[] = [
                 'data' => $cate,
                 'sum' => $sum,
@@ -255,40 +289,49 @@ class SaleController extends Controller
      */
     public function index(Request $r)
     {
-        if (count($r->all())) {
+        // Tối ưu: Kiểm tra input hiệu quả hơn
+        if ($r->hasAny(['search', 'daterange', 'sale', 'mkt', 'src', 'group', 'type_customer', 'resultTN', 'status', 'cateCall', 'statusTN', 'product', 'groupUser', 'typeDate'])) {
             return $this->filterSalesByDate($r);
         }
 
-        $helper     = new Helper();
-        $listCall   = $helper->getListCall()->get();
+        $user = Auth::user();
+        $isLeadSale = Helper::isLeadSale($user->role);
+        $checkAllAdmin = isFullAccess($user->role);
         
-        $isLeadSale = Helper::isLeadSale(Auth::user()->role);
-        $checkAllAdmin = isFullAccess(Auth::user()->role);
+        // Tối ưu: Lấy sales list dựa trên quyền
         $sales = [];
         if ($checkAllAdmin) {
-            $sales      = Helper::getListSale()->get();
-        } else if (!$checkAllAdmin && $isLeadSale) {
+            $sales = Helper::getListSale()->get();
+        } else if ($isLeadSale) {
             $sales = Helper::getListSaleOfLeader()->get();
         }
        
-        // $time       = date('d/m/Y') . '-' . date('d/m/Y');
-        // $time = '30/07/2025 - 30/07/2025';
-        // $dataFilter['daterange'] = explode("-",$time); 
-        $dataFilter['daterange']  = [date('d/m/Y'), date('d/m/Y')];
-        $saleCare   = $this->getListSalesByPermisson(Auth::user(), $dataFilter);
+        // Tối ưu: Chuẩn bị dataFilter
+        $dataFilter['daterange'] = [date('d/m/Y'), date('d/m/Y')];
+        $saleCareQuery = $this->getListSalesByPermisson($user, $dataFilter);
 
+        // Tối ưu: Chạy các query độc lập (có thể cache các query này)
+        $listCall = Helper::getListCall()->get();
         $groupUser = GroupUser::orderBy('id', 'desc')->where('type', 'sale')->get();
-        $listSrc    = SrcPage::select('id', 'name')->get();
-        $groups     = Group::select('id', 'name')->where('status', 1)->get();
+        $listSrc = SrcPage::select('id', 'name')->get();
+        $groups = Group::select('id', 'name')->where('status', 1)->get();
         $callResults = CallResult::select('id', 'name')->get();
         $typeDate = TypeDate::select('id', 'name')->get();
         $listMktUser = Helper::getListMktUser()->select('id', 'name', 'real_name');
         $listTypeTN = CategoryCall::get();
         $listProduct = Product::select('product.id', 'product.name')
-            ->join('detail_product_group','detail_product_group.id_product', '=', 'product.id')
-            ->where('product.status', 1)->distinct()->get();
-        $dataCountByType = $this->getReportCountTNByType($saleCare, $listTypeTN);
-        $saleCare   = $saleCare->paginate(50);
+            ->join('detail_product_group', 'detail_product_group.id_product', '=', 'product.id')
+            ->where('product.status', 1)
+            ->distinct()
+            ->get();
+
+        // Tối ưu: Tính count trên toàn bộ filtered query (không phải chỉ trang hiện tại)
+        // Sử dụng clone query để không ảnh hưởng đến pagination
+        $dataCountByType = $this->getReportCountTNByType($saleCareQuery, $listTypeTN);
+
+        // Paginate sau khi đã tính count
+        $saleCare = $saleCareQuery->paginate(50);
+        // dd($saleCare);
 
         return view('pages.sale.index')->with('listSrc', $listSrc)
             ->with('groups', $groups)
@@ -297,7 +340,9 @@ class SaleController extends Controller
             ->with('listMktUser', $listMktUser)
             ->with('listTypeTN', $dataCountByType)
             ->with('listProduct', $listProduct)
-            ->with('sales', $sales)->with('saleCare', $saleCare)->with('listCall', $listCall)
+            ->with('sales', $sales)
+            ->with('saleCare', $saleCare)
+            ->with('listCall', $listCall)
             ->with('groupUser', $groupUser);
     }
 
@@ -410,7 +455,6 @@ class SaleController extends Controller
             'phone.regex' => 'Định dạng số điện thoại chưa đúng',
         ]);
 
-        dd(!$req->access && Helper::isSeeding($req->phone));
         if (!$req->access && Helper::isSeeding($req->phone)) {
             notify()->error('Số điện thoại đã nằm trong danh sách spam/seeding..', 'Thất bại!');
             return back();
@@ -745,9 +789,12 @@ class SaleController extends Controller
     {
         $roles  = $user->role;
         $list   = SaleCare::orderBy('created_at', 'desc');
-        $isLeadSale = Helper::isLeadSale(Auth::user()->role);
-        $checkAllAdmin = isFullAccess(Auth::user()->role);
-        $isLeadDigital = Helper::isLeadDigital(Auth::user()->role);
+        
+        // Tối ưu: Cache Auth::user() để tránh gọi nhiều lần
+        $authUser = Auth::user();
+        $isLeadSale = Helper::isLeadSale($authUser->role);
+        $checkAllAdmin = isFullAccess($authUser->role);
+        $isLeadDigital = Helper::isLeadDigital($authUser->role);
 
         if (isset($dataFilter['search'])) {
             return $this->searchInSaleCare($dataFilter);
@@ -772,7 +819,7 @@ class SaleController extends Controller
                 } else if ($dataFilter['typeDate'] == 2) {
                    
                     $ordersCtl = new OrdersController();
-                    $listOrder = $ordersCtl->getListOrderByPermisson(Auth::user(), $dataFilter);
+                    $listOrder = $ordersCtl->getListOrderByPermisson($authUser, $dataFilter);
                    
                     $listIdSale = [];
                     foreach ($listOrder->get() as $order) {
@@ -786,33 +833,42 @@ class SaleController extends Controller
 
             
             if (isset($dataFilter['daterange']) && !isset($dataFilter['typeDate'])) {
-
-                $ordersCtl = new OrdersController();
-                $tmpDataFilter = $dataFilter;
-
-                $listOrder = $ordersCtl->getListOrderByPermisson(Auth::user(), $tmpDataFilter);
-
-                $listIdSale = [];
-                foreach ($listOrder->get() as $order) {
-                    $listIdSale[] = $order->sale_care;
-                }
-
                 $time       = $dataFilter['daterange'];
                 $timeBegin  = str_replace('/', '-', $time[0]);
                 $timeEnd    = str_replace('/', '-', $time[1]);
                 $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
                 $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
 
+                // Tối ưu: Lấy orders trước để kiểm tra có data không
+                $ordersCtl = new OrdersController();
+                $tmpDataFilter = $dataFilter;
+                $listOrder = $ordersCtl->getListOrderByPermisson($authUser, $tmpDataFilter);
+                
+                $listIdSale = [];
+                $orderCollection = $listOrder->get();
+                
+                // Tối ưu: Chỉ iterate nếu có orders
+                if ($orderCollection->isNotEmpty()) {
+                    foreach ($orderCollection as $order) {
+                        $listIdSale[] = $order->sale_care;
+                    }
+                }
+
+                // Filter theo ngày data về hệ thống
                 $list->whereDate('created_at', '>=', $dateBegin)
                     ->whereDate('created_at', '<=', $dateEnd);
 
-                // id ngày data về hệ thống
-                $listIdSale2 = $list->pluck('id')->toArray();
-                // gộp mảng và loại bỏ phần tử trùng => sắp xếp
-                $listId = array_unique(array_merge($listIdSale, $listIdSale2));
-                sort($listId);
-
-                $list = SaleCare::orderBy('created_at', 'desc')->whereIn('id', $listId);
+                // Tối ưu: Chỉ merge nếu có orders, nếu không chỉ dùng filter theo created_at
+                if (!empty($listIdSale)) {
+                    $listIdSale2 = $list->pluck('id')->toArray();
+                    // Gộp mảng và loại bỏ phần tử trùng => sắp xếp
+                    $listId = array_unique(array_merge($listIdSale, $listIdSale2));
+                    sort($listId);
+                    $list = SaleCare::orderBy('created_at', 'desc')->whereIn('id', $listId);
+                } else {
+                    // Nếu không có orders, chỉ giữ filter theo created_at
+                    // $list đã được filter ở trên, không cần làm gì thêm
+                }
             }
 
            
@@ -874,8 +930,8 @@ class SaleController extends Controller
             }
 
             /* mkt ko có quyền admin, lead mkt => gán thêm lọc theo mkt */
-            if (!$checkAllAdmin && !$isLeadDigital && Auth::user()->is_digital) {
-                $dataFilter['mkt'] = Auth::user()->id;
+            if (!$checkAllAdmin && !$isLeadDigital && $authUser->is_digital) {
+                $dataFilter['mkt'] = $authUser->id;
             }
 
             if (isset($dataFilter['mkt'])) {
@@ -1021,7 +1077,8 @@ class SaleController extends Controller
              $groupsUser = Helper::getSaleGroupByLeader($idUser);
              $list = $list->whereIn('group_id', $groups);  
              */
-            $groupsUserCollection = Helper::getListSaleV3(Auth::user());
+            // Tối ưu: Sử dụng $authUser đã cache thay vì gọi Auth::user() lại
+            $groupsUserCollection = Helper::getListSaleV3($authUser);
             $groupsUser = $groupsUserCollection->pluck('id')->toArray();
             $list = $list->whereIn('assign_user', $groupsUser);
         } else if ((!$checkAll || !$isLeadSale ) && !$user->is_digital) {

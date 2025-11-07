@@ -607,26 +607,33 @@ class OrdersController extends Controller
 
     public function getListOrderByPermisson($user, $dataFilter = null, $checkAll = false, $getJson = false) 
     {
-        $list   = Orders::orderBy('id', 'desc');
-        // dd($list->get());
+        // Tối ưu: Chỉ rõ table name ngay từ đầu để tránh ambiguous khi có JOIN
+        $list   = Orders::orderBy('orders.id', 'desc');
+        
+        // Tối ưu: Cache Auth::user() để tránh gọi nhiều lần
+        $authUser = Auth::user();
+        
         if ($dataFilter) {
             if (isset($dataFilter['daterange'])) {
                 $time       = $dataFilter['daterange'];
-                if (getType($time) == 'string') {
+                // Tối ưu: Sử dụng gettype() hoặc is_string() thay vì getType()
+                if (is_string($time)) {
                     $time = explode("-", $time);
                 }
                 $timeBegin  = str_replace('/', '-', $time[0]);
                 $timeEnd    = str_replace('/', '-', $time[1]);
                 $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
                 $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
-                $list->whereDate('created_at', '>=', $dateBegin)
-                    ->whereDate('created_at', '<=', $dateEnd);
+                // Tối ưu: Chỉ rõ table name để tránh ambiguous khi có JOIN
+                $list->whereDate('orders.created_at', '>=', $dateBegin)
+                    ->whereDate('orders.created_at', '<=', $dateEnd);
             } else {
                 $timeBegin = $timeEnd = date("d-m-Y", time());
                 $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
                 $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
-                $list->whereDate('created_at', '>=', $dateBegin)
-                    ->whereDate('created_at', '<=', $dateEnd);
+                // Tối ưu: Chỉ rõ table name để tránh ambiguous khi có JOIN
+                $list->whereDate('orders.created_at', '>=', $dateBegin)
+                    ->whereDate('orders.created_at', '<=', $dateEnd);
             }
 
             if (isset($dataFilter['status'])) {
@@ -635,81 +642,163 @@ class OrdersController extends Controller
                 //5 Có vận đơn, đvvc chưa lấy
                 $status = $dataFilter['status'];
                 if ($status == 4) {
-                    $list->whereDoesntHave('shippingOrder')->get();
+                    // Tối ưu: Fix bug - không gọi ->get() mà chỉ apply condition
+                    $list->whereDoesntHave('shippingOrder');
                 } else if ($status == 5) {
                     $list->whereStatus(1);
-                    $list->whereHas('shippingOrder')->get();
+                    // Tối ưu: Fix bug - không gọi ->get() mà chỉ apply condition
+                    $list->whereHas('shippingOrder');
                 } else {
                     $list->whereStatus($status);
                 }
             }
 
             if (isset($dataFilter['dvvc'])) {
-                $ids = $list->pluck('id')->toArray();
-                $list = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
+                // Tối ưu: Join trực tiếp thay vì pluck rồi whereIn
+                $list = $list->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
                     ->where('shipping_order.vendor_ship', $dataFilter['dvvc'])
-                    ->whereIn('orders.id', $ids)
-                    ->select('orders.*');
+                    ->select('orders.*')
+                    ->distinct();
             }
 
             if (isset($dataFilter['print_status'])) {
-                $ids = $list->pluck('id')->toArray();
-                $list = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
-                    ->where('shipping_order.print_status', $dataFilter['print_status'])
-                    ->whereIn('orders.id', $ids)
-                    ->select('orders.*');
+                // Tối ưu: Join trực tiếp thay vì pluck rồi whereIn
+                // Nếu đã có join từ dvvc, chỉ thêm where condition
+                if (!isset($dataFilter['dvvc'])) {
+                    $list = $list->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id');
+                }
+                $list = $list->where('shipping_order.print_status', $dataFilter['print_status'])
+                    ->select('orders.*')
+                    ->distinct();
             }
 
             if (isset($dataFilter['category'])) {
+                // Tối ưu: Chỉ select id và id_product để giảm memory
+                // Lưu ý: Cần select đúng table name nếu có join
+                $orders = $list->select('orders.id', 'orders.id_product')->get();
                 $ids = [];
-                foreach ($list->get() as $order) {
+                
+                // Tối ưu: Batch load products để tránh N+1 query trong Helper::checkProductsOfCategory
+                $productIds = [];
+                foreach ($orders as $order) {
                     $products = json_decode($order->id_product);
-                    $isProductOfCategory = Helper::checkProductsOfCategory($products, $dataFilter['category']);
-                    if ($isProductOfCategory) {
-                        $ids[] = $order->id;
+                    if ($products) {
+                        foreach ($products as $product) {
+                            if (isset($product->id)) {
+                                $productIds[] = $product->id;
+                            }
+                        }
                     }
                 }
-
-                $list       = Orders::whereIn('id', $ids)->orderBy('id', 'desc');
-            }
-
-            if (isset($dataFilter['product'])) {
-                $ids = [];
-               
-                foreach ($list->get() as $order) {
+                
+                // Load tất cả products một lần
+                $productsMap = [];
+                if (!empty($productIds)) {
+                    $uniqueProductIds = array_unique($productIds);
+                    $productsData = \App\Models\Product::whereIn('id', $uniqueProductIds)
+                        ->select('id', 'category_id')
+                        ->get();
+                    foreach ($productsData as $p) {
+                        $productsMap[$p->id] = $p->category_id;
+                    }
+                }
+                
+                // Check category với products đã load
+                foreach ($orders as $order) {
                     $products = json_decode($order->id_product);
-                    foreach ($products as $product) {
-                        if ($product->id == $dataFilter['product']) {
-                            if ($product->id == 83 && $product->variantId !== 0) {
-                                $variant = HelperProduct::getProductVariantById($product->variantId);
-                                $listAttributeOfItem = [];
-                                if (!$variant) {
-                                    continue;
+                    if ($products) {
+                        foreach ($products as $product) {
+                            if (isset($product->id) && isset($productsMap[$product->id])) {
+                                if ($productsMap[$product->id] == $dataFilter['category']) {
+                                    $ids[] = $order->id;
+                                    break;
                                 }
-                                foreach ($variant->attributeValues as $attribute) {
-                                    $listAttributeOfItem[] = $attribute->attribute_value_id;
-                                }
-                              
-                                if (isset($dataFilter['attr_1']) && isset($dataFilter['attr_2'])
-                                    && in_array($dataFilter['attr_1'], $listAttributeOfItem) && in_array($dataFilter['attr_2'], $listAttributeOfItem)) {
-                                    $ids[] = $order->id;
-                                } else if (isset($dataFilter['attr_1']) && !isset($dataFilter['attr_2']) && in_array($dataFilter['attr_1'], $listAttributeOfItem)) {
-                                    $ids[] = $order->id;
-                                } else if (!isset($dataFilter['attr_1']) && isset($dataFilter['attr_2']) && in_array($dataFilter['attr_2'], $listAttributeOfItem)) {
-                                    $ids[] = $order->id;
-                                } else if (!isset($dataFilter['attr_1']) && !isset($dataFilter['attr_2'])) {
-                                    $ids[] = $order->id;
-                                }
-                                
-                            } else {
-                                $ids[] = $order->id;
                             }
-                            break;
                         }
                     }
                 }
 
-                $list = Orders::whereIn('id', $ids)->orderBy('id', 'desc');
+                // Tối ưu: Giữ lại query builder gốc và chỉ filter bằng whereIn
+                if (empty($ids)) {
+                    // Nếu không có ID nào match, return empty query
+                    $list = Orders::whereRaw('1 = 0');
+                } else {
+                    // Giữ lại tất cả conditions trước đó bằng cách filter theo IDs
+                    $list = $list->whereIn('orders.id', $ids);
+                }
+            }
+
+            if (isset($dataFilter['product'])) {
+                // Tối ưu: Chỉ select id và id_product để giảm memory
+                // Lưu ý: Cần select đúng table name nếu có join
+                $orders = $list->select('orders.*')->get();
+                $ids = [];
+                
+                // Tối ưu: Batch load variants và attributes để tránh N+1 query
+                $variantIds = [];
+                foreach ($orders as $order) {
+                    $products = json_decode($order->id_product);
+                    if ($products) {
+                        foreach ($products as $product) {
+                            if ($product->id == $dataFilter['product'] && isset($product->variantId) && $product->variantId !== 0) {
+                                $variantIds[] = $product->variantId;
+                            }
+                        }
+                    }
+                }
+                
+                // Load tất cả variants và attributes một lần
+                $variantsMap = [];
+                if (!empty($variantIds)) {
+                    $uniqueVariantIds = array_unique($variantIds);
+                    $variants = \App\Models\ProductVariant::whereIn('id', $uniqueVariantIds)
+                        ->with('attributeValues')
+                        ->get();
+                    foreach ($variants as $variant) {
+                        $attributeIds = $variant->attributeValues->pluck('attribute_value_id')->toArray();
+                        $variantsMap[$variant->id] = $attributeIds;
+                    }
+                }
+               
+                foreach ($orders as $order) {
+                    $products = json_decode($order->id_product);
+                    if ($products) {
+                        foreach ($products as $product) {
+                            if ($product->id == $dataFilter['product']) {
+                                if ($product->id == 83 && isset($product->variantId) && $product->variantId !== 0) {
+                                    if (!isset($variantsMap[$product->variantId])) {
+                                        continue;
+                                    }
+                                    $listAttributeOfItem = $variantsMap[$product->variantId];
+                                  
+                                    if (isset($dataFilter['attr_1']) && isset($dataFilter['attr_2'])
+                                        && in_array($dataFilter['attr_1'], $listAttributeOfItem) && in_array($dataFilter['attr_2'], $listAttributeOfItem)) {
+                                        $ids[] = $order->id;
+                                    } else if (isset($dataFilter['attr_1']) && !isset($dataFilter['attr_2']) && in_array($dataFilter['attr_1'], $listAttributeOfItem)) {
+                                        $ids[] = $order->id;
+                                    } else if (!isset($dataFilter['attr_1']) && isset($dataFilter['attr_2']) && in_array($dataFilter['attr_2'], $listAttributeOfItem)) {
+                                        $ids[] = $order->id;
+                                    } else if (!isset($dataFilter['attr_1']) && !isset($dataFilter['attr_2'])) {
+                                        $ids[] = $order->id;
+                                    }
+                                    
+                                } else {
+                                    $ids[] = $order->id;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Tối ưu: Giữ lại query builder gốc và chỉ filter bằng whereIn
+                if (empty($ids)) {
+                    // Nếu không có ID nào match, return empty query
+                    $list = Orders::whereRaw('1 = 0');
+                } else {
+                    // Giữ lại tất cả conditions trước đó bằng cách filter theo IDs
+                    $list = $list->whereIn('orders.id', $ids);
+                }
                 
             }
         
@@ -717,12 +806,24 @@ class OrdersController extends Controller
             if (isset($dataFilter['group'])) {
                 $group = Group::find($dataFilter['group']);
                 if ($group) {
-                    $listId = $list->pluck('id')->toArray();
-                    // dd($listId);
-                    $listOrder = Orders::select('orders.*')->join('sale_care', 'orders.sale_care', '=', 'sale_care.id')
-                        ->where('sale_care.group_id', $dataFilter['group'])
-                        ->whereIn('orders.id', $listId);
-                    $list = Orders::whereIn('id', $listOrder->pluck('id')->toArray())->orderBy('id', 'desc');
+                    // Tối ưu: Join trực tiếp thay vì pluck 2 lần
+                    // Kiểm tra xem đã có join với sale_care chưa bằng cách check bindings
+                    $hasJoin = false;
+                    try {
+                        $sql = $list->toSql();
+                        $hasJoin = strpos($sql, 'sale_care') !== false;
+                    } catch (\Exception $e) {
+                        // Nếu không thể get SQL, thử join anyway
+                        $hasJoin = false;
+                    }
+                    
+                    if (!$hasJoin) {
+                        $list = $list->join('sale_care', 'orders.sale_care', '=', 'sale_care.id')
+                            ->select('orders.*');
+                    }
+                    $list = $list->where('sale_care.group_id', $dataFilter['group'])
+                        ->orderBy('orders.id', 'desc')
+                        ->distinct();
                 }
             }
 
@@ -730,31 +831,42 @@ class OrdersController extends Controller
                 $groupUS = GroupUser::find($dataFilter['groupUser']);
                 if ($groupUS) {
                     $listSale = $groupUS->users;
-                    $list = $list->whereIn('assign_user', $listSale->pluck('id')->toArray());
+                    // Tối ưu: Chỉ rõ table name để tránh ambiguous khi có JOIN
+                    $list = $list->whereIn('orders.assign_user', $listSale->pluck('id')->toArray());
                 }
             }
 
             if (isset($dataFilter['src'])) {
-
+                // Tối ưu: Eager load saleCare để tránh N+1 query
+                $orders = $list->with('saleCare')->get();
                 $idTmps = [];
-                foreach ($list->get() as $order) {
-                    $mktCtl = new MarketingController();
+                $mktCtl = new MarketingController();
+                
+                foreach ($orders as $order) {
                     if ($order->saleCare) {
                         $srcPage = $mktCtl->getSrcPageFromSaleCare($order->saleCare);
-                        if ($srcPage) {
+                        if ($srcPage && $srcPage->id == $dataFilter['src']) {
                             $idTmps[] = $order->id;
                         }
                     }
                 }
 
-                $list = Orders::orderBy('id', 'desc')
-                    ->whereIn('id', $idTmps);
+                // Tối ưu: Giữ lại query builder gốc và chỉ filter bằng whereIn
+                if (empty($idTmps)) {
+                    // Nếu không có ID nào match, return empty query
+                    $list = Orders::whereRaw('1 = 0');
+                } else {
+                    // Giữ lại tất cả conditions trước đó bằng cách filter theo IDs
+                    $list = $list->whereIn('orders.id', $idTmps);
+                }
             } 
 
             if (isset($dataFilter['type_customer']) && $dataFilter['type_customer'] != -1) {
-
+                // Tối ưu: Eager load saleCare để tránh N+1 query
+                $orders = $list->with('saleCare')->get();
                 $resultFilter = [];
-                foreach ($list->get() as $k => $order) {
+                
+                foreach ($orders as $k => $order) {
                     /** loại phần tử ko thoả khỏi list order */
                     //xử lý type 0,1,2 về 1,2 để so sánh với req->type_customer
                     $typeCutomer = 0;
@@ -772,26 +884,35 @@ class OrdersController extends Controller
                     }
                 }
 
-                $list = Orders::whereIn('id', $resultFilter)->orderBy('id', 'desc');
+                // Tối ưu: Giữ lại query builder gốc và chỉ filter bằng whereIn
+                if (empty($resultFilter)) {
+                    // Nếu không có ID nào match, return empty query
+                    $list = Orders::whereRaw('1 = 0');
+                } else {
+                    // Giữ lại tất cả conditions trước đó bằng cách filter theo IDs
+                    $list = $list->whereIn('orders.id', $resultFilter);
+                }
             }
 
         }
 
+        // Tối ưu: Sử dụng $authUser đã cache thay vì gọi Auth::user() lại
         if (!$checkAll) {
-           $checkAll = isFullAccess(Auth::user()->role);
+           $checkAll = isFullAccess($authUser->role);
         }
         
-        $isLeadSale = Helper::isLeadSale(Auth::user()->role);
-        $isKho = Helper::isKho(Auth::user());
+        $isLeadSale = Helper::isLeadSale($authUser->role);
+        $isKho = Helper::isKho($authUser);
         if ((isset($dataFilter['sale']) && $dataFilter['sale'] != 999) && ($checkAll || $isLeadSale || $isKho)) {
             /** user đang login = full quyền và đang lọc 1 sale */
             // dd($list->get());
             // dd($dataFilter);
-            $list = $list->where('assign_user', $dataFilter['sale']);
+            // Tối ưu: Chỉ rõ table name để tránh ambiguous khi có JOIN
+            $list = $list->where('orders.assign_user', $dataFilter['sale']);
         } else if ((!$checkAll || !$isLeadSale) && !$user->is_digital && $user->is_sale) {
             /** sale đag xem report của mình */
-            
-            $list = $list->where('assign_user', $user->id);
+            // Tối ưu: Chỉ rõ table name để tránh ambiguous khi có JOIN
+            $list = $list->where('orders.assign_user', $user->id);
         }
 
         return $list;
@@ -1326,7 +1447,6 @@ class OrdersController extends Controller
             $listAttribute = json_encode($listAttribute);
             $groups     = Group::where('status', 1)->select('id', 'name')->get();
 
-            
             return view('pages.orders.index')->with('list', $list)->with('category', $category)
                 ->with('sumProduct', $sumProduct)->with('sales', $sales)->with('totalOrder', $totalOrder)
                 ->with('products', $products)->with('listAttribute', $listAttribute)->with('groups', $groups);

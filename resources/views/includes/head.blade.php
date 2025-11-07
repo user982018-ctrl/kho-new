@@ -6,7 +6,7 @@
     <meta name="description" content="Hệ thống quản lý Phân bón Miền Nam">
     <meta name="author" content="dinh khanh dat">
 
-    <title>Agri Hub - MST 0318774816 - CÔNG TY TNHH TMDV XNK PHÂN BÓN MIỀN NAM</title>
+    <title>Agrizen Hub - MST 0318774816 - CÔNG TY TNHH TMDV XNK PHÂN BÓN MIỀN NAM</title>
     
     <link rel="icon" type="image/x-icon" href="{{ asset('public/img/icons/logo-icon.png')}}">
     <meta name="msapplication-TileColor" content="#ffffff">

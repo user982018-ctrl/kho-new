@@ -31,22 +31,18 @@ class TestController extends Controller
 
   public function trung()
   {
-    $i = 0;
-    $listOrder = Orders::
-    whereDate('orders.created_at', '>=', '2025-10-01')
-    ->whereDate('orders.created_at', '<=', '2025-10-30')
-    ->get();
-    foreach ($listOrder as $order) {
-      $saleCare = $order->saleCare;
-      if (!$saleCare) {
-        $i++;
-        dd($order);
-      }
+    $listSrcPage = SrcPage::join('group_work', 'group_work.id', '=', 'src_page.id_group')->where('src_page.type', 'pc')
+      ->where('group_work.id', 11)
+      ->select('src_page.*')
+      ->get();
+      // dd($listSrcPage);
+    foreach ($listSrcPage as $srcPage) {
+      // $group = Group::where('name', $groupName)->first();
+      $group = $srcPage->group;
+      // dd($group);
+      $this->crawlerPancakePageHuyen($srcPage, $group);
+
     }
-    echo $i;
-    // dd($listOrder);
-  
-    // dd($listSale);
   }
   public function updateSrcId2(){
     // $list = Orders::query()->get();
@@ -1029,6 +1025,7 @@ class TestController extends Controller
     $linkPage = $page->link;
     $chatId = $group->tele_hot_data;
 
+    // dd($page); 
     echo "pIdPan: $pIdPan " . '<br>';
     echo "namePage: $namePage \n" . '<br>';
     echo "linkPage: $linkPage \n" . '<br>';
@@ -1043,30 +1040,27 @@ class TestController extends Controller
       $before   = date ( 'Y/m/d H:i' , $before );
       $before   = strtotime($before);
 
-      $today = date('2-10-2025 00:00');
+      $today = date('31-10-2025 23:59');
       $todayInt = strtotime($today);
 
-      $before = date('22-10-2025 00:00');
+      $before = date('28-10-2025 00:00');
       $beforeInt = strtotime($before);
-      // $n = date('Y/m/d H:i', $todayStr);
-      // dd($n);
+      $endpoint = "$endpoint?unread_first=true&tags=%22ALL%22&except_tags=[],&access_token=$token&cursor_mode=true&mode=NONE&from_platform=web";
 
-      // echo "endpoint: $endpoint \n" . '<br>';
-      // dd($endpoint);
-      $endpoint = "$endpoint?type=PHONE,DATE:$beforeInt+-+$todayInt&access_token=$token";
-
-      // $endpoint = "https://pancake.vn/api/v1/pages/$pIdPan/conversations?&mode=NONE&&access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZvIjp7Im9zIjoxLCJjbGllbnRfaXAiOiIxNzEuMjQzLjQ4Ljk4IiwiYnJvd3NlciI6MSwiZGV2aWNlX3R5cGUiOjN9LCJuYW1lIjoiTOG6rXAgw5RuZyIsImV4cCI6MTc2ODgzNDg0MiwiYXBwbGljYXRpb24iOjEsInVpZCI6IjdkZTIyZjI0LWU5ZTktNDU2OC1hYWRlLTg5NTJhYzk4ZTIzZCIsInNlc3Npb25faWQiOiI4MmVlZjAxNC05MGViLTQ0ZTAtOGM4Zi03NGU1YzJmYTI0ZDAiLCJpYXQiOjE3NjEwNTg4NDIsImZiX2lkIjoiMTIyMTU3NjA3Mzc2MjMxMzI4IiwibG9naW5fc2Vzc2lvbiI6bnVsbCwiZmJfbmFtZSI6Ikzhuq1wIMOUbmcifQ.hDyjPLilUHXaXaUSVzl6P51IcXBdJdnJ3hHxWIQfMsY&cursor_mode=true&from_platform=web";
-      $response = Http::withHeaders(['access_token' => $token])->get($endpoint);
+      // $response = Http::withHeaders(['access_token' => $token])->get($endpoint);
+      $data = [
+        'type' => "DATE:$beforeInt - $todayInt,PHONE",
+      ];
+      // dd($data);
+      $response = Http::post($endpoint, $data);
       // dd($response);
       if ($response->status() == 200) {
         $content  = json_decode($response->body());
-        // dd($content);
          //thông báo lỗi nếu ko có hội thoại
         if ($content->success) {
           $data     = $content->conversations;
 
           foreach ($data as $item) {
-            
             try {
               $recentPhoneNumbers = $item->recent_phone_numbers[0];
               $mId      = $recentPhoneNumbers->m_id;
@@ -1085,27 +1079,12 @@ class TestController extends Controller
                   return;
               }
 
+              // dd($name, $checkSaleCareOld);
               if ($name && $checkSaleCareOld) {
                 $assignSale = Helper::assignSaleFB($hasOldOrder, $group, $phone, $typeCSKH, $isOldCustomer);
                 if (!$assignSale) {
                   continue;
                 }
-                /** kiểm tra thời gian insert tin nhắn => lâu hơn 3 ngày ko nhận lại */
-                  // $inputTime = strtotime($item->inserted_at);
-                  // $now = time();
-                  // $secondsIn3Days = 3 * 24 * 60 * 60;
-                  // echo 'inputTime: ' . $item->inserted_at . '<br>';
-                  //  echo '$now - $inputTime: ' . $now - $inputTime;
-                  //  echo '<br>';
-                  //   echo '$secondsIn3Days: ' . $secondsIn3Days;
-                  //   // dd($now - $inputTime >= $secondsIn3Days);
-                  // if ($now - $inputTime >= $secondsIn3Days) {
-                  //     echo "Đã quá 3 ngày " . $phone;
-                  //     echo "<br>";
-                  //     echo $item->inserted_at;
-                  //   //   dd($item);
-                  //     // continue;
-                  // } 
 
                 $assgin_user = $assignSale->id;
                 $is_duplicate = ($is_duplicate) ? 1 : 0;
@@ -1138,6 +1117,7 @@ class TestController extends Controller
                 $request = new \Illuminate\Http\Request();
                 $request->replace($data);
                 $sale->save($request);
+                echo 'save: ' . $phone . '<br>';
               }
             
             } catch (\Exception $e) {
@@ -1193,11 +1173,13 @@ class TestController extends Controller
       $before   = date ( 'Y/m/d H:i' , $before );
       $before   = strtotime($before);
 
-      // echo "endpoint: $endpoint \n" . '<br>';
-      // dd($endpoint);
-      $endpoint = "$endpoint?type=PHONE,DATE:$before+-+$today&access_token=$token";
-      $response = Http::withHeaders(['access_token' => $token])->get($endpoint);
-      // dd($endpoint);
+      $endpoint = "$endpoint?unread_first=true&tags=%22ALL%22&except_tags=[],&access_token=$token&cursor_mode=true&mode=NONE&from_platform=web";
+
+      // $response = Http::withHeaders(['access_token' => $token])->get($endpoint);
+      $data = [
+        'type' => "DATE:$before - $today,PHONE",
+      ];
+      $response = Http::post($endpoint, $data);
       if ($response->status() == 200) {
         $content  = json_decode($response->body());
         // dd($content);

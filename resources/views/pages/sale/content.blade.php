@@ -2062,16 +2062,28 @@ document.getElementById('saleForm').addEventListener('submit', function (e) {
 </script>
 
 <script>
-    setTimeout(function() {
-        // Lấy tất cả select có class 'divTN'
-        document.querySelectorAll('.bodyProduct').forEach(tbody => {
+    // Lazy loading: chỉ load khi cuộn tới contact-row
+    document.addEventListener('DOMContentLoaded', function() {
+        const loadedIds = new Set(); // Track đã load để tránh load lại
+        const _token = $("input[name='_token']").val();
+        
+        // Hàm load product cho một sale care
+        function loadProductForSaleCare(contactRow) {
+            const tbody = contactRow.querySelector('.bodyProduct');
+            if (!tbody) return;
+            
             const currentSaleId = parseInt(tbody.dataset.id, 10);
             const orderNew = parseInt(tbody.dataset.order_new, 10);
-            var _token  = $("input[name='_token']").val();
-            if (orderNew == 0) {
+            
+            // Kiểm tra đã load chưa hoặc không có order
+            if (loadedIds.has(currentSaleId) || orderNew == 0) {
                 return;
             }
-
+            
+            // Đánh dấu đã load
+            loadedIds.add(currentSaleId);
+            
+            // Load ajax
             $.ajax({
                 url: "{{ route('get-order-by-id-salecare') }}",
                 type: 'GET',
@@ -2081,8 +2093,48 @@ document.getElementById('saleForm').addEventListener('submit', function (e) {
                 },
                 success: function(data) {
                     tbody.innerHTML = data;
+                },
+                error: function() {
+                    // Nếu lỗi, remove khỏi loadedIds để có thể retry
+                    loadedIds.delete(currentSaleId);
                 }
             });
+        }
+        
+        // Sử dụng Intersection Observer để detect khi contact-row vào viewport
+        const observerOptions = {
+            root: null, // viewport
+            rootMargin: '100px', // Load trước 100px khi scroll đến
+            threshold: 0.1 // Trigger khi 10% element visible
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Khi contact-row vào viewport, load products
+                    const contactRow = entry.target;
+                    loadProductForSaleCare(contactRow);
+                    
+                    // Có thể unobserve sau khi đã load để tối ưu
+                    // observer.unobserve(contactRow);
+                }
+            });
+        }, observerOptions);
+        
+        // Observe tất cả contact-row
+        document.querySelectorAll('.contact-row').forEach(contactRow => {
+            observer.observe(contactRow);
         });
-    }, 800);
+        
+        // Load ngay những items đầu tiên (trong viewport) sau khi DOM ready
+        setTimeout(function() {
+            document.querySelectorAll('.contact-row').forEach(contactRow => {
+                const rect = contactRow.getBoundingClientRect();
+                // Kiểm tra xem có trong viewport không
+                if (rect.top >= 0 && rect.top <= window.innerHeight + 100) {
+                    loadProductForSaleCare(contactRow);
+                }
+            });
+        }, 300);
+    });
 </script>

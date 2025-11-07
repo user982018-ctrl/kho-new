@@ -826,8 +826,11 @@ class Kernel extends ConsoleKernel
       $before   = date ( 'Y/m/d H:i' , $before );
       $before   = strtotime($before);
 
-      $endpoint = "$endpoint?type=PHONE,DATE:$before+-+$today&access_token=$token";
-      $response = Http::withHeaders(['access_token' => $token])->get($endpoint);
+      $endpoint = "$endpoint?unread_first=true&tags=%22ALL%22&except_tags=[],&access_token=$token&cursor_mode=true&mode=NONE&from_platform=web";
+      $data = [
+        'type' => "DATE:$before - $today,PHONE",
+      ];
+      $response = Http::post($endpoint, $data);
 
       if ($response->status() == 200) {
         $content  = json_decode($response->body());
