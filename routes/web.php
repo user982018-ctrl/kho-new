@@ -78,7 +78,7 @@ Route::middleware(['admin-auth', 'log.activity', 'require.password.change'])->gr
     Route::get('nhap-hang-theo-nam',  [ProductController::class, 'setProductsByYear'])->name('nhap-hang-theo-nam');
     
     
-    // Route::get('/them-san-pham',  [ProductController::class, 'addProduct'])->name('add-product');
+    // Route::get('/them-san-pham',  [Product Controller::class, 'addProduct'])->name('add-product');
     // Route::get('/danh-muc-san-pham',  [CategoryController::class, 'index'])->name('category');
     // Route::get('/them-danh-muc',  [CategoryController::class, 'add'])->name('add-category');
     

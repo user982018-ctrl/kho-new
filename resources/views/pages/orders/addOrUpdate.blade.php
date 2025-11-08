@@ -1025,8 +1025,12 @@ $(document).ready(function() {
             success: function(data) {
                 console.log(data);
                 if ($.isEmptyObject(data.errors)) {
-                    // window.parent.postMessage('mess-success', '*');
-                    toastr.success(data.success);
+                    window.parent.postMessage({
+                        type: 'mess-success',
+                        message: data.success || 'Cập nhật tác nghiệp thành công',
+                        toastType: 'success'
+                    }, '*');
+                    // toastr.success(data.success);
                     $(".error_msg").html('');
                     // $("#notifi-box").show();
                     // $("#notifi-box").html(data.success);

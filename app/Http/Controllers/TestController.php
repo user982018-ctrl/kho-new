@@ -1169,7 +1169,7 @@ class TestController extends Controller
 
       $endpoint = "https://pancake.vn/api/v1/pages/$pIdPan/conversations";
       $today    = strtotime(date("Y/m/d H:i"));
-      $before   = strtotime ( '-72 hour' , strtotime ( date("Y/m/d H:i") ) ) ;
+      $before   = strtotime ( '-12 hour' , strtotime ( date("Y/m/d H:i") ) ) ;
       $before   = date ( 'Y/m/d H:i' , $before );
       $before   = strtotime($before);
 
@@ -1419,7 +1419,7 @@ class TestController extends Controller
   {
     $orderCTL = new OrdersController();
     $req = new Request();
-    $req['daterange'] = ['01/08/2025', '31/07/2025'];
+    $req['daterange'] = ['01/10/2025', '31/10/2025'];
     // $req['sale'] = '77';
     // $req['typeDate'] = '2';
     // $sales = ['50','74'];
@@ -1447,30 +1447,30 @@ class TestController extends Controller
 
   public function export()
   {
-    // $user = User::find(74);
-    // $listSaleOfLeader = Helper::getListSaleV2($user);
+    $user = User::find(159);
+    $listSaleOfLeader = Helper::getListSaleV2($user);
     // dd($listSaleOfLeader);
-    // $listSaleId = $listSaleOfLeader->pluck('id')->toArray();
+    $listSaleId = $listSaleOfLeader->pluck('id')->toArray();
     // dd($listSaleId);
     $sale = new SaleController();
     $req = new Request();
-    $req['daterange'] = ['31/10/2025', '31/10/2025'];
+    $req['daterange'] = ['01/10/2025', '31/10/2025'];
     // $req['sale'] = '76';
     // $req['typeDate'] = '2';
     // $sales = ['171','70'];
 
     $list = $sale->getListSalesByPermisson(Auth::user(), $req);
     $list->whereNull('id_order_new');
-    // $list->whereNull('id_order');
+    $list->whereNull('id_order');
 
-    $list->where('old_customer', 1);
+    $list->where('old_customer', 0);
     // $list->where('is_duplicate', 0);
-    $list->where('group_id', '10');
+    // $list->where('group_id', '12');
     // $list->paginate(1000, ['*'], 'page', 4);
-    // $list->whereIn('assign_user', $listSaleId);
+    $list->whereIn('assign_user', $listSaleId);
     // dd($list->pluck('assign_user')->toArray());
     $dataExport[] = [
-      'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách', 'CSKH'
+      'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách', 'Sale'
     ];
 
     // dd($list->get());
@@ -1495,7 +1495,7 @@ class TestController extends Controller
       $i++;
     }
 
-    return Excel::download(new UsersExport($dataExport), 'cskh-npk-31-10.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'TS-8.xlsx');
   }
   
   public function wakeUp()

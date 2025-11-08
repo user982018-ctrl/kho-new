@@ -132,77 +132,93 @@ class SaleController extends Controller
             }
             $result[] = $item;
         }
-        
+
         return view('pages.sale.duplicate')->with('list', $result);
     }
 
     public function saveBoxTN(Request $req)
     {
         $input = $req->all();
-        $validator      = Validator::make($input, [
-            'note'      => 'required',
-            ],[
-                'name.required' => 'Nhập ghi chú cho tác nghiệp',
-            ]
+
+        $validator = Validator::make(
+            $input,
+            ['note' => 'required'],
+            ['note.required' => 'Nhập ghi chú cho tác nghiệp']
         );
 
-        if ($validator->passes()) {
-            $files = $files_remove = [];
-            if ($req->id) {
-                $his = SaleCareHistoryTN::find($req->id); 
-                if (isset($input['images_uploaded'])) {
-                    $files_remove = array_diff(json_decode($input['images_uploaded_origin']), $input['images_uploaded']);
-                    $files = array_merge($input['images_uploaded'], $files);
-                } else if (isset($input['images_uploaded_origin'])) {
-                    $files_remove = json_decode($input['images_uploaded_origin']);
-                }
-            } else {
-                $his = new SaleCareHistoryTN();
-                $his->sale_id = $req->sale_id;
-            }
-
-           
-            if($req->hasfile('filenames'))
-            {
-                foreach($req->file('filenames') as $file)
-                {
-                    $name = time().rand(1,100).'.'.$file->extension();
-                    // $file->move(public_path('files'), $name);  
-                    $path = public_path('files') . "/" . $name;
-                    Image::make($file->getRealPath())->resize(300, 500)->save($path);
-                    $files[] = $name;
-                }
-            }
-
-            $his->img = json_encode($files);
-            $his->note = $req->note;
-            if ($his->save()) {
-                foreach ($files_remove as $file_name) {
-                    File2::delete(public_path("files/" . $file_name));
-                }
-            }
-
-            // setDataTNLogHelper($req->sale_id, 'Ghi chú TN');
-            // notify()->success('Lưu TN hôm nay thành công', 'Thành công!');
-            return redirect()->back();
-            // return redirect()->route('sale-view-TN-box', ['id' => $req->sale_id]);
-        } else {
-            // dd($validator->errors());
-            // notify()->error('Đã xảy ra lỗi khi lưu tác nghiệp hôm nay', 'Thất bại!');
+        if (!$validator->passes()) {
             return back()->withErrors($validator->errors());
         }
+
+        $history = $req->id ? SaleCareHistoryTN::find($req->id) : new SaleCareHistoryTN();
+        if (!$history) {
+            $history = new SaleCareHistoryTN();
+        }
+
+        if (!$req->id) {
+            $history->sale_id = $req->sale_id;
+        }
+
+        $existingImages = [];
+        $filesToKeep = [];
+        $filesToRemove = [];
+
+        if ($req->id) {
+            $existingImages = $history->img ? json_decode($history->img, true) : [];
+
+            if (isset($input['images_uploaded'])) {
+                $filesToKeep = $input['images_uploaded'];
+                $filesToRemove = array_diff($existingImages, $filesToKeep);
+            } elseif (isset($input['images_uploaded_origin'])) {
+                $filesToRemove = json_decode($input['images_uploaded_origin'], true);
+            }
+        }
+
+        $uploadedFiles = [];
+        if ($req->hasFile('filenames')) {
+            foreach ($req->file('filenames') as $file) {
+                $filename = time() . rand(1, 100) . '.' . $file->extension();
+                $path = public_path('files') . '/' . $filename;
+
+                Image::make($file->getRealPath())
+                    ->resize(300, 500)
+                    ->save($path);
+
+                $uploadedFiles[] = $filename;
+            }
+        }
+
+        $history->img = json_encode(array_values(array_merge($filesToKeep, $uploadedFiles)));
+        $history->note = $req->note;
+
+        if ($history->save()) {
+            foreach ($filesToRemove as $fileName) {
+                File2::delete(public_path('files/' . $fileName));
+            }
+        }
+
+        return redirect()->back();
     }
     public function saleViewSaveTNBox($id)
     {
-        $saleCare = SaleCare::find($id);
-        $history = SaleCareHistoryTN::where('sale_id', $id)
-            ->whereDate('created_at', '=', date('Y-m-d'))
-            ->first();
-        $listHistory = $saleCare->listHistory;
-            // notify()->success('Lưu TN', 'Thành công!');
-        return view('pages.sale.addBoxTN')->with('history', $history)
-            ->with('saleId', $id)->with('saleCare', $saleCare)
-            ->with('listHistory', $listHistory);
+        $saleCare = SaleCare::with(['listHistory' => function ($query) {
+            $query->orderByDesc('created_at');
+        }])->find($id);
+
+        if (!$saleCare) {
+            return redirect('/');
+        }
+
+        $historyToday = $saleCare->listHistory
+            ->first(function ($history) {
+                return $history->created_at && $history->created_at->isToday();
+            });
+
+        return view('pages.sale.addBoxTN')
+            ->with('history', $historyToday)
+            ->with('saleId', $id)
+            ->with('saleCare', $saleCare)
+            ->with('listHistory', $saleCare->listHistory);
     }
     public function saleViewListTNBox($id)
     {
@@ -789,7 +805,8 @@ class SaleController extends Controller
     {
         $roles  = $user->role;
         $list   = SaleCare::orderBy('created_at', 'desc');
-        
+        // $list->where('phone', '0388074466');
+        // dd($list->get());
         // Tối ưu: Cache Auth::user() để tránh gọi nhiều lần
         $authUser = Auth::user();
         $isLeadSale = Helper::isLeadSale($authUser->role);
@@ -830,7 +847,6 @@ class SaleController extends Controller
                         ->whereIn('id', $listIdSale);
                 }
             }
-
             
             if (isset($dataFilter['daterange']) && !isset($dataFilter['typeDate'])) {
                 $time       = $dataFilter['daterange'];
@@ -871,7 +887,6 @@ class SaleController extends Controller
                 }
             }
 
-           
             /** có chọn 1 nguồn */
             if (isset($dataFilter['src'])) {
                 /*if (is_numeric($dataFilter['src'])) {
@@ -941,7 +956,6 @@ class SaleController extends Controller
                 if ($srcIDs) {
                     $list->whereIn('src_id', $srcIDs);
                 }
-               
             }
 
             if (isset($dataFilter['type_customer'])) {
@@ -956,23 +970,21 @@ class SaleController extends Controller
             }
 
             if (isset($dataFilter['statusTN'])) {
-                $paramFilter = [-1, 'null'];
-                if ($dataFilter['statusTN'] == 1) { //chưa tác nghiệp
-                    // $list =   $list->whereIn('result_call', [-1, 'null']);
-                    $list = $list->where(function($query) use ($paramFilter) {
-                        foreach ($paramFilter as $paramFilter) {
-                            if ($paramFilter == -1) {
-                                $query->orWhere('result_call', -1);
-                            } else {
-                                $query->orWhereNull('result_call');
-                            }
-                        }
+                /**
+                 * statusTN: 1 = chưa tác nghiệp (result_call ∈ {null, -1, 0})
+                 * statusTN: 2 = đã tác nghiệp (result_call NOT IN {null, -1, 0})
+                 */
+                if ((int) $dataFilter['statusTN'] === 1) {
+                    $list = $list->where(function ($query) {
+                        $query->whereNull('result_call')
+                              ->orWhere('result_call', -1)
+                              ->orWhere('result_call', 0);
                     });
                 } else {
-                    $list = $list->whereNotNull('result_call');
+                    $list = $list->whereNotNull('result_call')
+                                 ->whereNotIn('result_call', [-1, 0]);
                 }
             }
-
             if (isset($dataFilter['resultTN'])) {
 
                 $idSaleCares = $list->pluck('id')->toArray();
@@ -1072,6 +1084,7 @@ class SaleController extends Controller
             /** user đang login = full quyền và đang lọc 1 sale */
             $list = $list->where('assign_user', $dataFilter['sale']);     
         } else if ($isLeadSale && !$checkAll) {
+            
             /** lead sale*/
             /* $idUser = Auth::user()->id;
              $groupsUser = Helper::getSaleGroupByLeader($idUser);
@@ -1080,7 +1093,10 @@ class SaleController extends Controller
             // Tối ưu: Sử dụng $authUser đã cache thay vì gọi Auth::user() lại
             $groupsUserCollection = Helper::getListSaleV3($authUser);
             $groupsUser = $groupsUserCollection->pluck('id')->toArray();
+            // dd($groupsUser);
             $list = $list->whereIn('assign_user', $groupsUser);
+            // dd($list->get());
+
         } else if ((!$checkAll || !$isLeadSale ) && !$user->is_digital) {
             $list = $list->where('assign_user', $user->id);
         }
@@ -1088,6 +1104,7 @@ class SaleController extends Controller
         if ($getJson) {
             return $list->count();
         }
+        
         return $list;
     }
 
@@ -1149,17 +1166,17 @@ class SaleController extends Controller
         }
 
         $typeCustomer = $req->type_customer;
-        if ($typeCustomer != 999) {
+        if ($typeCustomer && $typeCustomer != 999) {
             $dataFilter['type_customer'] = $typeCustomer;
         }
 
         $resultTN = $req->resultTN;
-        if ($resultTN != 999) {
+        if ($resultTN && $resultTN != 999) {
             $dataFilter['resultTN'] = $resultTN;
         }
 
         $status = $req->status;
-        if ($status && $status != 999 ||  $status == 0) {
+        if (!empty($status) && ($status != 999 ||  $status == 0)) {
             $dataFilter['status'] = $status;
         }
 
@@ -1211,7 +1228,7 @@ class SaleController extends Controller
 
             $dataCountByType = $this->getReportCountTNByType($dataTmp, $listTypeTN);
             $saleCare   = $data->paginate(50);
-            
+
             if ($req->isAjax) {
                 $tmp = [];
                 foreach ($saleCare as $sale) {
@@ -1278,6 +1295,8 @@ class SaleController extends Controller
                 ]);
             }
 
+            // dd($req->all());
+            // die();
             return view('pages.sale.index')->with('listSrc', $listSrc)
                 ->with('sales', $sales)->with('groups', $groups)
                 ->with('callResults', $callResults)

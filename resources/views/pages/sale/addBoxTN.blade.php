@@ -1,6 +1,6 @@
 <?php 
   $note = $id = $imgs = '';
-  if ($history) {
+  if (isset($history)) {
     $note = $history->note;
     $id = $history->id;
     $imgs = $history->img;
@@ -95,7 +95,7 @@
     <h6 style="padding: 10px; text-align: center">{{$saleCare->full_name}} - {{$saleCare->phone}}</h6>
     <div class="row" style="margin:0 20px;">
       
-      <form method="POST" action="{{route('save-box-TN')}}" enctype="multipart/form-data"> 
+      <form id="saveBoxTNForm" method="POST" action="{{route('save-box-TN')}}" enctype="multipart/form-data"> 
           {{ csrf_field() }}
           <input type="hidden" name="id" value="{{$id}}">
           <input value="{{$saleId}}" class="hidden form-control" name="sale_id">
@@ -171,7 +171,7 @@
             history.back()
       });
 
-      $('#submit').on( "click", function() {
+      $('#saveBoxTNForm').on("submit", function() {
         $('#loader-overlay').css('display', 'flex');
       });
 
@@ -279,6 +279,34 @@
     //     var type = 2
     //     $('.body').myFunc(id, type); 
     // });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var form = document.getElementById('saveBoxTNForm');
+        if (!form) return;
+
+        form.addEventListener('submit', function (e) {
+            var noteField = form.querySelector('[name="note"]');
+            if (!noteField) return;
+
+            var value = (noteField.value || '').trim();
+            if (value === '') {
+                e.preventDefault();
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('Vui lòng nhập ghi chú tác nghiệp');
+                } else if (typeof showCopyToast === 'function') {
+                    showCopyToast('Vui lòng nhập ghi chú tác nghiệp');
+                } else {
+                    alert('Vui lòng nhập ghi chú tác nghiệp');
+                }
+                noteField.focus();
+            } else {
+                if (window.parent && typeof window.parent.postMessage === 'function') {
+                    window.parent.postMessage('mess-success', '*');
+                }
+            }
+        });
+    });
     </script>
   </body>
 </html>

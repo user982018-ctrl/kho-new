@@ -49,8 +49,7 @@ $('.update-assign-TN-sale').click(function(){
     $('.body').css("opacity", '0.5');
     $('.loader').show();
     var id = $(this).data("id");
-    var textArea = "select[name='assignTNSale_" + id + "']";
-    var assignSale  = $(textArea).val();
+    var assignSale  = $('select.select-assign[data-sale_id="'+ id +'"]').val();
     var _token   = $("input[name='_token']").val();
     var link = baseLink + '/cap-nhat-assign-TNcan';
     $.ajax({

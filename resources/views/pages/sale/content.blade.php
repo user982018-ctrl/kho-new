@@ -1,5 +1,5 @@
 <?php
-
+    // die();
     $listSale = Helper::getListSaleOfLeaderGroup(); 
     $checkAll = isFullAccess(Auth::user()->role);
     $isLeadSale = Helper::isLeadSale(Auth::user()->role);  
@@ -88,26 +88,6 @@
     #laravel-notify .notify {
         z-index: 1030;
     }
-    .modal-backdrop-notify.show {
-        opacity: 0;
-    }
-    #notify-modal .modal-header {
-        border: unset;
-        border-radius: unset;
-        background: #4df54dcc;
-    }
-
-    #notify-modal .modal-content  {
-        background: none;
-        border: unset;
-        border-radius: unset;
-    }
-
-    #notify-modal .modal-dialog {
-        margin-right: 10px;
-        width: 300px;
-    }
-    
     .loader img {
         position: fixed;
         right: 50%;
@@ -244,10 +224,58 @@
         box-shadow: rgb(0, 123, 255) 0px 1px 1px 1px;
     }
 
+#toast-container > div {
+    background-image: none !important;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding-right: 15px;
+    font-size: 14px;
+    animation: toastSlideIn 0.45s ease;
+}
+.toast-success {
+    background-color: rgba(55, 185, 12, 0.966) !important;
+    color: #ffffff !important;
+}
+.toast-error {
+    background-color: rgba(220, 53, 69, 0.95) !important;
+    color: #ffffff !important;
+}
+.toast-info {
+    background-color: rgba(13, 110, 253, 0.95) !important;
+    color: #ffffff !important;
+}
+.toast-warning {
+    background-color: rgba(255, 193, 7, 0.95) !important;
+    color: #212529 !important;
+}
+
+@keyframes toastSlideIn {
+    from {
+        transform: translateY(-25px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 </style>
+<script>
+    function showGlobalToast(message, type = 'success') {
+        if (typeof toastr !== 'undefined') {
+            var fn = toastr[type] || toastr.success;
+            fn.call(toastr, message);
+        } else if (typeof showCopyToast === 'function') {
+            showCopyToast(message);
+        } else {
+            alert(message);
+        }
+    }
+</script>
+{{ csrf_field() }}
 {{-- update filter --}}
 <form id="saleForm" action="{{route('sale-index')}}" method="get" class="pb-4">
-    {{ csrf_field() }}
     <div class="maintain-filter-main">
         <div class="m-header-wrap">
             <div class="m-header" style="top:150px;">
@@ -523,7 +551,8 @@
                             // dd(Helper::isSaleGroup($item->group, $item->user));
                             ?>
                             @if ($checkAll || ($isLeadSale && $isSaleOfLeadSale))
-                            <select id="assign-list-{{$item->id}}" class="select-assign hidden" name="assignTNSale_{{$item->id}}" data-sale_id="{{$item->id}}"
+                            <select id="assign-list-{{$item->id}}" class="select-assign hidden" 
+                                data-sale_id="{{$item->id}}"
                                 data-group_id={{$item->group_id}}
                                 data-assign_id='<?php echo ($item->assign_user) ? $item->assign_user : -1;?>'>
                             
@@ -798,19 +827,6 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="notify-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h6 class="modal-title" style="color: seagreen;"><p style="margin:0">Lưu data thành công</p></h6>
-            <button style="border: none;" type="button" id="close-modal-notify" class="close" data-dismiss="modal" >
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-        </div>
-    </div>
-</div>
-
 <script src="{{asset('public/newCDN/js/bootstrap.min.js')}}"></script>
 <script type="text/javascript" src="{{asset('public/js/moment.js')}}"></script>
 <script>
@@ -916,9 +932,6 @@
     //     $(".select-dropdown-show").removeClass('select-dropdown-show');
     // });
     
-    $("#close-modal-notify").click(function() {
-        $('#notify-modal').modal("hide");
-    });
     $(".option-product").click(function() {
         $('.body').css("opacity", '0.5');
         $('.loader').show();
@@ -941,21 +954,13 @@
             success: function(data) {
                 $('.body').css("opacity", '1');
                 if (!data.error) {
-                    $('#notify-modal').modal('show');
-                    if ($('.modal-backdrop-notify').length === 0) {
-                        $('.modal-backdrop').addClass('modal-backdrop-notify');
-                    }
-
+                    showGlobalToast('Cập nhật tác nghiệp thành công', 'success');
                     str         = 'span.list-call-' + itemId;
                     strNextStep = 'td.next-step-' + itemId;
                     $(str).text(name);
                     $(strNextStep).text('Gọi lần ' + data.data.next_step);
-
-                    setTimeout(function() { 
-                        $('#notify-modal').modal("hide");
-                    }, 20000);
                 } else {
-                    alert('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!');
+                    showGlobalToast('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!', 'error');
                 }
                 $('.loader').hide();
             }
@@ -1145,19 +1150,13 @@
 
                     var tr = '.tr_' + id;
                     if (!data.error) {
-                        $('#notify-modal').modal('show');
-                        if ($('.modal-backdrop-notify').length === 0) {
-                            $('.modal-backdrop').addClass('modal-backdrop-notify');
-                            $('#notify-modal .modal-title').html('Cập nhật data thành công!');
-                        }
-
+                        showGlobalToast('Cập nhật tác nghiệp thành công', 'success');
                         $(tr).addClass('success');
                         setTimeout(function() { 
-                            $('#notify-modal').modal("hide");
                             $(tr).removeClass('success');
                         }, 2000);
                     } else {
-                        alert('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!');
+                        showGlobalToast('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!', 'error');
                         $(tr).addClass('error');
                         setTimeout(function() { 
                             $(tr).removeClass('error');
@@ -1193,20 +1192,9 @@
                     }
 
                     $(trId + ' .next-TN').text(data.nextTN);
-                    
-                    $('#notify-modal').modal('show');
-                    if ($('.modal-backdrop-notify').length === 0) {
-                        $('.modal-backdrop').addClass('modal-backdrop-notify');  
-                    } 
-
-                    $('#notify-modal .modal-title').text('Cập nhật data thành công!');
-
-                    setTimeout(function() {
-                        $('#notify-modal .modal-title').text('');
-                        $('#notify-modal').modal("hide");
-                    }, 2000);
+                    showGlobalToast('Cập nhật tác nghiệp thành công', 'success');
                 } else {
-                    alert('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!');
+                    showGlobalToast('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!', 'error');
                 }
                 $('#loader-overlay').css('display', 'none');
             }
@@ -1230,19 +1218,9 @@
             success: function(data) {
                 var tr = '.tr_' + id;
                 if (!data.error) {
-                    $('#notify-modal').modal('show');
-                    if ($('.modal-backdrop-notify').length === 0) {
-                        $('.modal-backdrop').addClass('modal-backdrop-notify');
-                    }
-
-                    $('#notify-modal .modal-title').text('Cập nhật data thành công!');
-
-                    setTimeout(function() {
-                        $('#notify-modal .modal-title').text('')
-                        $('#notify-modal').modal("hide");
-                    }, 2000);
+                    showGlobalToast('Cập nhật tác nghiệp thành công', 'success');
                 } else {
-                    alert('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!');
+                    showGlobalToast('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!', 'error');
                 }
                 $('#loader-overlay').css('display', 'none');
             }
@@ -1304,13 +1282,6 @@
         $('#product-filter').select2();
         $('#group-filter').select2();
         $('#groupUser-filter').select2();
-        
-        // Event listener cho các filter
-        $('#src-filter, #mkt-filter, #status-filter, #type_customer-filter, #resultTN-filter, #typeDate-filter, #statusTN-filter, #product-filter, #group-filter, #groupUser-filter').on('change', function() {
-            // Trigger click vào radio button hiện tại để refresh data
-            $("input[name='cateCall']:checked").trigger('click');
-        });
-        
     });
 </script>
 
@@ -1327,78 +1298,34 @@
         .click(function(){ // bind a function to the change event
 
         var typeTN = $(this).val();
-        var url = window.location.href;
-        paramsString = url.substring(url.lastIndexOf('?') + 1);
-
-        var searchParams = new URLSearchParams(paramsString);
-        var stringParam = '';
-        var flag = false;
-        for (let p of searchParams) {
-            console.log(p)
-            if (p[0] == 'daterange') {
-                stringParam += '&daterange=' + encodeURIComponent(p[1]);
-            } else if (p[1] != 999 && p[1] != '') {
-               
-                if (p[0] == 'cateCall') {
-                    flag = true;
-                    stringParam += '&' + p[0] + '=' + typeTN;
-                } else {
-                    var charStr = '';
-                    if (stringParam == '') {
-                        charStr = '?';
-                        stringParam += charStr
-                    } else {
-                        charStr = '&';
-                    }
-
-                    stringParam += charStr + p[0] + '=' + p[1];
-                }
-            } 
-        }
-
-        var daterange = $("input[name='daterange']").val();
-        var _token   = $("input[name='_token']").val();
-        if (!flag) {
-            if (searchParams.size == 1) {
-                stringParam += '?_token=' + _token + '&daterange=' + encodeURIComponent(daterange);
-            }
-
-            stringParam += '&cateCall=' + typeTN;
-        }
-
-        var baseLink = location.href.slice(0,location.href.lastIndexOf("/"));
-
-        refeshLink = baseLink + '/tac-nghiep-sale' + stringParam;
-        window.history.pushState("object or string", "Title", refeshLink);
-
-        var typeDate = $("#typeDate-filter :selected").val();
-        var src = $("#src-filter :selected").val();
-        var mkt = $("#mkt-filter :selected").val();
-        var product = $("#product-filter :selected").val();
-        var statusTN = $("#statusTN-filter :selected").val();
-        var resultTN = $("#resultTN-filter :selected").val();
-        var type_customer = $("#type_customer-filter :selected").val();
-        var status = $("#status-filter :selected").val();
-        var sale = $("#sale-filter :selected").val();
-        var groupUser = $("#groupUser-filter :selected").val();
+        var filters = {
+            cateCall: typeTN,
+            daterange: $("input[name='daterange']").val(),
+            typeDate: $("#typeDate-filter").val(),
+            src: $("#src-filter").val(),
+            mkt: $("#mkt-filter").val(),
+            product: $("#product-filter").val(),
+            statusTN: $("#statusTN-filter").val(),
+            resultTN: $("#resultTN-filter").val(),
+            type_customer: $("#type_customer-filter").val(),
+            status: $("#status-filter").val(),
+            sale: $("#sale-filter").val(),
+            groupUser: $("#groupUser-filter").val(),
+            isAjax: true
+        };
 
         var link = "{{URL::to('/tac-nghiep-sale')}}";
-        var isAjax = true;
 
         $('.body').css("opacity", '0.5');
         $('.loader').show();
-        var listSale = '<?php echo json_encode($listSale); ?>';
+        $('#loader-overlay').css('display', 'flex');
             $.ajax({
             url: link,
             type: "GET",
-            data: {
-                cateCall:typeTN, daterange, typeDate, src, mkt, product, statusTN, resultTN, type_customer, status, sale, groupUser,
-                isAjax,
-                _token: _token,
-            },
+            data: filters,
             success: function (data) {
                 $('.body').css("opacity", '1');
-
+                $('#loader-overlay').css('display', 'none');
                 var rs = '';
                 var i = 0;
                 if (!data.error) {
@@ -1456,7 +1383,7 @@
                             rs += '<div>';
 
                             rs += '<div class="mof-container">';
-                            rs += '<select class="select-assign bg-dropdown" name="assignTNSale_' + element.id +'">';
+                            rs += '<select class="select-assign bg-dropdown" data-sale_id="' + element.id + '">';
                             var flag = false;
                             var nameSale = selected = '';
 
@@ -1507,8 +1434,8 @@
                             rs += '</div>';
                         }
 
-                        rs += '<div class="" style="text-overflow: ellipsis;">' + element.full_name + '</div>';
-                        rs += '<a href="tel:' + element.phone + '" style="width: calc(100% - 90px);">' + element.phone;
+                        rs += '<div class="name-copy" title="Nhấn để sao chép" style="cursor: pointer;" data-copy="' + element.full_name + '" style="text-overflow: ellipsis;">' + element.full_name + '</div>';
+                        rs += '<a class="phone-copy" title="Nhấn để sao chép"  style="width: calc(100% - 90px);">' + element.phone;
                             
                         rs += '</a>';
                         rs += '<span class="text-right" style="width: 85px;">';
@@ -1552,7 +1479,7 @@
                         } else {
                             var classHasTN = '';
                             if (!element.has_TN) {
-                                classHasTN = 'ttgh7';
+                                classHasTN = ' ttgh7';
                             }
                             rs += '<span class="fb' + classHasTN + '" style="cursor: pointer; width: calc(100% - 60px);">';
                             rs += element.typeTN.name + '</span>';
@@ -1628,8 +1555,7 @@
                                    
                         rs += '</td>';
 
-                        rs += '<td class="text-left area3 hidden-xs">';
-                        rs += '<span id="dnn_ctr1441_Main_SaleTacNghiep_rptData__DonhangTenSanPhams_0">';
+                        rs += '<td class="text-left" style="min-width: 250px">';
                         rs += '<table class="tb-in-sp">';
                         rs += '<tbody>';
               
@@ -1642,7 +1568,7 @@
                             });
                         }     
                         rs += ' </tbody>';
-                        rs += '</table></span>';
+                        rs += '</table>';
                         rs += ' </td>';
 
                         rs += '<td class="no-wrap area3 text-right hidden-xs">';
@@ -1704,6 +1630,10 @@
 
     });
 
+    $('#src-filter, #mkt-filter, #status-filter, #type_customer-filter, #resultTN-filter, #typeDate-filter, #statusTN-filter, #product-filter, #group-filter, #groupUser-filter, #sale-filter').on('change', function() {
+        $("input[name='cateCall']:checked").trigger('click');
+    });
+
     $('#zoom-filter').click(function(){
         
         $('.filter-order').toggleClass('hidden');
@@ -1737,22 +1667,11 @@
                 $('.body').css("opacity", '1');
                 
                 if (!data.error) {
-                    $('#notify-modal').modal('show');
-                    if ($('.modal-backdrop-notify').length === 0) {
-                        $('.modal-backdrop').addClass('modal-backdrop-notify');
-                    }
-
-                    $('#notify-modal .modal-title').html('Xoá data thành công!');
-
-                    setTimeout(function() {
-                        $('#notify-modal .modal-title').text('');
-                        $('#notify-modal').modal("hide");
-                    }, 2000);
-                    
+                    showGlobalToast('Xoá data thành công!', 'success');
                     var tr = '.tr_' + id;
                     $(tr).delay(1000).hide(0);
                 } else {
-                    alert('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!');
+                    showGlobalToast('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!', 'error');
                 }
 
                 $('.loader').hide();
@@ -1781,22 +1700,11 @@
                     $('.body').css("opacity", '1');
                     
                     if (!data.error) {
-                        $('#notify-modal').modal('show');
-                        if ($('.modal-backdrop-notify').length === 0) {
-                            $('.modal-backdrop').addClass('modal-backdrop-notify');
-                        }
-
-                        $('#notify-modal .modal-title').html('Xoá data thành công!');
-
-                        setTimeout(function() {
-                            $('#notify-modal .modal-title').text('');
-                            $('#notify-modal').modal("hide");
-                        }, 2000);
-                        
+                        showGlobalToast('Xoá data thành công!', 'success');
                         var tr = '.tr_' + id;
                         $(tr).delay(1000).hide(0);
                     } else {
-                        alert('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!');
+                        showGlobalToast('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!', 'error');
                     }
 
                     $('.loader').hide();
@@ -1888,18 +1796,7 @@
                     $('.body').css("opacity", '1');
                     
                     if (!data.error) {
-                        $('#notify-modal').modal('show');
-                        if ($('.modal-backdrop-notify').length === 0) {
-                            $('.modal-backdrop').addClass('modal-backdrop-notify');
-                        }
-
-                        $('#notify-modal .modal-title').html('Xoá data thành công!');
-
-                        setTimeout(function() {
-                            $('#notify-modal .modal-title').text('');
-                            $('#notify-modal').modal("hide");
-                        }, 2000);
-                        
+                        showGlobalToast('Xoá data thành công!', 'success');
                         list_id = JSON.parse(list_id);
                         for ( var i = 0; i < list_id.length; i++) {
                             console.log(list_id[i]);
@@ -1912,7 +1809,7 @@
                         $('.delete-data-SC').hide();
 
                     } else {
-                        alert('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!');
+                        showGlobalToast('Đã xảy ra lỗi trong quá trình cập nhật TN Sale!', 'error');
                     }
                    
                     $('.loader').hide();
@@ -1950,17 +1847,25 @@
 <script type="text/javascript" src="{{ asset('public/js/notify.js'); }}"></script>
 <script>
 window.addEventListener('message', function (event) {
-    if (event.data === 'mess-success') {
-        setTimeout(function() { 
-            $('#notify-modal').modal('show');
-            // if ($('.modal-backdrop-notify').length === 0) {
-            //     // $('.modal-backdrop').addClass('modal-backdrop-notify');
-            //     $('#notify-modal .modal-title').html('Lưu đơn hàng thành công!');
-            // }
-            setTimeout(function() { 
-                $('#notify-modal').modal("hide");
-            }, 2000);
-        }, 3000);
+    var payload = event.data;
+    if (!payload) {
+        return;
+    }
+
+    if (typeof payload === 'string') {
+        if (payload === 'mess-success') {
+            showGlobalToast('Cập nhật tác nghiệp thành công', 'success');
+        }
+        return;
+    }
+
+    if (typeof payload === 'object') {
+        var type = payload.type || '';
+        if (type === 'mess-success') {
+            var message = payload.message || 'Cập nhật tác nghiệp thành công';
+            var toastType = payload.toastType || 'success';
+            showGlobalToast(message, toastType);
+        }
     }
 });
 </script>
