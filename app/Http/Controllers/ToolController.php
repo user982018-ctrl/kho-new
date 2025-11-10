@@ -11,9 +11,59 @@ use Illuminate\Support\Facades\Http;
 use Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\TestController;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\UsersExport;
+
+
 
 class ToolController extends Controller
 {
+    public function kt(){
+        $list = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
+            ->whereDate('orders.created_at', '>=', '2025-10-01')
+            ->whereDate('orders.created_at', '<=', '2025-10-11')
+            ->where('shipping_order.vendor_ship', 'GHN')
+            ->where('orders.status', 0)
+            ->select('orders.*')
+            ->get();
+        $i = 1;
+
+        $dataExport[] = [
+            'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách'
+          ];
+        foreach ($list as $data) {
+    
+          // $tnCan = $data->TN_can;
+          // if ($data->listHistory) {
+          //   foreach ($data->listHistory as $his) {
+          //     $tnCan .= date_format($his->created_at,"d-m-Y ") . ': ' . $his->note . ', ';
+          //   }
+    
+          // }
+          // dd($data->user->real_name);
+          $dataExport[] = [
+            $i,
+            date_format($data->created_at,"d-m-Y "),
+            $data->phone,
+            $data->name,
+            // $data->user->real_name ?? '',
+          ];
+          $i++;
+        }
+    
+        return Excel::download(new UsersExport($dataExport), 'GHN-HUY.xlsx');
+    }
+    public function huyen(){
+        $list = Orders::join('sale_care', 'sale_care.id_order', '=', 'orders.id')
+            ->join('src_page', 'src_page.id', '=', 'sale_care.src_id')
+            ->whereDate('orders.created_at', '>=', '2025-10-22')
+            ->whereDate('orders.created_at', '<=', '2025-10-31')
+            ->where('src_page.old_customer', 0)
+            // ->limit(100)
+            // ->where('id', 99145)
+            ->get();
+        dd($list);
+    }
     public function thuy()
     {
         $listSrc = SrcPage::where('user_digital', 114)->where('type', 'pc')

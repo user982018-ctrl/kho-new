@@ -330,7 +330,8 @@ class SaleController extends Controller
         $listCall = Helper::getListCall()->get();
         $groupUser = GroupUser::orderBy('id', 'desc')->where('type', 'sale')->get();
         $listSrc = SrcPage::select('id', 'name')->get();
-        $groups = Group::select('id', 'name')->where('status', 1)->get();
+        // $groups = Group::select('id', 'name')->where('status', 1)->get();
+        $groups = Helper::getListGroupByLeadSale(Auth::user());
         $callResults = CallResult::select('id', 'name')->get();
         $typeDate = TypeDate::select('id', 'name')->get();
         $listMktUser = Helper::getListMktUser()->select('id', 'name', 'real_name');

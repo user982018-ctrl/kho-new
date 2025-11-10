@@ -113,6 +113,63 @@ class Helper
         return json_encode($result);
     }
     
+    public static function getListGroupByLeadSale($user)
+    {
+        if (isFullAccess($user->role)) {
+            return Group::orderBy('id', 'desc')->get();
+        }
+
+        if (!Helper::isLeadSale($user->role)) {
+            return collect();
+        }
+
+        $groups = Group::orderBy('id', 'desc')->get();
+
+        return $groups->filter(function ($group) use ($user) {
+            $leadSaleField = $group->lead_sale;
+            $leadIds = Helper::normalizeLeadSaleField($leadSaleField);
+            return in_array((int) $user->id, $leadIds, false);
+        })->values();
+    }
+
+    protected static function normalizeLeadSaleField($leadSaleField)
+    {
+        if (is_null($leadSaleField) || $leadSaleField === '') {
+            return [];
+        }
+
+        if (is_array($leadSaleField)) {
+            return array_map('intval', $leadSaleField);
+        }
+
+        if (is_numeric($leadSaleField)) {
+            return [(int) $leadSaleField];
+        }
+
+        if (is_string($leadSaleField)) {
+            $decoded = json_decode($leadSaleField, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return array_map('intval', $decoded);
+            }
+
+            $trimmed = trim($leadSaleField, "[] \t\n\r\0\x0B\"");
+            if ($trimmed === '') {
+                return [];
+            }
+            $parts = array_filter(array_map(function ($value) {
+                return trim($value, " \t\n\r\0\x0B\"");
+            }, explode(',', $trimmed)), function ($value) {
+                return $value !== '';
+            });
+
+            if (!empty($parts)) {
+                return array_map('intval', $parts);
+            }
+        }
+
+        return [];
+    }
+
     public static function getListSaleOfLeaderGroup() 
     {
         $arrQuery = [1];

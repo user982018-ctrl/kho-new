@@ -259,9 +259,11 @@ Route::get('/ghtk',  [TestController::class, 'ghtkToShipping'])->name('toShippin
 Route::get('/hiep',  [TestController::class, 'saveDataHiep'])->name('hiep');
 Route::get('/hieu',  [TestController::class, 'hieu'])->name('hieu');
 Route::get('/trang',  [TestController::class, 'trang'])->name('trang');
-Route::get('/huyen',  [TestController::class, 'huyen'])->name('huyen');
+Route::get('/huyen',  [ToolController::class, 'huyen'])->name('huyen');
 Route::get('/trung',  [TestController::class, 'trung'])->name('trung');
 Route::get('/thuy',  [ToolController::class, 'thuy'])->name('thuy');
+Route::get('/kt',  [ToolController::class, 'kt'])->name('kt');
+
 
 Route::get('/xuat-file', [TestController::class, 'export']);
 Route::get('/tax', [TestController::class, 'exportTaxV4']);

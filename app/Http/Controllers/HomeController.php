@@ -96,7 +96,7 @@ class HomeController extends Controller
         } else if (!$checkAll && $isLeadSale) {
             $sales = Helper::getListSaleOfLeader()->get();
         }
-        $groups = Group::orderBy('id', 'desc')->get();
+        $groups = Helper::getListGroupByLeadSale(Auth::user());
         $groupUser = GroupUser::orderBy('id', 'desc')->where('type', 'sale')->get();
 
         return view('pages.sale.reportSale')->with('category', $category)->with('sales', $sales)
@@ -177,7 +177,7 @@ class HomeController extends Controller
 
         $category = Category::where('status', 1)->get();
         $sales = User::where('status', 1)->where('is_sale', 1)->orWhere('is_cskh', 1)->get();
-        $groups = Group::orderBy('id', 'desc')->get();
+        $groups = Helper::getListGroupByLeadSale(Auth::user());
         $groupUser = GroupUser::orderBy('id', 'desc')->where('type', 'sale')->get();
         $groupDigital = GroupUser::orderBy('id', 'desc')->where('type', 'mkt')->get();
 

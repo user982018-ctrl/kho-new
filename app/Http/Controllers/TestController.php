@@ -1651,7 +1651,7 @@ WHERE  NOT EXISTS
 
   public function exportTaxV4()
   {
-    $time = ['26/10/2025', '31/10/2025'];
+    $time = ['01/10/2025', '31/10/2025'];
     $timeBegin  = str_replace('/', '-', $time[0]);
     $timeEnd    = str_replace('/', '-', $time[1]);
     $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
@@ -1660,17 +1660,15 @@ WHERE  NOT EXISTS
     $list = Orders::select('orders.*')->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->join('sale_care', 'sale_care.id', '=', 'orders.sale_care')
       ->where('shipping_order.vendor_ship', 'GHTK')
-      ->where('orders.status', 3)
+      ->where('orders.status', 0)
       ->whereDate('orders.created_at', '>=', $dateBegin)
       ->whereDate('orders.created_at', '<=', $dateEnd)
       ->where('sale_care.group_id', '!=', 11)
-      // ->where('orders.id', '26623')
       ->orderBy('orders.id', 'desc');
 
-      // dd($list->get());
     $dataExport[] = [
-      'Số thứ tự hóa đơn (*)' , 'Ngày hóa đơn', 'Tên đơn vị mua hàng', 'Mã khách hàng', 'Địa chỉ', 'Mã số thuế', 'Người mua hàng',
-      'Email', 'Hình thức thanh toán', 'Loại tiền', 'Tỷ giá', 'Tỷ lệ CK(%)', 'Tiền CK', 'Số điện thoại', 'Tên hàng hóa/dịch vụ (*)', 'Mã hàng', 
+      'Số thứ tự hóa đơn (*)' , 'Ngày hóa đơn', 'Tên đơn vị mua hàng', 'Mã khách hàng', 'Địa chỉ', 'Mã số thuế', 'Người mua hàng', 
+      'Email', 'Hình thức thanh toán', 'Loại tiền', 'Tỷ giá', 'Tỷ lệ CK(%)', 'Tiền CK', 'Mã đơn vận', 'Số điện thoại', 'Tên hàng hóa/dịch vụ (*)', 'Mã hàng', 
       'ĐVT', 'Số lượng', 'Đơn giá', 'Tỷ lệ CK (%)', 'Tiền CK', '% thuế GTGT', 'Tiền thuế GTGT', 'Thành tiền(*)'
     ];
 
@@ -1771,6 +1769,7 @@ WHERE  NOT EXISTS
             '',// Địa chỉ
             '',// Mã số thuế
             '',// Người mua hàng
+            '',// Mã đơn vận
             '',// Email
             '',// Hình thức thanh toán
             '',// Loại tiền
@@ -1803,6 +1802,7 @@ WHERE  NOT EXISTS
             '',// Tỷ giá
             '',// Tỷ lệ CK(%)
             '',// Tiền CK
+            $data->shippingOrder->order_code,// Mã đơn vận
             $data->phone,
             $productName,// Tên hàng hóa/dịch vụ (*)
             '',// Mã hàng
@@ -1826,6 +1826,7 @@ WHERE  NOT EXISTS
             '',// Mã khách hàng
             '',// Địa chỉ
             '',// Mã số thuế
+            '',// Mã đơn vận
             '',// Người mua hàng
             '',// Email
             '',// Hình thức thanh toán
@@ -1954,6 +1955,7 @@ WHERE  NOT EXISTS
                 '',// Mã số thuế
                 '',// Người mua hàng
                 '',// Email
+                '',// Mã đơn vận
                 '',// Hình thức thanh toán
                 '',// Loại tiền
                 '',// Tỷ giá
@@ -1983,12 +1985,14 @@ WHERE  NOT EXISTS
               $data->address,// Địa chỉ
               '',// Mã số thuế
               $data->name,// Người mua hàng
+              // $data->shippingOrder->order_code,// Mã đơn vận
               '',// Email
               '',// Hình thức thanh toán
               '',// Loại tiền
               '',// Tỷ giá
               '',// Tỷ lệ CK(%)
               '',// Tiền CK
+              $data->shippingOrder->order_code,// Mã đơn vận
               $data->phone,
               $productName,// Tên hàng hóa/dịch vụ (*)
               '',// Mã hàng
@@ -2044,7 +2048,7 @@ WHERE  NOT EXISTS
     }
     // die();
     // dd($dataExport);
-    return Excel::download(new UsersExport($dataExport), 'GHN-26-31.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'GHTK-HUY-10.xlsx');
   }
 
   public function exportTaxV2()

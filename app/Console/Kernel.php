@@ -32,7 +32,7 @@ class Kernel extends ConsoleKernel
         $this->ghtkToShipping();
         // $this->updateStatusOrderGHTK();
         // $this->updateStatusOrderGhnV2();
-      })->cron('*/5 * * * *');
+      })->cron('*/10 * * * *');
 
       $schedule->call(function() {
         $this->updateStatusOrderGHTK();
@@ -797,6 +797,7 @@ class Kernel extends ConsoleKernel
   public function crawlerGroup()
   {
     // Log::channel('d')->info('run crawlerGroup');
+    // $this->testCron('run crawlerGroup');
     $groups = Group::where('status', 1);
     foreach ($groups->get() as $group) {
 

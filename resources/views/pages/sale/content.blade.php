@@ -1203,8 +1203,7 @@
     $('.update-assign-TN-sale').click(function(){
         $('#loader-overlay').css('display', 'flex');
         var id = $(this).data("id");
-        var textArea = "select[name='assignTNSale_" + id + "']";
-        var assignSale  = $(textArea).val();
+        var assignSale  = $('select.select-assign[data-sale_id="' + id + '"]').val();
         var _token   = $("input[name='_token']").val();
 
         $.ajax({
@@ -1941,6 +1940,7 @@ document.getElementById('saleForm').addEventListener('submit', function (e) {
                 // select.insertAdjacentElement("afterend", option);
                 select.appendChild(option);
             });
+            $(select).select2();
         });
     }, 800);
 </script>
