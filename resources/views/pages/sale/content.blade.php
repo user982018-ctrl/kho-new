@@ -296,11 +296,11 @@
                         </select>
                         </div>
                         @endif
-                        @if ($checkAll || $isLeadSale)
+                        {{-- @if ($checkAll || $isLeadSale) --}}
                         <div class="col-12 col-sm-3 col-md-3 col-lg-2 form-group" style="padding:0 15px;"> 
                             <select name="group" id="group-filter" class="border-select-box-se">
                                 {{-- <option selected="selected" value="-1" >--Tất cả sale--</option> --}}
-                                <option value="999">--Chọn nhóm--</option>
+                                <option value="999">--Chọn nhóm hàng--</option>
                                 @if (isset($groups))
                                     @foreach($groups as $group)
                                     <option value="{{$group->id}}">{{$group->name}}</option>
@@ -308,7 +308,7 @@
                                 @endif
                             </select>
                         </div>
-                        @endif
+                        {{-- @endif --}}
 
                         @if ($checkAll || $isLeadSale)
                         <div class="col-12 col-sm-3 col-md-3 col-lg-2 form-group" style="padding:0 15px;"> 

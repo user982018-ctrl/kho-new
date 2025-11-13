@@ -895,36 +895,43 @@ class SaleController extends Controller
                 } else {
                     $list->where('page_link', 'like', '%' . $dataFilter['src'] . '%');
                 }*/
+                // $listId = $list->pluck('id')->toArray();
+                // // dd($listId);
+                // $list = SaleCare::
+                // // whereIn('id', $listId)
+                // where('sale_care.src_id', (int)$dataFilter['src']);
+                $list = $list->where('sale_care.src_id', $dataFilter['src']);
+                // dd($list->get());
 
-                $srcType = [
-                    'filterByIdSrc' => $dataFilter['src'],
-                    'getAll'  => $dataFilter['src']
-                ];
+                // $srcType = [
+                //     'filterByIdSrc' => $dataFilter['src'],
+                //     'getAll'  => $dataFilter['src']
+                // ];
 
-                $list = $list->where(function($query) use ($srcType) {
-                    foreach ($srcType as $k => $term) {
-                        if ($k == 'filterByIdSrc') {
-                            $query->orWhere('src_id', $term);
-                        } else {
-                            $src = SrcPage::find($term);
-                            if (!$src) {
-                                return ;
-                            }
+                // $list = $list->where(function($query) use ($srcType) {
+                //     foreach ($srcType as $k => $term) {
+                //         if ($k == 'filterByIdSrc') {
+                //             $query->orWhere('src_id', $term);
+                //         } else {
+                //             $src = SrcPage::find($term);
+                //             if (!$src) {
+                //                 return ;
+                //             }
 
-                            if ($src->type == 'pc') {
-                                $query->orWhere('page_id', $src->id_page);
-                            } else if ($src->type == 'ladi') {
-                                $query->orWhere('page_link', $src->link);
-                            } else if ($src->type == 'hotline') {
-                                $query->orWhere('page_id', $src->id_page);
-                            } else if  ($src->type == 'old') {
-                                $query->orWhere('page_name', $src->name);
-                            } else {
-                                $query->orWhere('page_id', 'tricho');
-                            }
-                        }
-                    }
-                });
+                //             if ($src->type == 'pc') {
+                //                 $query->orWhere('page_id', $src->id_page);
+                //             } else if ($src->type == 'ladi') {
+                //                 $query->orWhere('page_link', $src->link);
+                //             } else if ($src->type == 'hotline') {
+                //                 $query->orWhere('page_id', $src->id_page);
+                //             } else if  ($src->type == 'old') {
+                //                 $query->orWhere('page_name', $src->name);
+                //             } else {
+                //                 $query->orWhere('page_id', 'tricho');
+                //             }
+                //         }
+                //     }
+                // });
 
                 // $src = SrcPage::find($dataFilter['src']);
                 // if (!$src) {
@@ -1166,8 +1173,8 @@ class SaleController extends Controller
             $dataFilter['group'] = $group;
         }
 
-        $typeCustomer = $req->type_customer;
-        if ($typeCustomer && $typeCustomer != 999) {
+        $typeCustomer = $req->type_customer ?? null;
+        if (isset($typeCustomer) && $typeCustomer != 999) {
             $dataFilter['type_customer'] = $typeCustomer;
         }
 
@@ -1176,8 +1183,8 @@ class SaleController extends Controller
             $dataFilter['resultTN'] = $resultTN;
         }
 
-        $status = $req->status;
-        if (!empty($status) && ($status != 999 ||  $status == 0)) {
+        $status = $req->status ?? null;
+        if (isset($status) && $status != 999) {
             $dataFilter['status'] = $status;
         }
 
@@ -1212,7 +1219,9 @@ class SaleController extends Controller
 
             $groupUser = GroupUser::orderBy('id', 'desc')->where('type', 'sale')->get();
             $listSrc    = SrcPage::orderBy('id', 'desc')->get();
-            $groups     = Group::orderBy('id', 'desc')->get();
+            // $groups     = Group::orderBy('id', 'desc')->get();
+            $groups = Helper::getListGroupByLeadSale(Auth::user());
+
             $callResults = CallResult::orderBy('id', 'desc')->get();
             $typeDate = TypeDate::orderBy('id', 'desc')->get();
             $listMktUser = Helper::getListMktUser();
@@ -1296,8 +1305,6 @@ class SaleController extends Controller
                 ]);
             }
 
-            // dd($req->all());
-            // die();
             return view('pages.sale.index')->with('listSrc', $listSrc)
                 ->with('sales', $sales)->with('groups', $groups)
                 ->with('callResults', $callResults)

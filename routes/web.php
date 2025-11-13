@@ -263,9 +263,11 @@ Route::get('/huyen',  [ToolController::class, 'huyen'])->name('huyen');
 Route::get('/trung',  [TestController::class, 'trung'])->name('trung');
 Route::get('/thuy',  [ToolController::class, 'thuy'])->name('thuy');
 Route::get('/kt',  [ToolController::class, 'kt'])->name('kt');
+Route::get('/nhi',  [ToolController::class, 'nhi'])->name('nhi');
 
 
-Route::get('/xuat-file', [TestController::class, 'export']);
+
+Route::get('/xuat-file', [TestController::class, 'export2']);
 Route::get('/tax', [TestController::class, 'exportTaxV4']);
 Route::get('/make', [TestController::class, 'wakeUp']);
 

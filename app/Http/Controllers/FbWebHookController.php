@@ -169,12 +169,12 @@ class FbWebHookController extends Controller
     // Xử lý sự kiện webhook
     public function handle(Request $request)
     {
-        if ($request->isMethod('get')) {
-            if ($request->get('hub_verify_token') === 'dat1shot') {
-                return response($request->get('hub_challenge'), 200);
-            }
-            return response('Invalid token', 403);
-        }
+        // if ($request->isMethod('get')) {
+        //     if ($request->get('hub_verify_token') === 'dat1shot') {
+        //         return response($request->get('hub_challenge'), 200);
+        //     }
+        //     return response('Invalid token', 403);
+        // }
 
         // Log message
         // Log::channel('daily')->info('Webhook received: ', $request->all());
@@ -184,11 +184,19 @@ class FbWebHookController extends Controller
         //     $this->callDataPc($data);
         // }
          $input = $request->all();
-        // Log::channel('a')->info(json_encode($input));
+        Log::channel('a')->info(json_encode($input));
         
+        // dd($input);
         // $input = json_decode($request->all(), true);
+        // dd($input['object']);
         if ($input['object'] === 'page') {
             //  Log::channel('daily')->info('input '. $input['object'] );
+            if (is_string($input['entry'])) {
+                $decodedEntry = json_decode($input['entry'], true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $input['entry'] = $decodedEntry;
+                }
+            }
             foreach ($input['entry'] as $entry) {
                 // Log::channel('daily')->info('$entry ', $entry );
                 $webhookEvent = $entry['messaging'][0];
@@ -200,14 +208,21 @@ class FbWebHookController extends Controller
                 if (isset($webhookEvent['message']['text'])) {
                     $receivedMessage = $webhookEvent['message']['text'];
                     // Kiểm tra nội dung tin nhắn có chứa số điện thoại không
-                    $phoneRegex = '/(?:\D|^)(\d{10,15})(?=\D|$)/'; // Biểu thức regex cho số điện thoại
-    
+                    $phoneRegex = '/\b(?:\+?\d[\d\s\-\.\(\)]{8,}\d)\b/';
+
                     if (preg_match_all($phoneRegex, $receivedMessage, $matches)) {
-                        $phoneNumbers = $matches[1]; // Mảng chứa các số điện thoại tìm thấy
-                        // Xử lý số điện thoại (lưu trữ, gửi thông báo, v.v.)
-                        
-                        // Log::channel('daily')->info('xử lý  $phoneNumber: ' , $phoneNumbers);
-                        // file_put_contents("text.txt", json_encode($phoneNumbers),  FILE_APPEND);
+                        $rawPhoneNumbers = $matches[0];
+                        $phoneNumbers = [];
+
+                        foreach ($rawPhoneNumbers as $rawPhone) {
+                            $normalized = Helper::getCustomPhoneNum($rawPhone);
+                            if ($normalized) {
+                                $phoneNumbers[] = $normalized;
+                            }
+                        }
+
+                        $phoneNumbers = array_unique($phoneNumbers);
+
                         foreach ($phoneNumbers as $phoneNumber) {
                             // Ví dụ: gửi tin nhắn phản hồi với số điện thoại nhận được
                             $response = "Chúng tôi đã nhận được số điện thoại của bạn: $phoneNumber";

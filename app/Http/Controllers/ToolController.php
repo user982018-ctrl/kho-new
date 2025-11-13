@@ -18,6 +18,14 @@ use App\Exports\UsersExport;
 
 class ToolController extends Controller
 {
+    public function nhi(){
+        $list = SaleCare::whereDate('created_at', '>=', '2025-10-22')
+        ->whereDate('created_at', '<=', '2025-11-11')
+        ->where('old_customer', 0)
+        ->where('src_id', 48)
+        ->get();
+        dd($list);
+    }
     public function kt(){
         $list = Orders::join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
             ->whereDate('orders.created_at', '>=', '2025-10-01')

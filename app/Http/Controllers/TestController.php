@@ -22,6 +22,11 @@ use function PHPUnit\Framework\assertFalse;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\UsersExport;
 use Google\Service\AndroidPublisher\Order;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+use Illuminate\Support\Facades\Storage;
+use ZipArchive;
+use Illuminate\Support\Facades\DB;
 
 // setlocale(LC_TIME, 'vi_VN.utf8');
 // setlocale(LC_TIME, "vi_VN");
@@ -1139,7 +1144,7 @@ class TestController extends Controller
 
       $pages = $group->srcs;
       foreach ($pages as $page) {
-        // if ($page->id_page != '700216549848133') {
+        // if ($page->id_page != '872813095912673') {
         //   continue;
         // }
         if ($page->type == 'pc' ) {
@@ -1175,6 +1180,7 @@ class TestController extends Controller
 
       $endpoint = "$endpoint?unread_first=true&tags=%22ALL%22&except_tags=[],&access_token=$token&cursor_mode=true&mode=NONE&from_platform=web";
 
+      // dd($endpoint);
       // $response = Http::withHeaders(['access_token' => $token])->get($endpoint);
       $data = [
         'type' => "DATE:$before - $today,PHONE",
@@ -1186,18 +1192,21 @@ class TestController extends Controller
          //thông báo lỗi nếu ko có hội thoại
         if ($content->success) {
           $data     = $content->conversations;
-
+          // dd($data);
           foreach ($data as $item) {
-            
+           
             try {
-              $recentPhoneNumbers = $item->recent_phone_numbers[0];
+              $recentPhoneNumbers = (count($item->recent_phone_numbers)) ? $item->recent_phone_numbers[0] : null;
+              if (!$recentPhoneNumbers) {
+                continue;
+              }
               $mId      = $recentPhoneNumbers->m_id;
-              
+
               $phone    = isset($recentPhoneNumbers) ? $recentPhoneNumbers->phone_number : '';
               $name     = isset($item->customers[0]) ? $item->customers[0]->name : '';
               $messages = (isset($recentPhoneNumbers) && !empty($recentPhoneNumbers->m_content)) ? $recentPhoneNumbers->m_content : '';
               $phone = Helper::getCustomPhoneNum($phone);
-              
+              // echo $phone . '<br>';
               $is_duplicate = $hasOldOrder = $isOldCustomer = $assgin_user = 0;
               $checkSaleCareOld = Helper::checkOrderSaleCarebyPhoneV5($phone, $mId, $is_duplicate, $hasOldOrder);
               $typeCSKH = 1;
@@ -1221,11 +1230,12 @@ class TestController extends Controller
                   //  echo '<br>';
                   //   echo '$secondsIn3Days: ' . $secondsIn3Days;
                     // dd($now - $inputTime >= $secondsIn3Days);
-                  if ($now - $inputTime >= $secondsIn3Days) {
+                    
+                  if (($now - $inputTime >= $secondsIn3Days) && $phone != '0865127775' ) {
                       echo $phone . " Đã quá 3 ngày " . $item->inserted_at . '<br>';
                     //   dd($item);
                       continue;
-                  } 
+                  }
 
                 $assgin_user = $assignSale->id;
                 $is_duplicate = ($is_duplicate) ? 1 : 0;
@@ -1447,14 +1457,14 @@ class TestController extends Controller
 
   public function export()
   {
-    $user = User::find(159);
-    $listSaleOfLeader = Helper::getListSaleV2($user);
+    // $user = User::find(159);
+    // $listSaleOfLeader = Helper::getListSaleV2($user);
     // dd($listSaleOfLeader);
-    $listSaleId = $listSaleOfLeader->pluck('id')->toArray();
+    // $listSaleId = $listSaleOfLeader->pluck('id')->toArray();
     // dd($listSaleId);
     $sale = new SaleController();
     $req = new Request();
-    $req['daterange'] = ['01/10/2025', '31/10/2025'];
+    $req['daterange'] = ['01/01/2024', '31/10/2025'];
     // $req['sale'] = '76';
     // $req['typeDate'] = '2';
     // $sales = ['171','70'];
@@ -1467,7 +1477,9 @@ class TestController extends Controller
     // $list->where('is_duplicate', 0);
     // $list->where('group_id', '12');
     // $list->paginate(1000, ['*'], 'page', 4);
-    $list->whereIn('assign_user', $listSaleId);
+    if (isset($listSaleId)) {
+      $list->whereIn('assign_user', $listSaleId);
+    }
     // dd($list->pluck('assign_user')->toArray());
     $dataExport[] = [
       'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách', 'Sale'
@@ -1497,7 +1509,82 @@ class TestController extends Controller
 
     return Excel::download(new UsersExport($dataExport), 'TS-8.xlsx');
   }
-  
+
+  public function export2()
+  {
+    $start = Carbon::create(2024, 1, 1)->startOfMonth();
+    $end = Carbon::now()->startOfMonth();
+    $period = CarbonPeriod::create($start, '1 month', $end);
+
+    $exportDir = 'exports/group5';
+    Storage::disk('local')->deleteDirectory($exportDir);
+    Storage::disk('local')->makeDirectory($exportDir);
+
+    $files = [];
+
+    foreach ($period as $month) {
+      $from = $month->copy()->startOfMonth();
+      $to = $month->copy()->endOfMonth();
+
+      $records = SaleCare::with('user')
+        ->where('group_id', 5)
+        ->where('old_customer', 1)
+        ->where('is_duplicate', 0)
+        ->whereBetween('created_at', [$from, $to])
+        ->orderBy('created_at')
+        ->get();
+
+      if ($records->isEmpty()) {
+        continue;
+      }
+
+      $dataExport = [
+        ['STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách', 'Nhân Viên']
+      ];
+
+      $i = 1;
+      foreach ($records as $record) {
+        $dataExport[] = [
+          $i,
+          date_format($record->created_at, 'd-m-Y'),
+          $record->phone,
+          $record->full_name,
+          $record->user->real_name ?? '',
+        ];
+        $i++;
+      }
+
+      $fileName = 'group5_' . $from->format('Y_m') . '.xlsx';
+      Excel::store(new UsersExport($dataExport), $exportDir . '/' . $fileName);
+      $files[] = $exportDir . '/' . $fileName;
+    }
+
+    if (empty($files)) {
+      Storage::disk('local')->deleteDirectory($exportDir);
+      return response()->json(['message' => 'Không có dữ liệu để xuất.'], 404);
+    }
+
+    $zipRelativePath = $exportDir . '/group5_exports_' . Carbon::now()->format('Ymd_His') . '.zip';
+    $zipFullPath = storage_path('app/' . $zipRelativePath);
+    $zip = new ZipArchive();
+
+    if ($zip->open($zipFullPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+      Storage::delete($files);
+      Storage::disk('local')->deleteDirectory($exportDir);
+      return response()->json(['message' => 'Không thể tạo file zip.'], 500);
+    }
+
+    foreach ($files as $file) {
+      $zip->addFile(storage_path('app/' . $file), basename($file));
+    }
+
+    $zip->close();
+
+    Storage::delete($files);
+
+    return response()->download($zipFullPath)->deleteFileAfterSend(true);
+  }
+
   public function wakeUp()
   {
     $listSc = SaleCare::whereNotNull('result_call')
@@ -1579,7 +1666,7 @@ class TestController extends Controller
     //   ->whereBetween('created_at', [$from, $to])
     //   ->get();
 
-    $list = \DB::select("SELECT *
+    $list = DB::select("SELECT *
 FROM   orders
 WHERE  NOT EXISTS
   (SELECT *
@@ -1651,7 +1738,7 @@ WHERE  NOT EXISTS
 
   public function exportTaxV4()
   {
-    $time = ['01/10/2025', '31/10/2025'];
+    $time = ['01/11/2025', '10/11/2025'];
     $timeBegin  = str_replace('/', '-', $time[0]);
     $timeEnd    = str_replace('/', '-', $time[1]);
     $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
@@ -1660,11 +1747,14 @@ WHERE  NOT EXISTS
     $list = Orders::select('orders.*')->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->join('sale_care', 'sale_care.id', '=', 'orders.sale_care')
       ->where('shipping_order.vendor_ship', 'GHTK')
-      ->where('orders.status', 0)
+      ->where('orders.status', 3)
       ->whereDate('orders.created_at', '>=', $dateBegin)
       ->whereDate('orders.created_at', '<=', $dateEnd)
-      ->where('sale_care.group_id', '!=', 11)
+      // ->where('sale_care.group_id', '!=', 11)
+      ->whereNotIn('sale_care.group_id', [11, 12])
+      // ->where('orders.id', '29214')
       ->orderBy('orders.id', 'desc');
+
 
     $dataExport[] = [
       'Số thứ tự hóa đơn (*)' , 'Ngày hóa đơn', 'Tên đơn vị mua hàng', 'Mã khách hàng', 'Địa chỉ', 'Mã số thuế', 'Người mua hàng', 
@@ -1733,6 +1823,7 @@ WHERE  NOT EXISTS
           //   }
           // }
         }
+
         $kg = 0;
         $qty = $data->qty;
         if ($product->unit == 'lít' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
@@ -1745,6 +1836,7 @@ WHERE  NOT EXISTS
           $rateTax = 1.08;
           $percenTax = '8';
         }
+
         if (strpos($productName, "Hàng tặng") !== false ) {
           $percenTax = '../..';
           $totalGTGT = '../..';
@@ -1776,6 +1868,7 @@ WHERE  NOT EXISTS
             '',// Tỷ giá
             '',// Tỷ lệ CK(%)
             '',// Tiền CK
+            '',
             $productName,// Tên hàng hóa/dịch vụ (*)
             '',// Mã hàng
             $product->unit,// 'ĐVT',
@@ -1834,6 +1927,7 @@ WHERE  NOT EXISTS
             '',// Tỷ giá
             '',// Tỷ lệ CK(%)
             '',// Tiền CK
+            // '',
             '',
             $bottleName,// Tên hàng hóa/dịch vụ (*)
             '',// Mã hàng
@@ -1877,14 +1971,19 @@ WHERE  NOT EXISTS
           if (!$product) {
             continue;
           }
+          // if ($product->id != 61) {
+          //   continue;
+          // }
           $voucher = isset($item['gift']) ? $item['gift'] : 'false';
           $totalOrder = $data->total;
           $productPrice = $product->price;
-          $qty = $item['val'];
+          $qty = (int)$item['val'];
           $percenTax = '5';
           $totalGTGT = '';
+          // dd($qty);
           
           $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+          // dd($productName);
           $weight = $product->weight;
           $bottleName = $product->bottle;
           $unit = $product->unit;
@@ -1899,20 +1998,25 @@ WHERE  NOT EXISTS
             }
           }
 
+          // dd($qty);
           $kg = 0;
-          if ($product->unit == 'lít' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
+          if ($product->unit == 'lít' || $product->unit == 'Lit' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
             //5000g => chia 1000 => 5kg
-            $kg = (int)($weight/1000);
+            $kg = (float)($weight/1000);
             $qty = $qty * $kg;
+            $unit = 'Bộ';
           }
+          // dd($kg);
           $rateTax = 1.05; // tax = 5
           if ($product->tax == 8) {
             $rateTax = 1.08;
             $percenTax = '8';
           }
 
+          // dd($unit);
+
           // Fulvic Acid
-          if ($productName == 'Fulvic Acid') {
+          if ($productName == 'Fulvic Acid' || $product->id == 91 || $product->id == 61) {
             $qty = $item['val']/2;
             $bottleName = 'Chai 0,5 lít (nhựa) (Hàng tặng không thu tiền) ';
             $unit = 'Cái';
@@ -1935,16 +2039,15 @@ WHERE  NOT EXISTS
           }
          
           if ($j != $i) {
-            $tmp = ['', '', '', '', '', '',  '', '','', '', '','', '', '', $productName,'', $product->unit, $qty, $productPrice,
+            $tmp = ['', '', '', '', '', '',  '', '','', '', '','', '', '','', $productName,'', $product->unit, $qty, $productPrice,
               '', '', $percenTax, $totalGTGT, $total,   
             ];  
             $dataExport[] = $tmp;
-
             if ($kg > 0 || $productName == 'Fulvic Acid (Hàng tặng không thu tiền)') {
-              if ($productName == 'Fulvic Acid (Hàng tặng không thu tiền)') {
+              if ($productName == 'Fulvic Acid (Hàng tặng không thu tiền)' || $product->id == 91 || $product->id == 61) {
                 $qtyTmp = $item['val'];
               } else {
-                $qtyTmp = (int)($qty/$kg);
+                $qtyTmp = (float)($qty/$kg);
               }
               $tmp = [
                 '',//Số thứ tự hóa đơn (*)
@@ -2011,6 +2114,11 @@ WHERE  NOT EXISTS
             // echo $productName . ' kg :'.$kg.'<br>';
             if ($kg > 0) {
               
+              if ($productName == 'Fulvic Acid (Hàng tặng không thu tiền)' || $product->id == 91 || $product->id == 61) {
+                $qtyTmp = $item['val'];
+              } else {
+                $qtyTmp = (float)($qty/$kg);
+              }
               $tmp = [
                 '',//Số thứ tự hóa đơn (*)
                 '', // Ngày hóa đơn
@@ -2026,10 +2134,11 @@ WHERE  NOT EXISTS
                 '',// Tỷ lệ CK(%)
                 '',// Tiền CK
                 '',
+                '',
                 $bottleName,// Tên hàng hóa/dịch vụ (*)
                 '',// Mã hàng
                 $unit,// 'ĐVT',
-                (int)($qty/$kg),//  'Số lượng', 
+                $qtyTmp,//  'Số lượng', 
                 '',//  'Đơn giá', 
                 '',//  'Tỷ lệ CK (%)', 
                 '',//  'Tiền CK',
@@ -2048,7 +2157,7 @@ WHERE  NOT EXISTS
     }
     // die();
     // dd($dataExport);
-    return Excel::download(new UsersExport($dataExport), 'GHTK-HUY-10.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'GHTK-10-11.xlsx');
   }
 
   public function exportTaxV2()

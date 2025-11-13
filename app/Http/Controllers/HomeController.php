@@ -1640,79 +1640,79 @@ class HomeController extends Controller
             'total' => 0,
             'avg' => 0,
         ];
-       
-        // dd($listResult);
-
-        foreach ($listResult as $data) {
-            if (isset($data['new_customer'])) {
-                $newContact += $data['new_customer']['contact'] ?? 0;
-                $newOrder += $data['new_customer']['count_order'] ?? 0;
-
-                if (($data['new_customer']['contact'] ?? 0) > 0 || ($data['new_customer']['count_order'] ?? 0) > 0) {
-                    $newProduct += $data['new_customer']['product'] ?? 0;
-                    $newTotal += $data['new_customer']['total'] ?? 0;
+        $checkAll = isFullAccess(Auth::user()->role);
+        $isLeadDigital = Helper::isLeadDigital(Auth::user()->role);
+        if ($checkAll || $isLeadDigital) {
+            foreach ($listResult as $data) {
+                if (isset($data['new_customer'])) {
+                    $newContact += $data['new_customer']['contact'] ?? 0;
+                    $newOrder += $data['new_customer']['count_order'] ?? 0;
+    
+                    if (($data['new_customer']['contact'] ?? 0) > 0 || ($data['new_customer']['count_order'] ?? 0) > 0) {
+                        $newProduct += $data['new_customer']['product'] ?? 0;
+                        $newTotal += $data['new_customer']['total'] ?? 0;
+                    }
+                }
+                
+                if (isset($data['old_customer'])) {
+                    $oldContact += $data['old_customer']['contact'] ?? 0;
+                    $oldOrder += $data['old_customer']['count_order'] ?? 0;
+    
+                    if (($data['old_customer']['contact'] ?? 0) > 0 || ($data['old_customer']['count_order'] ?? 0) > 0) {
+                        $oldRate += $data['old_customer']['rate'] ?? 0;
+                        $oldProduct += $data['old_customer']['product'] ?? 0;
+                        $oldTotal += $data['old_customer']['total'] ?? 0;
+                    }
                 }
             }
-            
-            if (isset($data['old_customer'])) {
-                $oldContact += $data['old_customer']['contact'] ?? 0;
-                $oldOrder += $data['old_customer']['count_order'] ?? 0;
-
-                if (($data['old_customer']['contact'] ?? 0) > 0 || ($data['old_customer']['count_order'] ?? 0) > 0) {
-                    $oldRate += $data['old_customer']['rate'] ?? 0;
-                    $oldProduct += $data['old_customer']['product'] ?? 0;
-                    $oldTotal += $data['old_customer']['total'] ?? 0;
-                }
-            }
-        }
-    
-        $sumNewCustomer['contact'] = $newContact;
-        $sumNewCustomer['count_order'] = $newOrder;
-        if ($newContact > 0) {
-            $newRate = $newOrder / $newContact * 100;
-            $sumNewCustomer['rate'] = round($newRate, 2);
-        }
-    
-        $sumNewCustomer['product'] = $newProduct;
-        $sumNewCustomer['total'] = $newTotal;
-        $sumNewCustomer['avg'] = ($newOrder != 0) ? round($newTotal/$newOrder, 0) : 0;
-
-        $sumOldCustomer['contact'] = $oldContact;
-        $sumOldCustomer['count_order'] = $oldOrder;
-        if ($oldContact > 0) {
-            $oldRate = $oldOrder / $oldContact * 100;
-            $sumOldCustomer['rate'] = round($oldRate, 2);
-        }
-    
-        $sumOldCustomer['rate'] = round($oldRate, 2);
-        $sumOldCustomer['product'] = $oldProduct;
-        $sumOldCustomer['total'] = $oldTotal;
-        $sumOldCustomer['avg'] = ($oldOrder != 0) ?  round($oldTotal/$oldOrder, 0) : 0;
-        $totalSum = $oldTotal + $newTotal;
-        if ($oldOrder + $newOrder) {
-            $avgSum = round(($totalSum / ($oldOrder + $newOrder)), 0);
-        }
-
-        $rateSumX = 0;
-        $sumContactX =  $sumNewCustomer['contact'];
-        $sumOrderX =  $sumNewCustomer['count_order'] + $sumOldCustomer['count_order'];
-        if ($sumContactX > 0) {
-            $rateSumX = $sumOrderX / $sumContactX * 100;
-        } else {
-            $rateSumX = $sumOrderX * 100;
-        }
-
-        $rateSumX = round($rateSumX, 2);
-        $result['trSum'] = [
-            'new_customer' => $sumNewCustomer,
-            'old_customer' => $sumOldCustomer,
-            'sumary_total' => [
-                'total' => $totalSum,
-                'avg' => $avgSum,
-                'rate' => $rateSumX,
-            ]
-        ];
         
+            $sumNewCustomer['contact'] = $newContact;
+            $sumNewCustomer['count_order'] = $newOrder;
+            if ($newContact > 0) {
+                $newRate = $newOrder / $newContact * 100;
+                $sumNewCustomer['rate'] = round($newRate, 2);
+            }
+        
+            $sumNewCustomer['product'] = $newProduct;
+            $sumNewCustomer['total'] = $newTotal;
+            $sumNewCustomer['avg'] = ($newOrder != 0) ? round($newTotal/$newOrder, 0) : 0;
+    
+            $sumOldCustomer['contact'] = $oldContact;
+            $sumOldCustomer['count_order'] = $oldOrder;
+            if ($oldContact > 0) {
+                $oldRate = $oldOrder / $oldContact * 100;
+                $sumOldCustomer['rate'] = round($oldRate, 2);
+            }
+        
+            $sumOldCustomer['rate'] = round($oldRate, 2);
+            $sumOldCustomer['product'] = $oldProduct;
+            $sumOldCustomer['total'] = $oldTotal;
+            $sumOldCustomer['avg'] = ($oldOrder != 0) ?  round($oldTotal/$oldOrder, 0) : 0;
+            $totalSum = $oldTotal + $newTotal;
+            if ($oldOrder + $newOrder) {
+                $avgSum = round(($totalSum / ($oldOrder + $newOrder)), 0);
+            }
+    
+            $rateSumX = 0;
+            $sumContactX =  $sumNewCustomer['contact'];
+            $sumOrderX =  $sumNewCustomer['count_order'] + $sumOldCustomer['count_order'];
+            if ($sumContactX > 0) {
+                $rateSumX = $sumOrderX / $sumContactX * 100;
+            } else {
+                $rateSumX = $sumOrderX * 100;
+            }
+    
+            $rateSumX = round($rateSumX, 2);
+            $result['trSum'] = [
+                'new_customer' => $sumNewCustomer,
+                'old_customer' => $sumOldCustomer,
+                'sumary_total' => [
+                    'total' => $totalSum,
+                    'avg' => $avgSum,
+                    'rate' => $rateSumX,
+                ]
+            ];
+        }
         // Giới hạn số record hiển thị theo tham số $show (sau khi đã tính tổng tất cả)
         $result['data'] = array_values(array_slice($listResult, 0, (int)$show));
         

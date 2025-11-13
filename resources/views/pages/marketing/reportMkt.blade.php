@@ -654,39 +654,42 @@ img.avatar {
             } else if (data.data.length > 0) {
               /* lọc data digital*/
               var str = '';
-              console.log('data', data.data)
-              var newCusomerTrSum = data.trSum.new_customer;
-              var oldCusomerTrSum = data.trSum.old_customer;
-              var summaryCusomerTrSum = data.trSum.sumary_total;
-              var maxAvcElem = data.data[0].summary_total.avg;
+              
+              if (data.trSum) {
+                var newCusomerTrSum = data.trSum.new_customer;
+                var oldCusomerTrSum = data.trSum.old_customer;
+                var summaryCusomerTrSum = data.trSum.sumary_total;
+                var maxAvcElem = data.data[0].summary_total.avg;
 
-              /** lấy ra trung bình đơn lớn nhất của trong list sale**/
+                /** lấy ra trung bình đơn lớn nhất của trong list sale**/
+                data.data.forEach((element, k) => {
+                    if (element.summary_total.avg > maxAvcElem) {
+                        maxAvcElem = element.summary_total.avg;
+                    }
+                });
+
+                var strTdSum = '';
+                strTdSum += '<td colspan="2" class="text-center font-weight-bold">Tổng: </td>'
+                  + '<td class="text-center font-weight-bold"><span>' + newCusomerTrSum.contact + '</span></td>'
+                  + '<td class="text-center font-weight-bold"><span>' + newCusomerTrSum.count_order + '</span></td>'
+                  + '<td class="text-center font-weight-bold"><span>' + newCusomerTrSum.rate + '%</span></td>'
+                  + '<td class="text-center font-weight-bold"><span>' + newCusomerTrSum.product + '</span></td>'
+                  + '<td class="text-center font-weight-bold"><span>' + number_format_js(newCusomerTrSum.total) + '</span></td>'
+                  + '<td class="text-center font-weight-bold"><span>' + number_format_js(newCusomerTrSum.avg) + '</span></td>';
+                          
+                strTdSum += '<td class="text-center font-weight-bold"><span>' + oldCusomerTrSum.contact+ '</span></td>'
+                + '<td class="text-center font-weight-bold"><span>' + oldCusomerTrSum.count_order + '</span></td>'
+                  +'<td class="text-center font-weight-bold"><span>' + number_format_js(oldCusomerTrSum.total) + '</span></td>'
+                  + '<td class="text-center font-weight-bold"><span>' + number_format_js(oldCusomerTrSum.avg) + '</span></td>'
+                  + '<td class="text-center font-weight-bold"><span>' + (summaryCusomerTrSum.rate) + '%</span></td>'
+                  + '<td class="text-center font-weight-bold"><span>' + number_format_js(summaryCusomerTrSum.total) + '</span></td>'
+                  + '<td class="text-center font-weight-bold"><span>' + number_format_js(summaryCusomerTrSum.avg) + '</span></td>';
+
+                $("#tr-sum-digital").html(strTdSum);
+              }
+
               data.data.forEach((element, k) => {
-                  if (element.summary_total.avg > maxAvcElem) {
-                      maxAvcElem = element.summary_total.avg;
-                  }
-              });
-
-              var strTdSum = '';
-              strTdSum += '<td colspan="2" class="text-center font-weight-bold">Tổng: </td>'
-                + '<td class="text-center font-weight-bold"><span>' + newCusomerTrSum.contact + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + newCusomerTrSum.count_order + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + newCusomerTrSum.rate + '%</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + newCusomerTrSum.product + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + number_format_js(newCusomerTrSum.total) + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + number_format_js(newCusomerTrSum.avg) + '</span></td>';
-                        
-              strTdSum += '<td class="text-center font-weight-bold"><span>' + oldCusomerTrSum.contact+ '</span></td>'
-               + '<td class="text-center font-weight-bold"><span>' + oldCusomerTrSum.count_order + '</span></td>'
-                +'<td class="text-center font-weight-bold"><span>' + number_format_js(oldCusomerTrSum.total) + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + number_format_js(oldCusomerTrSum.avg) + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + (summaryCusomerTrSum.rate) + '%</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + number_format_js(summaryCusomerTrSum.total) + '</span></td>'
-                + '<td class="text-center font-weight-bold"><span>' + number_format_js(summaryCusomerTrSum.avg) + '</span></td>';
-
-              $("#tr-sum-digital").html(strTdSum);
-
-              data.data.forEach((element, k) => {
+                if (data.trSum) {
                 perCentContactNew = (newCusomerTrSum.contact != 0) ? (element.new_customer.contact / newCusomerTrSum.contact * 100) : 0;
                 perCentOrderNew =  (newCusomerTrSum.count_order != 0) ? (element.new_customer.count_order / newCusomerTrSum.count_order * 100) : 0;
                 perCentProductNew = (newCusomerTrSum.product != 0) ? (element.new_customer.product / newCusomerTrSum.product * 100) : 0;
@@ -701,7 +704,20 @@ img.avatar {
 
                 perCentTotalSum = (summaryCusomerTrSum.total != 0) ? (element.summary_total.total / summaryCusomerTrSum.total * 100) : 0;
                 perCentAvgSum = (maxAvcElem.avg != 0) ? (element.summary_total.avg / maxAvcElem * 100) : 0;
-                       
+                } else {
+                  perCentContactNew =  element.new_customer.contact  > 0 ? 100 : 0;
+                  perCentOrderNew =  element.new_customer.count_order > 0 ? 100 : 0;
+                  perCentProductNew =  element.new_customer.product > 0 ? 100 : 0;
+                  perCentTotalNew =  element.new_customer.total > 0 ? 100 : 0;
+                  perCentAvgNew =  element.new_customer.avg > 0 ? 100 : 0;
+                  perCentContactOld =  element.old_customer.contact > 0 ? 100 : 0;
+                  perCentOrderOld =  element.old_customer.count_order > 0 ? 100 : 0;
+                  perCentProductOld =  element.old_customer.product > 0 ? 100 : 0;
+                  perCentTotalOld =  element.old_customer.total > 0 ? 100 : 0;
+                  perCentAvgOld =  element.old_customer.avg > 0 ? 100 : 0;
+                  perCentTotalSum =  element.summary_total.total > 0 ? 100 : 0;
+                  perCentAvgSum =  element.summary_total.avg > 0 ? 100 : 0;
+                }      
                 str += '<tr>'
                   + '<td class="text-center">' + (k+1) + '</td>'
                   + '<td>' + element.name + '</td>'

@@ -119,16 +119,39 @@ class Helper
             return Group::orderBy('id', 'desc')->get();
         }
 
-        if (!Helper::isLeadSale($user->role)) {
+        $targetLeadIds = [];
+
+        if (Helper::isLeadSale($user->role)) {
+            $targetLeadIds[] = (int) $user->id;
+        } elseif (!empty($user->is_sale) && $user->is_sale == 1) {
+            $groupUser = $user->groupUser;
+            if ($groupUser && !empty($groupUser->lead_team)) {
+                $normalizedLeadTeam = self::normalizeLeadSaleField($groupUser->lead_team);
+                if (empty($normalizedLeadTeam)) {
+                    $targetLeadIds[] = (int) $groupUser->lead_team;
+                } else {
+                    $targetLeadIds = array_merge($targetLeadIds, $normalizedLeadTeam);
+                }
+            }
+        }
+
+        if (!empty($targetLeadIds)) {
+            $targetLeadIds = array_values(array_unique(array_map('intval', $targetLeadIds)));
+        }
+
+        if (empty($targetLeadIds)) {
             return collect();
         }
 
         $groups = Group::orderBy('id', 'desc')->get();
 
-        return $groups->filter(function ($group) use ($user) {
+        return $groups->filter(function ($group) use ($targetLeadIds) {
             $leadSaleField = $group->lead_sale;
-            $leadIds = Helper::normalizeLeadSaleField($leadSaleField);
-            return in_array((int) $user->id, $leadIds, false);
+            $leadIds = self::normalizeLeadSaleField($leadSaleField);
+            if (empty($leadIds)) {
+                return false;
+            }
+            return count(array_intersect($leadIds, $targetLeadIds)) > 0;
         })->values();
     }
 
@@ -1450,9 +1473,27 @@ class Helper
      */
     public static function getCustomPhoneNum($phone)
     {
-        $length = strlen($phone);
-        $pos = $length - 9;
-        return '0' . substr($phone, $pos);
+        if ($phone === null) {
+            return '';
+        }
+
+        $phone = trim($phone);
+        $digits = preg_replace('/\D+/', '', $phone);
+
+        if ($digits === '' || $digits === null) {
+            return '';
+        }
+
+        if (strlen($digits) <= 10 && isset($digits[0]) && $digits[0] === '0') {
+            return $digits;
+        }
+
+        $length = strlen($digits);
+        if ($length < 9) {
+            return $digits;
+        }
+
+        return '0' . substr($digits, -9);
     }
 
     public static function getListDigital()

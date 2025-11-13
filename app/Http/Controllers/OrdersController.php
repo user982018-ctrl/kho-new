@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Product;
 use App\Models\Orders;
 use Illuminate\Support\Facades\Http;
@@ -24,6 +24,7 @@ use Faker\Provider\File as ProviderFile;
 use Illuminate\Support\Facades\Storage;
 use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class OrdersController extends Controller
 {
@@ -1381,31 +1382,59 @@ class OrdersController extends Controller
      */
     public function search(Request $request)
     {
-        $orders = Orders::select('orders.*')
-            ->where('orders.name', 'like', '%' . $request->search . '%')
-            ->orWhere('orders.phone', 'like', '%' . $request->search . '%')
-            ->orderBy('orders.id', 'desc');
+        $rawSearch = (string) $request->input('search', '');
+        $searchTerm = trim($rawSearch);
 
-        if ($orders->count() == 0) {
-            $orders = Orders::select('orders.*')->join('shipping_order', 'shipping_order.order_id','=', 'orders.id')
-            ->where('shipping_order.order_code', 'like', '%' . $request->search . '%')
-            ->orderBy('orders.id', 'desc');
+        if ($searchTerm === '') {
+            return redirect()->back();
         }
 
-        if ($orders) {
-            $totalOrder = $orders->count();
-            $list       = $orders->paginate(50);
-            $sumProduct = $orders->sum('qty');
-            $prControler = new ProductController();
-            $listAttribute = $prControler->getAttributesProduct();
-            $listAttribute = json_encode($listAttribute);
-            $products = Product::where('status', 1)->get();
-            return view('pages.orders.index')->with('list', $list)->with('search', $request->search)
-                ->with('totalOrder', $totalOrder)->with('sumProduct', $sumProduct)->with('listAttribute', $listAttribute)
-                ->with('products', $products);           
-        } 
+        $orderIdTerm = null;
+        if (Str::contains($searchTerm, '#')) {
+            $orderIdTerm = trim(Str::afterLast($searchTerm, '#'));
+            $orderIdTerm = $orderIdTerm !== '' ? $orderIdTerm : null;
+        }
 
-        return redirect('/');
+        $escapedSearch = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
+        $likeTerm = '%' . $escapedSearch . '%';
+
+        $ordersQuery = Orders::query()
+            ->select('orders.*')
+            ->with('shippingOrder')
+            ->where(function ($query) use ($likeTerm, $orderIdTerm) {
+                $query->where(function ($inner) use ($likeTerm) {
+                    $inner->where('orders.name', 'like', $likeTerm)
+                        ->orWhere('orders.phone', 'like', $likeTerm);
+                })
+                ->orWhereHas('shippingOrder', function ($shippingQuery) use ($likeTerm) {
+                    $shippingQuery->where('order_code', 'like', $likeTerm);
+                });
+
+                if ($orderIdTerm !== null) {
+                    $query->orWhere('orders.id', 'like', '%' . $orderIdTerm . '%');
+                }
+            })
+            ->orderByDesc('orders.id');
+
+        $countQuery = clone $ordersQuery;
+        $sumQuery = clone $ordersQuery;
+
+        $list = $ordersQuery->paginate(50)->appends(['search' => $searchTerm]);
+        $totalOrder = $countQuery->count();
+        $sumProduct = $sumQuery->sum('orders.qty');
+
+        $productController = new ProductController();
+        $listAttribute = json_encode($productController->getAttributesProduct());
+        $products = Product::where('status', 1)->get();
+
+        return view('pages.orders.index', [
+            'list' => $list,
+            'search' => $searchTerm,
+            'totalOrder' => $totalOrder,
+            'sumProduct' => $sumProduct,
+            'listAttribute' => $listAttribute,
+            'products' => $products,
+        ]);
     }
 
     public function getListSale() {
