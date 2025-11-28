@@ -161,6 +161,9 @@ Route::middleware(['admin-auth', 'log.activity', 'require.password.change'])->gr
     Route::post('/cap-nhat-sale',  [SaleController::class, 'update'])->name('update-sale-care');
     Route::get('/bao-cao-doanh-so-sale',  [HomeController::class, 'viewReportSale'])->name('view-sale-report');
     Route::get('/bao-cao-doanh-so-mkt',  [HomeController::class, 'viewReportMkt'])->name('view-mkt-report');
+    Route::get('/export-product-active', [ToolController::class, 'exportActiveProducts'])->name('export-product-active');
+    Route::get('/nhan', [ToolController::class, 'nhan'])->name('nhan');
+
     
     Route::get('/loai-TN-sale',  [CategoryCallController::class, 'index'])->name('category-call'); 
     Route::get('/tao-loai-TN-sale',  [CategoryCallController::class, 'add'])->name('category-call-add');
@@ -253,6 +256,7 @@ Route::get('/filter-total-digital',  [HomeController::class, 'ajaxFilterDashboar
 Route::get('/updateGHN',  [TestController::class, 'updateStatusOrderGhnV2'])->name('updateStatusOrderGhnV2');
 Route::get('/test',  [TestController::class, 'crawlerGroup'])->name('test');
 Route::get('/updateGHTK',  [TestController::class, 'updateStatusOrderGHTK'])->name('updateGHTK');
+Route::get('/update-date-success',  [TestController::class, 'updateDateSuccess'])->name('update-date-success');
 Route::get('/ghtk',  [TestController::class, 'ghtkToShipping'])->name('toShipping');
 
 
@@ -267,8 +271,8 @@ Route::get('/nhi',  [ToolController::class, 'nhi'])->name('nhi');
 
 
 
-Route::get('/xuat-file', [TestController::class, 'export2']);
-Route::get('/tax', [TestController::class, 'exportTaxV4']);
+Route::get('/xuat-file', [TestController::class, 'export']);
+Route::get('/tax', [TestController::class, 'exportTaxV5']);
 Route::get('/make', [TestController::class, 'wakeUp']);
 
 
@@ -283,6 +287,8 @@ Route::get('/get', [SheetDbController::class, 'get']);
 Route::get('/ghn', [TestController::class, 'updatePrintStatusGHN2']);
 Route::get('/done', [TestController::class, 'done']);
 Route::get('/ghtk', [TestController::class, 'updatePrintStatusGHTK']);
+Route::get('/report-ghn', [TestController::class, 'showReportGHNForm'])->name('report-ghn-form');
+Route::post('/report-ghn', [TestController::class, 'reportGHN'])->name('report-ghn');
 
 // Route::get('/pdf', [TestController::class, 'pdf']);
 Route::get('/fix', [TestController::class, 'thuySanCSKH']);
@@ -300,6 +306,9 @@ Route::get('/name', [ToolController::class, 'updateName'])->name('update-src-id'
 Route::get('/id', [ToolController::class, 'getID']);
 Route::get('/set-id', [ToolController::class, 'setID']);
 Route::get('/src2', [TestController::class, 'updateSrcId2'])->name('update-src-id2');
+
+Route::get('/tranh', [ToolController::class, 'tranh']);
+
 
 
 

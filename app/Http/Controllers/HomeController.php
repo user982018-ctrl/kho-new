@@ -994,6 +994,7 @@ class HomeController extends Controller
             $profileImg = '/storage/app/public/' . $user['profile_image'];
         }
         $result = [
+            'id' => $user['id'] ?? 0, // Thêm id để sort by user_id
             'profile_image' => $profileImg,
             'name' => ($user['real_name']) ?: '',
             'new_customer' => $newCustomer,
@@ -1554,14 +1555,14 @@ class HomeController extends Controller
         ];
         
         foreach ($filters as $key => $value) {
-            if ($value && $value != 999) {
+            if ($value !== null && $value !== '' && $value != 999) {
                 $dataFilter[$key] = $value;
                 if ($key === 'src') {
                     $newFilter['src'] = $value;
                 }
             }
         }
-        
+
         $show = $req->show ?? 20;
         // if ($groupDigital && $groupDigital != 999) {
         //     $groupDi = GroupUser::find($groupDigital);
@@ -1772,6 +1773,7 @@ class HomeController extends Controller
                     }
                     
                     if (in_array($srcId, $listSrcIdsCache)) {
+                        $listSrc[$digitalSrc->id]['id'] = $digitalSrc->id; // Thêm id để sort by user_id
                         $listSrc[$digitalSrc->id]['name'] = $digitalSrc->real_name ?? '';
                         if ($sc->old_customer == 0 || $sc->old_customer == 2) {
                             $listSrc[$digitalSrc->id]['new_customer'] = [
@@ -1798,6 +1800,9 @@ class HomeController extends Controller
  
         // Bỏ logic array_slice ở đây vì đã xử lý ở ajaxFilterDashboardDigitalV3
         foreach ($listSrc as $k => $data) {
+            // Thêm id vào top level của mỗi item (k là user id)
+            $listSrc[$k]['id'] = $k;
+            
             $orderNew = $totalNew = $contactNew = $avgNew = $rateNew = 0;
             $orderOld = $totalOld = $contactOld = $avgOld = $rateOld = 0;
             /** new */
@@ -1871,8 +1876,34 @@ class HomeController extends Controller
     public function getReportUserDigitalV3($dataFilter) 
     {
         $listFiltrSrc = $this->getListSaleCare($dataFilter);
+        
+        // Lưu danh sách digital user IDs cần lọc (nếu có groupDigital)
+        $filterDigitalIds = null;
+        if (isset($dataFilter['groupDigital']) && $dataFilter['groupDigital'] != 999) {
+            $groupDi = GroupUser::find($dataFilter['groupDigital']);
+            if ($groupDi) {
+                $filterDigitalIds = $groupDi->users->pluck('id')->toArray();
+                // Chỉ giữ lại các digital user thuộc groupDigital
+                $listFiltrSrc = array_filter($listFiltrSrc, function($key) use ($filterDigitalIds) {
+                    return in_array($key, $filterDigitalIds);
+                }, ARRAY_FILTER_USE_KEY);
+            } else {
+                // Nếu không tìm thấy group, trả về mảng rỗng
+                $listFiltrSrc = [];
+            }
+        }
+        
         // dd($listFiltrSrc);
-        return $this->getListMktReportOrder($dataFilter, $listFiltrSrc);
+        $result = $this->getListMktReportOrder($dataFilter, $listFiltrSrc);
+        
+        // Lọc lại kết quả sau getListMktReportOrder (vì hàm này có thể thêm digital users mới)
+        if ($filterDigitalIds !== null) {
+            $result = array_filter($result, function($key) use ($filterDigitalIds) {
+                return in_array($key, $filterDigitalIds);
+            }, ARRAY_FILTER_USE_KEY);
+        }
+        
+        return $result;
     }
 
     public function getDataDigitalV4($dataFilter)
@@ -2055,7 +2086,7 @@ class HomeController extends Controller
         return $result;
     }
 
-        public function getDataDigitalV3($dataFilter)
+    public function getDataDigitalV3($dataFilter)
     {
         $countOrder = $countOrderOld = $countOrderNew = $countSaleCareOld = $countSaleCareNew = $avgOrders = 0;
         $result = $newCustomer = $oldCustomer = []; 
@@ -2261,6 +2292,7 @@ class HomeController extends Controller
             if (!isset($result[$digital->id])) {
                 if (($s->old_customer == 0 || $s->old_customer == 2)) {
                     $result[$digital->id] = [
+                        'id' => $digital->id, // Thêm id để sort by user_id
                         'name' => $digital->real_name ?? '',
                         'new_customer' => [
                             'contact' => 1,
@@ -2277,6 +2309,7 @@ class HomeController extends Controller
                     ];
                 } else if ($s->old_customer == 1) {
                     $result[$digital->id] = [
+                        'id' => $digital->id, // Thêm id để sort by user_id
                         'name' => $digital->real_name ?? '',
                         'old_customer' => [
                             'contact' => 1,

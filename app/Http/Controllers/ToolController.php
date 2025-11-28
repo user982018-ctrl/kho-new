@@ -12,12 +12,46 @@ use Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\TestController;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Models\Product;
 use App\Exports\UsersExport;
+use App\Models\User;
 
 
 
 class ToolController extends Controller
 {
+    public function nhan(){
+        $list = User::where('status', 1)
+        ->where('is_digital', 1)
+        ->select('id', 'name', 'real_name')
+        ->get()
+        ->toArray();
+
+        foreach ($list as $item) {
+            echo $item['id'] . ' - ' . $item['name'] . ' - ' . $item['real_name'] . '<br>';
+        }
+        // dd($list);
+    }
+    public function tranh(){
+        // Cập nhật tất cả SaleCare có assign_user = 218 thành 242
+        $count = SaleCare::where('assign_user', 218)->count();
+        
+        if ($count == 0) {
+            return response()->json([
+                'message' => 'Không tìm thấy SaleCare nào có assign_user = 218',
+                'count' => 0
+            ]);
+        }
+
+        $updated = SaleCare::where('assign_user', 218)
+            ->update(['assign_user' => 242]);
+
+        return response()->json([
+            'message' => 'Cập nhật thành công',
+            'total_found' => $count,
+            'updated' => $updated
+        ]);
+    }
     public function nhi(){
         $list = SaleCare::whereDate('created_at', '>=', '2025-10-22')
         ->whereDate('created_at', '<=', '2025-11-11')
@@ -86,6 +120,38 @@ class ToolController extends Controller
             $testCtl->crawlerPancakePage($page, $group);
         }
 
+    }
+
+    public function exportActiveProducts()
+    {
+        $products = Product::with('category')
+          ->where('status', 1)
+          ->orderBy('name')
+          ->get();
+    
+        if ($products->isEmpty()) {
+          return back()->with('error', 'Không có sản phẩm đang bật để xuất.');
+        }
+    
+        $dataExport = [
+          ['STT', 'Tên sản phẩm', 'Tên thuế', '% thuế', 'Danh mục', 'Giá tiền']
+        ];
+    
+        $i = 1;
+        foreach ($products as $product) {
+          $dataExport[] = [
+            $i,
+            $product->name,
+            $product->tax_name,
+            $product->tax,
+            $product->category->name ?? '',
+            number_format($product->price),
+          ];
+          $i++;
+        }
+    
+        $fileName = 'san-pham-dang-bat-' . now()->format('Ymd_His') . '.xlsx';
+        return Excel::download(new UsersExport($dataExport), $fileName);
     }
 
     public function getID(){

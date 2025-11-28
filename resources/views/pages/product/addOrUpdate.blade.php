@@ -21,6 +21,12 @@
                                     <div class="tab-pane p-3 active preview" role="tabpanel" id="preview-1000">
                                         <div class="row">
                                             <div class="mb-3 col-4">
+                                                <label class="form-label" for="idStringIP">Mã sản phẩm</label>
+                                                <input class="form-control" value="{{$product->id_string ?? ''}}" name="id_string"
+                                                    id="idStringIP" type="text">
+                                                <p class="error_msg" id="id_string"></p>
+                                            </div>
+                                            <div class="mb-3 col-4">
                                                 <label class="form-label" for="nameIP">Tên sản phẩm</label>
                                                 <input class="form-control" value="{{$product->name}}" name="name"
                                                     id="nameIP" type="text">
@@ -151,6 +157,11 @@
                                 {{ csrf_field() }}
                                 <div class="tab-pane p-3 active preview" role="tabpanel" id="preview-1000">
                                     <div class="row">
+                                        <div class="mb-3 col-4">
+                                            <label class="form-label" for="idStringIP">Mã sản phẩm</label>
+                                            <input class="form-control" name="id_string" id="idStringIP" type="text">
+                                            <p class="error_msg" id="id_string"></p>
+                                        </div>
                                         <div class="mb-3 col-4">
                                             <label class="form-label" for="nameIP">Tên sản phẩm</label>
                                             <input class="form-control" name="name" id="nameIP" type="text">
@@ -317,6 +328,7 @@ $(document).ready(function() {
         var nameTax = $("input[name='nameTax']").val();
         var tax = $("input[name='tax']").val();
         var bottle = $("input[name='bottle']").val();
+        var id_string = $("input[name='id_string']").val();
         // $("input[name='roles[]']:checked").each(function() {
         //     roles.push($(this).val());
         // });
@@ -339,6 +351,7 @@ $(document).ready(function() {
                 weight,
                 unit,
                 orderBy,
+                id_string,
             },
             success: function(data) {
                 console.log(data);

@@ -82,7 +82,7 @@ $isLeadSale = Helper::isLeadSale(Auth::user()->role);
                                     <div class="row" id="content-add">
                                         <div class="col-sm-12 col-lg-3">
                                             <label class="form-label" for="phoneFor">Số điện thoại</label>
-                                            <input value="{{$saleCare->phone}}" class="form-control" name="phone" id="phoneFor" type="text">
+                                            <input readonly value="{{$saleCare->phone}}" class="form-control" name="phone" id="phoneFor" type="text">
                                             <p class="error_msg" id="phone"></p>
                                         </div>
                                         <div class="col-sm-12 col-lg-3">

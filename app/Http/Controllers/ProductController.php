@@ -112,6 +112,7 @@ class ProductController extends Controller
                 $text = 'Tạo sản phẩm thành công.';
             }
 
+            $product->id_string     = $request->id_string;
             $product->tax_name      = $request->nameTax;
             $product->name          = $request->name;
             $product->qty           = $request->qty;

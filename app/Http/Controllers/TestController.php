@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Helpers\Helper;
 use App\Models\Group;
 use App\Models\SrcPage;
+use App\Models\Product;
 use DateTime;
 use PHPUnit\TextUI\Help;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
@@ -22,11 +23,16 @@ use function PHPUnit\Framework\assertFalse;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\UsersExport;
 use Google\Service\AndroidPublisher\Order;
+use Google\Client;
+use Google\Service\Sheets;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+use Illuminate\Support\Str;
 
 // setlocale(LC_TIME, 'vi_VN.utf8');
 // setlocale(LC_TIME, "vi_VN");
@@ -1144,10 +1150,10 @@ class TestController extends Controller
 
       $pages = $group->srcs;
       foreach ($pages as $page) {
-        // if ($page->id_page != '872813095912673') {
+        // if ($page->id_page != '747147778493050') {
         //   continue;
         // }
-        if ($page->type == 'pc' ) {
+        if ($page->type == 'pc' && $page->status == 1) {
           $this->crawlerPancakePage($page, $group);
         }
       }
@@ -1173,8 +1179,12 @@ class TestController extends Controller
     if ( $pIdPan != '' && $token != '' && $namePage != '' && $linkPage != '') {
 
       $endpoint = "https://pancake.vn/api/v1/pages/$pIdPan/conversations";
+      // $today    = strtotime(date("Y/m/d H:i"));
+      // $before   = strtotime ( '-72 hour' , strtotime ( date("Y/m/d H:i") ) ) ;
+      // $before   = date ( 'Y/m/d H:i' , $before );
+      // $before   = strtotime($before);
       $today    = strtotime(date("Y/m/d H:i"));
-      $before   = strtotime ( '-12 hour' , strtotime ( date("Y/m/d H:i") ) ) ;
+      $before   = strtotime ( '-72 hour' , strtotime ( date("Y/m/d H:i") ) ) ;
       $before   = date ( 'Y/m/d H:i' , $before );
       $before   = strtotime($before);
 
@@ -1206,6 +1216,10 @@ class TestController extends Controller
               $name     = isset($item->customers[0]) ? $item->customers[0]->name : '';
               $messages = (isset($recentPhoneNumbers) && !empty($recentPhoneNumbers->m_content)) ? $recentPhoneNumbers->m_content : '';
               $phone = Helper::getCustomPhoneNum($phone);
+
+              // if ($phone != '0974229652') {
+              //   continue;
+              // }
               // echo $phone . '<br>';
               $is_duplicate = $hasOldOrder = $isOldCustomer = $assgin_user = 0;
               $checkSaleCareOld = Helper::checkOrderSaleCarebyPhoneV5($phone, $mId, $is_duplicate, $hasOldOrder);
@@ -1217,6 +1231,8 @@ class TestController extends Controller
               }
 
               if ($name && $checkSaleCareOld) {
+              // dd($item);
+
                 $assignSale = Helper::assignSaleFB($hasOldOrder, $group, $phone, $typeCSKH, $isOldCustomer);
                 if (!$assignSale) {
                   continue;
@@ -1236,6 +1252,8 @@ class TestController extends Controller
                     //   dd($item);
                       continue;
                   }
+              // dd($item);
+
 
                 $assgin_user = $assignSale->id;
                 $is_duplicate = ($is_duplicate) ? 1 : 0;
@@ -1243,6 +1261,7 @@ class TestController extends Controller
                   $chatId = $group->tele_cskh_data;
                 }
                 
+                // dd($item);
                 $sale = new SaleController();
                 $data = [
                   'page_link' => $linkPage,
@@ -1457,14 +1476,14 @@ class TestController extends Controller
 
   public function export()
   {
-    // $user = User::find(159);
-    // $listSaleOfLeader = Helper::getListSaleV2($user);
+    $user = User::find(159);
+    $listSaleOfLeader = Helper::getListSaleV2($user);
     // dd($listSaleOfLeader);
-    // $listSaleId = $listSaleOfLeader->pluck('id')->toArray();
+    $listSaleId = $listSaleOfLeader->pluck('id')->toArray();
     // dd($listSaleId);
     $sale = new SaleController();
     $req = new Request();
-    $req['daterange'] = ['01/01/2024', '31/10/2025'];
+    $req['daterange'] = ['01/11/2025', '30/11/2025'];
     // $req['sale'] = '76';
     // $req['typeDate'] = '2';
     // $sales = ['171','70'];
@@ -1475,7 +1494,7 @@ class TestController extends Controller
 
     $list->where('old_customer', 0);
     // $list->where('is_duplicate', 0);
-    // $list->where('group_id', '12');
+    $list->where('group_id', '11');
     // $list->paginate(1000, ['*'], 'page', 4);
     if (isset($listSaleId)) {
       $list->whereIn('assign_user', $listSaleId);
@@ -1507,7 +1526,7 @@ class TestController extends Controller
       $i++;
     }
 
-    return Excel::download(new UsersExport($dataExport), 'TS-8.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'Truc-11.xlsx');
   }
 
   public function export2()
@@ -1585,6 +1604,36 @@ class TestController extends Controller
     return response()->download($zipFullPath)->deleteFileAfterSend(true);
   }
 
+  public function exportActiveProducts()
+  {
+    $products = Product::with('category')
+      ->where('status', 1)
+      ->orderBy('name')
+      ->get();
+
+    if ($products->isEmpty()) {
+      return back()->with('error', 'Không có sản phẩm đang bật để xuất.');
+    }
+
+    $dataExport = [
+      ['STT', 'Tên sản phẩm', 'Danh mục', 'Giá tiền']
+    ];
+
+    $i = 1;
+    foreach ($products as $product) {
+      $dataExport[] = [
+        $i,
+        $product->name,
+        $product->category->name ?? '',
+        number_format($product->price),
+      ];
+      $i++;
+    }
+
+    $fileName = 'san-pham-dang-bat-' . Carbon::now()->format('Ymd_His') . '.xlsx';
+    return Excel::download(new UsersExport($dataExport), $fileName);
+  }
+
   public function wakeUp()
   {
     $listSc = SaleCare::whereNotNull('result_call')
@@ -1592,8 +1641,8 @@ class TestController extends Controller
       ->where('result_call', '!=', 0)
       ->where('result_call', '!=', -1)
       ->where('has_TN', 1)
-      ->where('created_at', '>' , '2025-09-01')
-      // ->limit(1000)
+      ->where('created_at', '>' , '2025-08-01')
+      // ->limit(200)
       // ->where('id', '74390')
       ->orderBy('id', 'DESC')
       ->get();
@@ -1611,9 +1660,9 @@ class TestController extends Controller
       $time = $call->time;
       $updatedAt  = $sc->time_update_TN;
       $isRunjob   = $sc->is_runjob;
-      $saleAssign   = $sc->user->real_name;
+      $saleAssign   = ($sc->user)? $sc->user->real_name : '';
 
-      if (!$sc->user->status || !$sc->user->is_receive_data) {
+      if ($sc->user && (!$sc->user->status || !$sc->user->is_receive_data)) {
         continue;
       }
 
@@ -1736,25 +1785,33 @@ WHERE  NOT EXISTS
     
   }
 
-  public function exportTaxV4()
-  {
-    $time = ['01/11/2025', '10/11/2025'];
-    $timeBegin  = str_replace('/', '-', $time[0]);
-    $timeEnd    = str_replace('/', '-', $time[1]);
-    $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
-    $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
 
+  public function exportTaxV5($allOrderCodes, $fileName)
+  {
+    // $time = ['01/09/2025', '10/09/2025'];
+    // $timeBegin  = str_replace('/', '-', $time[0]);
+    // $timeEnd    = str_replace('/', '-', $time[1]);
+    // $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
+    // $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
+
+    // dd($allOrderCodes);
+    $orderCodes = array_keys($allOrderCodes);
+    // dd($unitType);
     $list = Orders::select('orders.*')->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
       ->join('sale_care', 'sale_care.id', '=', 'orders.sale_care')
-      ->where('shipping_order.vendor_ship', 'GHTK')
+      // ->where('shipping_order.vendor_ship', $unitType)
+      ->whereIn('shipping_order.order_code', $orderCodes)
       ->where('orders.status', 3)
-      ->whereDate('orders.created_at', '>=', $dateBegin)
-      ->whereDate('orders.created_at', '<=', $dateEnd)
+      // ->whereDate('orders.created_at', '>=', $dateBegin)
+      // ->whereDate('orders.created_at', '<=', $dateEnd)
+      //  ->whereDate('orders.date_success', '>=', $dateBegin)
+      // ->whereDate('orders.date_success', '<=', $dateEnd)
       // ->where('sale_care.group_id', '!=', 11)
-      ->whereNotIn('sale_care.group_id', [11, 12])
-      // ->where('orders.id', '29214')
+      // ->whereNotIn('sale_care.group_id', [11, 12])
+      // ->where('orders.id', '23050')
       ->orderBy('orders.id', 'desc');
 
+      // dd($list->get());
 
     $dataExport[] = [
       'Số thứ tự hóa đơn (*)' , 'Ngày hóa đơn', 'Tên đơn vị mua hàng', 'Mã khách hàng', 'Địa chỉ', 'Mã số thuế', 'Người mua hàng', 
@@ -1768,18 +1825,29 @@ WHERE  NOT EXISTS
     // dd($list);
 
     $bottlesInfo = [
-      'Thùng nhựa 11L có nắp (Hàng tặng không thu tiền)' => 'Bộ',
-      'Chai nhựa 1 lít (Hàng tặng không thu tiền)' => 'Cái',
-      'Can Nhựa 5L (Hàng tặng không thu tiền)' => 'Bộ',
+      'Can Nhựa 20L (Hàng tặng không thu tiền)' => 'AHT00002',
+      'Thùng nhựa 11L có nắp (Hàng tặng không thu tiền)' => 'AHT00006',
+      'Chai nhựa 1 lít (Hàng tặng không thu tiền)' => 'AHT00005',
+      'Can Nhựa 5L (Hàng tặng không thu tiền)' => 'AHT00003',
+      'Chai 0,5 lít (nhựa) (Hàng tặng không thu tiền)' => 'AHT00004',
       'Can nhựa NPK' => 'Bộ',
     ];
+    
     foreach ($list as $data) {
+      try {
       $orderTmp[] = $data->id;
       $listProduct = json_decode($data->id_product,true);
        //trường hợp đơn chỉ cho 1 sp
       $percenTax = '5';
       $totalGTGT = '';
       
+      $orderCode = $data->shippingOrder->order_code;
+      $dateCreated = $allOrderCodes[$orderCode] ?? $data->created_at;
+      // if ($orderCode != '1707356929') {
+      //   // dd($dateCreated);
+      //   continue;
+      // }
+
       if (count($listProduct) == 1) {
         $item = $listProduct[0];
         $product = getProductByIdHelper($item['id']);
@@ -1799,14 +1867,16 @@ WHERE  NOT EXISTS
         $totalBefore = $product->price;
         $productName = ($product->tax_name) ? $product->tax_name : $product->name;
         $bottleName = $product->bottle;
+        $idString = $product->id_string ?? '';
 
         if ($product->id == 83) {
           $variantId = $item['variantId'];
           $variant = HelperProduct::getProductVariantById($variantId);
           $weight = $variant->weight;
-          $bottleName = $variant->bottle;
+          $bottleName = $variant->bottle ?? 'Can Nhựa 5L (Hàng tặng không thu tiền)';
           // dd($variant);
           $productName = $variant->tax_name;
+          $idString = $variant->id_string ?? '';
           $unit = 'Bộ';
           if ($variant->tax_name) {
             $productName = $variant->tax_name;
@@ -1829,19 +1899,20 @@ WHERE  NOT EXISTS
         if ($product->unit == 'lít' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
           //5000g => chia 1000 => 5kg
           $kg = (int)($weight/1000);
-          $qty = $qty * $kg;
+          $qty = (int)($qty * $kg);
         }
+
         $rateTax = 1.05; // tax = 5
         if ($product->tax == 8) {
           $rateTax = 1.08;
           $percenTax = '8';
         }
+        // dd($qty);
 
         if (strpos($productName, "Hàng tặng") !== false ) {
           $percenTax = '../..';
           $totalGTGT = '../..';
         } else {
-          $qty = $data->qty;
           $totalOrder = $total;
           $totalBefore = $totalOrder / $rateTax;
           $taxbeforeProduct = $totalBefore / $qty;
@@ -1851,7 +1922,6 @@ WHERE  NOT EXISTS
         }
 
         // }
-
         if ($k != $i) {
           $tmp = [
             '',//Số thứ tự hóa đơn (*)
@@ -1870,9 +1940,9 @@ WHERE  NOT EXISTS
             '',// Tiền CK
             '',
             $productName,// Tên hàng hóa/dịch vụ (*)
-            '',// Mã hàng
+            $idString,// Mã hàng
             $product->unit,// 'ĐVT',
-            $item->val,//  'Số lượng', 
+            $qty,//  'Số lượng', 
             $productPrice,//  'Đơn giá', 
             '',//  'Tỷ lệ CK (%)', 
             '',//  'Tiền CK',
@@ -1883,7 +1953,8 @@ WHERE  NOT EXISTS
         } else {
           $tmp = [
           $i,//Số thứ tự hóa đơn (*)
-          date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
+          // date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
+          $dateCreated,
           '',// Tên đơn vị mua hàng
             '',// Mã khách hàng
             $data->address,// Địa chỉ
@@ -1898,9 +1969,9 @@ WHERE  NOT EXISTS
             $data->shippingOrder->order_code,// Mã đơn vận
             $data->phone,
             $productName,// Tên hàng hóa/dịch vụ (*)
-            '',// Mã hàng
+            $idString,// Mã hàng
             $product->unit,// 'ĐVT',
-            $item['val'],//  'Số lượng', 
+            $qty,//  'Số lượng', 
             $productPrice,//  'Đơn giá', 
             '',//  'Tỷ lệ CK (%)', 
             '',//  'Tiền CK',
@@ -1930,7 +2001,7 @@ WHERE  NOT EXISTS
             // '',
             '',
             $bottleName,// Tên hàng hóa/dịch vụ (*)
-            '',// Mã hàng
+            $bottlesInfo[$bottleName] ?? '',// Mã hàng
             $unit,// 'ĐVT',
             (int)($qty/$kg),//  'Số lượng', 
             '',//  'Đơn giá', 
@@ -1943,6 +2014,8 @@ WHERE  NOT EXISTS
           $dataExport[] = $tmp;
         }
         $k++;
+
+        // dd($dataExport);
 
         /** số tổng sản phẩm lớn hơn 1 */
       } else {
@@ -1987,15 +2060,31 @@ WHERE  NOT EXISTS
           $weight = $product->weight;
           $bottleName = $product->bottle;
           $unit = $product->unit;
+          $idString = $product->id_string ?? '';
+
           if ($product->id == 83) {
             $variantId = $item['variantId'];
+            // if ($variantId != 0) {
+            //   continue;
+            // }
             $variant = HelperProduct::getProductVariantById($variantId);
-            $bottleName = $variant->bottle;
-            $weight = $variant->weight;
             $unit = 'Bộ';
-            if ($variant->tax_name) {
-              $productName = $variant->tax_name;
+            $bottleName = 'Can Nhựa 5L (Hàng tặng không thu tiền)';
+            if($variant) {
+              $bottleName = $variant->bottle;
+              $weight = $variant->weight;
+              $idString = $variant->id_string ?? '';
+              
+             
+              if ($variant->tax_name) {
+                $productName = $variant->tax_name;
+              }
+            } else {
+              $productName = "Phân bón Organic AB01 - Agrium 5.5.25 5kg";
+              $weight = 5000;
+              $idString = 'NPK00011';
             }
+
           }
 
           // dd($qty);
@@ -2039,7 +2128,7 @@ WHERE  NOT EXISTS
           }
          
           if ($j != $i) {
-            $tmp = ['', '', '', '', '', '',  '', '','', '', '','', '', '','', $productName,'', $product->unit, $qty, $productPrice,
+            $tmp = ['', '', '', '', '', '',  '', '','', '', '','', '', '','', $productName, $idString, $product->unit, $qty, $productPrice,
               '', '', $percenTax, $totalGTGT, $total,   
             ];  
             $dataExport[] = $tmp;
@@ -2066,7 +2155,7 @@ WHERE  NOT EXISTS
                 '',// Tiền CK
                 '',
                 $bottleName,// Tên hàng hóa/dịch vụ (*)
-                '',// Mã hàng
+                $bottlesInfo[$bottleName] ?? '',// Mã hàng
                 $unit,// 'ĐVT',
                 $qtyTmp,//  'Số lượng', 
                 '',//  'Đơn giá', 
@@ -2082,7 +2171,8 @@ WHERE  NOT EXISTS
               // dd($product->name);
             $tmp = [
             $i,//Số thứ tự hóa đơn (*)
-            date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
+            // date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
+            $dateCreated,
             '',// Tên đơn vị mua hàng
               '',// Mã khách hàng
               $data->address,// Địa chỉ
@@ -2098,7 +2188,7 @@ WHERE  NOT EXISTS
               $data->shippingOrder->order_code,// Mã đơn vận
               $data->phone,
               $productName,// Tên hàng hóa/dịch vụ (*)
-              '',// Mã hàng
+              $idString,// Mã hàng
               $product->unit,// 'ĐVT',
               $qty,//  'Số lượng', 
               $productPrice,//  'Đơn giá', 
@@ -2136,7 +2226,7 @@ WHERE  NOT EXISTS
                 '',
                 '',
                 $bottleName,// Tên hàng hóa/dịch vụ (*)
-                '',// Mã hàng
+                $bottlesInfo[$bottleName] ??  '',// Mã hàng
                 $unit,// 'ĐVT',
                 $qtyTmp,//  'Số lượng', 
                 '',//  'Đơn giá', 
@@ -2154,10 +2244,14 @@ WHERE  NOT EXISTS
         }
       }
       $i++;
+    } catch (\Exception $e) {
+      dd($data->id);
     }
+    }
+    
     // die();
     // dd($dataExport);
-    return Excel::download(new UsersExport($dataExport), 'GHTK-10-11.xlsx');
+    return Excel::download(new UsersExport($dataExport), $fileName );
   }
 
   public function exportTaxV2()
@@ -3165,6 +3259,251 @@ WHERE  NOT EXISTS
     }
   }
 
+  public function updateDateSuccess(Request $request)
+  {
+    // $limit = (int) $request->get('limit', 400);
+    // $limit = $limit > 0 ? min($limit, 400) : 400;
+    $limit = 100;
+
+    $defaultBegin = '2025-09-10 00:00:00';
+    $defaultEnd = '2025-09-20 23:59:59';
+
+    $fromDate = $request->get('from_date', $defaultBegin);
+    $toDate = $request->get('to_date', $defaultEnd);
+
+    try {
+      $fromDate = $fromDate ? Carbon::parse($fromDate)->startOfDay() : null;
+    } catch (\Exception $e) {
+      $fromDate = null;
+    }
+
+    try {
+      $toDate = $toDate ? Carbon::parse($toDate)->endOfDay() : null;
+    } catch (\Exception $e) {
+      $toDate = null;
+    }
+
+    $orders = Orders::with('shippingOrder')
+      ->whereNull('date_success')
+      ->where('status', 3)
+      ->when($fromDate, fn ($query) => $query->whereDate('orders.created_at', '>=', $fromDate))
+      ->when($toDate, fn ($query) => $query->whereDate('orders.created_at', '<=', $toDate))
+      ->whereHas('shippingOrder', function ($query) {
+        $query->where('vendor_ship', 'GHTK')
+          ->whereNotNull('order_code');
+      })
+      // ->where('orders.id', 26426)
+      ->orderByDesc('orders.id')
+      ->limit($limit)
+      ->get();
+
+      dd($orders);
+    $shippingController = new ShippingOrderController();
+    $updatedItems = [];
+    $errors = [];
+
+    foreach ($orders as $order) {
+      $orderCode = optional($order->shippingOrder)->order_code;
+      if (!$orderCode) {
+        continue;
+      }
+
+      try {
+        $detail = $shippingController->detailDataGHTK($orderCode);
+        $payload = $this->normalizeGhtkDetail($detail);
+
+        if (empty($payload)) {
+          continue;
+        }
+
+        // dd($payload);
+        $successAt = $this->extractGhtkSuccessDatetime($payload);
+        // dd($successAt);
+        if ($successAt) {
+          $order->date_success = $successAt;
+          $order->save();
+
+          $updatedItems[] = [
+            'order_id' => $order->id,
+            'order_code' => $orderCode,
+            'date_success' => optional($order->date_success)->toDateTimeString(),
+          ];
+        }
+      } catch (\Throwable $th) {
+        Log::error('updateDateSuccess error', [
+          'order_id' => $order->id,
+          'order_code' => $orderCode,
+          'message' => $th->getMessage(),
+        ]);
+
+        $errors[] = [
+          'order_id' => $order->id,
+          'order_code' => $orderCode,
+          'message' => $th->getMessage(),
+        ];
+      }
+    }
+
+    return response()->json([
+      'checked' => $orders->count(),
+      'updated' => count($updatedItems),
+      'items' => $updatedItems,
+      'errors' => $errors,
+    ]);
+  }
+
+  protected function normalizeGhtkDetail($detail): array
+  {
+    if ($detail instanceof \Illuminate\Http\Client\Response) {
+      $detail = $detail->json();
+    }
+
+    if (!is_array($detail)) {
+      return [];
+    }
+
+    if (isset($detail['data']) && is_array($detail['data'])) {
+      return $detail['data'];
+    }
+
+    return $detail;
+  }
+
+  protected function extractGhtkSuccessDatetime(array $payload): ?Carbon
+  {
+    $logs = $this->collectGhtkLogs($payload);
+    foreach ($logs as $log) {
+      $message = $this->convertGhtkLogMessage($log);
+      if ($message && $this->messageContainsSuccess($message)) {
+        $timestamp = $this->parseGhtkLogTime($log);
+        if ($timestamp) {
+          return $timestamp;
+        }
+      }
+    }
+
+    $packageTime = $this->extractSuccessTimeFromPackage($payload['package'] ?? ($payload['Package'] ?? null));
+    if ($packageTime) {
+      return $packageTime;
+    }
+
+    $orderTime = $this->extractSuccessTimeFromPackage($payload['order'] ?? null);
+    if ($orderTime) {
+      return $orderTime;
+    }
+
+    return null;
+  }
+
+  protected function collectGhtkLogs(array $payload): array
+  {
+    if (isset($payload['deliveryLog']) && is_array($payload['deliveryLog'])) {
+      return $payload['deliveryLog'];
+    }
+
+    $logs = [];
+    $source = $payload['data'] ?? $payload;
+    $keys = ['deliveryLog', 'DeliverLog', 'deliverLog', 'CreateLog', 'PickLog', 'PrintLog', 'OtherLog', 'Logs'];
+
+    foreach ($keys as $key) {
+      if (isset($source[$key]) && is_array($source[$key])) {
+        $logs = array_merge($logs, $source[$key]);
+      }
+    }
+
+    if ($logs) {
+      usort($logs, function ($a, $b) {
+        $timeA = strtotime($a['created'] ?? $a['time'] ?? $a['updated'] ?? '1970-01-01 00:00:00');
+        $timeB = strtotime($b['created'] ?? $b['time'] ?? $b['updated'] ?? '1970-01-01 00:00:00');
+        return $timeB <=> $timeA;
+      });
+    }
+
+    return $logs;
+  }
+
+  protected function convertGhtkLogMessage(array $log): string
+  {
+    $message = $log['desc'] ?? $log['message'] ?? $log['status'] ?? '';
+    $message = strip_tags((string) $message);
+
+    return mb_strtolower(trim($message));
+  }
+
+  protected function parseGhtkLogTime(array $log): ?Carbon
+  {
+    $fields = ['created', 'time', 'updated', 'updated_at', 'log_time'];
+    foreach ($fields as $field) {
+      if (!empty($log[$field])) {
+        try {
+          return Carbon::parse($log[$field]);
+        } catch (\Exception $e) {
+          continue;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  protected function messageContainsSuccess(string $message): bool
+  {
+    if ($message === '') {
+      return false;
+    }
+
+    $keywords = [
+      'cập nhật giao hàng toàn bộ bởi bưu tá',
+      'từ Đã điều phối giao hàng/Đang giao hàng sang Đã giao hàng/Chưa đối soát',
+      'đã đối soát',
+      'báo cáo trạng thái từ Đang giao hàng sang Đã giao hàng toàn bộ',
+      'đã giao thành công',
+      'da giao thanh cong',
+      'đã phát thành công',
+      'da phat thanh cong',
+    ];
+
+    foreach ($keywords as $keyword) {
+      if (str_contains($message, $keyword)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  protected function extractSuccessTimeFromPackage(?array $data): ?Carbon
+  {
+    if (!$data || !$this->isGhtkSuccessStatus($data['status'] ?? null)) {
+      return null;
+    }
+
+    $fields = ['success_time', 'success_at', 'completed_time', 'delivered_at', 'status_date', 'updated_at', 'modified', 'time_success'];
+    foreach ($fields as $field) {
+      if (!empty($data[$field])) {
+        try {
+          return Carbon::parse($data[$field]);
+        } catch (\Exception $e) {
+          continue;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  protected function isGhtkSuccessStatus($status): bool
+  {
+    if ($status === null || $status === '') {
+      return false;
+    }
+
+    $value = strtolower((string) $status);
+    $successStatuses = ['5', '6', 'delivered', 'success'];
+
+    return in_array($value, $successStatuses, true);
+  }
+
   public function fetchAllViettelPostWards()
   {
     try {
@@ -3199,6 +3538,154 @@ WHERE  NOT EXISTS
         'success' => false,
         'message' => 'Lỗi: ' . $e->getMessage()
       ]);
+    }
+  }
+
+  /**
+   * Hiển thị form nhập thông tin để xuất report GHN
+   */
+  public function showReportGHNForm()
+  {
+    return view('pages.tool.reportGHN');
+  }
+
+  /**
+   * Đọc report GHN từ file Excel được upload và xuất mã đơn hàng ra file Excel
+   * 
+   * @param Request $request
+   * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+   */
+  public function reportGHN(Request $request)
+  {
+    try {
+      // Validate file upload
+      $request->validate([
+        'excel_file' => 'required|file|mimes:xlsx,xls,csv',
+        'order_column' => 'nullable|integer|min:1|max:26',
+        'start_row' => 'nullable|integer|min:1',
+        'read_all_sheets' => 'nullable'
+      ]);
+
+      $file = $request->file('excel_file');
+      $unitType = strtoupper($request->input('unit_type', 'GHN'));
+      $readAllSheets = $request->has('read_all_sheets');
+      $filePrefixInput = trim((string) $request->input('file_prefix', ''));
+
+      // dd($file);
+      if (!$file || !$file->isValid()) {
+        return redirect()->route('report-ghn-form')
+          ->with('error', 'File không hợp lệ hoặc không được upload thành công')
+          ->withInput();
+      }
+
+      // Đọc file Excel
+      $spreadsheet = IOFactory::load($file->getRealPath());
+      
+      // Mảng chứa tất cả mã đơn hàng từ các sheet
+      $allOrderCodes = [];
+      // $allOrderCodes[] = ['Sheet', 'Mã đơn hàng', 'Ngày giao thành công'];
+
+      // Lấy danh sách sheet
+      $sheetNames = $spreadsheet->getSheetNames();
+      // Nếu không đọc tất cả sheet, chỉ đọc sheet đầu tiên
+      if (!$readAllSheets && count($sheetNames) > 0) {
+        $sheetNames = [$sheetNames[0]];
+      }
+
+      $orderCodes = [];
+      // Duyệt qua từng sheet
+      foreach ($sheetNames as $sheetName) {
+        try {
+          $worksheet = $spreadsheet->getSheetByName($sheetName);
+          
+          if (!$worksheet) {
+            continue;
+          }
+
+          // Lấy số dòng cao nhất trong sheet
+          $highestRow = $worksheet->getHighestRow();
+          
+          // Đọc dữ liệu từ dòng startRow đến cuối
+          for ($row = 1; $row <= $highestRow; $row++) {
+            // Lấy giá trị từ cột chỉ định (orderColumn - 1 vì PhpSpreadsheet bắt đầu từ 1)
+            $cellValue = $worksheet->getCellByColumnAndRow(1, $row)->getValue();
+            if ($cellValue !== null && $cellValue !== '') {
+              $orderCode = trim((string) $cellValue);
+              $orderCodeParts = preg_split('/[\s,\.]+/', $orderCode, -1, PREG_SPLIT_NO_EMPTY);
+              if (is_array($orderCodeParts) && count($orderCodeParts) > 1) {
+                $orderCode = end($orderCodeParts);
+              }
+              
+              // Chỉ lấy mã đơn hàng không rỗng
+              if (!empty($orderCode)) {
+                $dateValue = $worksheet->getCellByColumnAndRow(2, $row)->getValue();
+                // $deliveredDate = null;
+                // if (!empty($dateValue)) {
+                //   if (is_numeric($dateValue)) {
+                //     $deliveredDate = ExcelDate::excelToDateTimeObject($dateValue)->format('Y-m-d');
+                //   } else {
+                //     try {
+                //       $parsedDate = Carbon::parse($dateValue);
+                //       $deliveredDate = $parsedDate ? $parsedDate->format('Y-m-d') : null;
+                //     } catch (\Exception $e) {
+                //       $deliveredDate = null;
+                //     }
+                //   }
+                // }
+                // $allOrderCodes[] = [$sheetName, $orderCode, $dateValue];
+               
+                $allOrderCodes[$orderCode] = $dateValue;
+                
+                $orderCodes[] = $orderCode;
+              }
+            }
+          }
+          // dd($orderCodes);
+        } catch (\Exception $e) {
+          // Log lỗi nhưng vẫn tiếp tục với sheet khác
+          Log::error("Lỗi khi đọc sheet {$sheetName}: " . $e->getMessage());
+          continue;
+        }
+      }
+
+      if (count($allOrderCodes) <= 1) {
+        return redirect()->route('report-ghn-form')
+          ->with('error', 'Không tìm thấy mã đơn hàng nào trong file. Vui lòng kiểm tra lại cột và dòng bắt đầu.')
+          ->withInput();
+      }
+      // dd($orderCodes);
+      $timestamp = date('Y-m-d_His');
+      $defaultPrefix = 'report_GHN';
+      $filePrefix = $filePrefixInput ? Str::slug($filePrefixInput, '_') : $defaultPrefix;
+      if (empty($filePrefix)) {
+        $filePrefix = $defaultPrefix;
+      }
+      $exportFileName = $filePrefix . '_' . $timestamp . '.xlsx';
+
+      // dd($allOrderCodes);
+      // foreach ($allOrderCodes as $orderCode) {
+      //   // dd($orderCode);
+      //   echo $orderCode[0] . ' - ' . $orderCode[1] . ' - ' . $orderCode[2] . '<br>';
+      // }
+      // dd('end');
+
+      return $this->exportTaxV5($allOrderCodes, $exportFileName);
+      // return $list;
+      // // Xuất ra file Excel
+      // $fileName = 'report_GHN_' . date('Y-m-d_His') . '.xlsx';
+      // return Excel::download(new UsersExport($allOrderCodes), $fileName);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+      return redirect()->route('report-ghn-form')
+        ->withErrors($e->errors())
+        ->withInput();
+    } catch (\Exception $e) {
+      Log::error("Lỗi reportGHN: " . $e->getMessage());
+      Log::error("Stack trace: " . $e->getTraceAsString());
+      
+      return redirect()->route('report-ghn-form')
+        ->with('error', 'Lỗi khi xử lý: ' . $e->getMessage())
+        ->withInput();
     }
   }
 }

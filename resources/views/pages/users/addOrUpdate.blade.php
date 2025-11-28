@@ -464,13 +464,18 @@ $(document).ready(function() {
         var id          = $("input[name='id']").val();
         var status      = $("input[name='status']:checked").val();
         var is_sale     = $("input[name='is_sale']").is(':checked') ? 1 : 0;
-        var is_receive_data     = $("input[name='is_receive_data']").is(':checked') ? 1 : 0;
+        var is_receive_data     = $("input[name='is_receive_data']:checked").val();
+        if (typeof is_receive_data === 'undefined') {
+            is_receive_data = 0;
+        }
         var is_digital  = $("input[name='is_digital']").is(':checked') ? 1 : 0;
         var is_CSKH     = $("input[name='is_CSKH']").is(':checked') ? 1 : 0;
         var is_kho      = $("input[name='is_kho']").is(':checked') ? 1 : 0;
         var is_accountant = $("input[name='is_accountant']").is(':checked') ? 1 : 0;
         var is_hr       = $("input[name='is_hr']").is(':checked') ? 1 : 0;
 
+        console.log(is_receive_data);
+        // return false;
         let roles = [];
         $("input[name='roles[]']:checked").each(function() {
             roles.push($(this).val());

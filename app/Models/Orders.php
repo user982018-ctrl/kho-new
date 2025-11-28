@@ -21,6 +21,10 @@ class Orders extends Model
      */
     protected $table = 'orders';
 
+    protected $casts = [
+        'date_success' => 'datetime',
+    ];
+
      /**
      * Get the shippingOrder for the Orders.
      */

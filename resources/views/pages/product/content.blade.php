@@ -33,8 +33,10 @@
           <thead>
             <tr>
               <th>#</th>
-              
+              <th colspan="1" class="text-center no-wrap">Mã sản phẩm</th>
               <th colspan="1" class="text-center no-wrap col-spname">Tên sản phẩm</th>
+              <th colspan="1" class="text-center no-wrap">danh mục</th>
+
               <th colspan="1" class="text-center no-wrap">Tên khai thuế</th>
               <th colspan="1" class="text-center no-wrap">Giá</th>
               <th colspan="1" class="text-center no-wrap">Số lượng</th>
@@ -51,7 +53,9 @@
     
             <tr>
               <td>{{ $item->id }}</td>
+              <td>  {{ $item->id_string ?? '' }}</td>
               <td>  {{ $item->name }}</td>
+              <td>  {{ $item->category->name ?? '' }}</td>
               <td >  {{ $item->tax_name }}</td>
               <td>  {{ number_format($item->price)}} đ</td>
               <td>  {{ $item->qty }}</td>

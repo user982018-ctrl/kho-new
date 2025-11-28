@@ -1,0 +1,67 @@
+API VTPOST:
+Tạo đơn:
+    $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiVXNlcklkIjoxNjk4MjMwNiwiRnJvbVNvdXJjZSI6NSwiVG9rZW4iOiJBRTVRTjBWSklYN1pSTEUiLCJleHAiOjE4NDY1ODMzNzksIlBhcnRuZXIiOjE2OTgyMzA2fQ.oEZ11NmDf9YqUBj7WYLD4DDBD72QNWVvOqJwur2dj0WaFgIXPCnoFaFxmLxYudf_hcxzht6fVJmghMnxSxU0dQ';
+    $endpoint = "https://partner.viettelpost.vn/v2/order/createOrder";
+
+    $response = Http::withHeaders([
+        'Token' => $token,
+        'Content-Type' => 'application/json'
+    ])->post($endpoint, $data);
+
+Data param:
+{
+  "ORDER_NUMBER": "",
+  "GROUPADDRESS_ID": 1,
+  "CUS_ID": 0,
+  "SENDER_FULLNAME": "CÔNG TY CỔ PHẦN TMDV THỦY SẢN MIỀN NAM",
+  "SENDER_ADDRESS": "19/1c Nguyễn Thị Chiên",
+  "SENDER_PHONE": "0986987791",
+  "SENDER_EMAIL": "",
+  "SENDER_WARD": 697,
+  "SENDER_DISTRICT": 36,
+  "SENDER_PROVINCE": 2,
+  "RECEIVER_FULLNAME": "Thanh Lục",
+  "RECEIVER_ADDRESS": "Ấp Kình 2A, Tân Thuận, Huyện Vĩnh Thuận, Tỉnh Kiên Giang",
+  "RECEIVER_PHONE": "0919758233",
+  "RECEIVER_EMAIL": "",
+  "RECEIVER_WARD": 11171,
+  "RECEIVER_DISTRICT": 666,
+  "RECEIVER_PROVINCE": 59,
+  "PRODUCT_NAME": "Phân bón",
+  "PRODUCT_DESCRIPTION": "",
+  "PRODUCT_QUANTITY": 2,
+  "PRODUCT_PRICE": 1950000,
+  "PRODUCT_WEIGHT": 21500,
+  "PRODUCT_LENGTH": 20,
+  "PRODUCT_WIDTH": 20,
+  "PRODUCT_HEIGHT": 20,
+  "PRODUCT_TYPE": "HH",
+  "ORDER_PAYMENT": 3,
+  "ORDER_SERVICE": "VSL6",
+  "ORDER_SERVICE_ADD": "",
+  "ORDER_VOUCHER": "",
+  "ORDER_NOTE": "",
+  "MONEY_COLLECTION": 1950000,
+  "MONEY_TOTALFEE": 0,
+  "MONEY_FEECOD": 0,
+  "MONEY_FEEVAS": 0,
+  "MONEY_FEEINSURRANCE": 0,
+  "MONEY_FEE": 0,
+  "MONEY_FEEOTHER": 0,
+  "MONEY_TOTALVAT": 0,
+  "MONEY_TOTAL": 0,
+  "LIST_ITEM": [
+    {
+      "PRODUCT_NAME": "Men vi sinh Super Aqua 20L",
+      "PRODUCT_PRICE": 0,
+      "PRODUCT_WEIGHT": 20000,
+      "PRODUCT_QUANTITY": 1
+    },
+    {
+      "PRODUCT_NAME": "Men tiêu hoá cao cấp 500ml",
+      "PRODUCT_PRICE": 0,
+      "PRODUCT_WEIGHT": 500,
+      "PRODUCT_QUANTITY": 3
+    }
+  ]
+}

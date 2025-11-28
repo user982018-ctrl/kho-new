@@ -1,21 +1,42 @@
-sudo nano /etc/apache2/sites-available/ngathinkpad.com.conf
+sudo nano /etc/apache2/sites-available/magneto-de.com.conf
 <VirtualHost *:80>
-    ServerName ngathinkpad.com
-    ServerAlias www.ngathinkpad.com
-    DocumentRoot /var/www/ngathinkpad.com
+    ServerName magneto-de.com
+    ServerAlias www.magneto-de.com
+    DocumentRoot /var/www/magneto-de.com
 
-    <Directory /var/www/ngathinkpad.com>
+    <Directory /var/www/magneto-de.com>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
 
-    ErrorLog ${APACHE_LOG_DIR}/ngathinkpadcom_error.log
-    CustomLog ${APACHE_LOG_DIR}/ngathinkpadcom_access.log combined
+    ErrorLog ${APACHE_LOG_DIR}/magneto-de.com_error.log
+    CustomLog ${APACHE_LOG_DIR}/magneto-de.com_access.log combined
 </VirtualHost>
 
 
-sudo a2ensite ngathinkpad.com.conf
+sudo a2ensite magneto-de.com.conf
 sudo systemctl reload apache2
 
-sudo certbot --apache -d ngathinkpad.com -d www.ngathinkpad.com
+sudo certbot --apache -d magneto-de.com -d www.magneto-de.com
+
+sudo mkdir -p /var/www/magneto-de.com
+sudo chown -R $USER:$USER /var/www/magneto-de.com
+
+cp -r /var/www/phanbonmiennam.net/* /var/www/magneto-de.com/
+cp -r /var/www/phanbonmiennam.net/.env /var/www/magneto-de.com/.env
+
+
+UPDATE wp_options SET option_value = 'https://magne-de.com' WHERE option_name = 'siteurl';
+UPDATE wp_options SET option_value = 'https://magne-de.com' WHERE option_name = 'home';
+
+
+nano /var/www/magne-de.com/wp-config.php
+
+define( 'DB_NAME', 'site2_db' );
+define( 'DB_USER', 'site2_user' );
+define( 'DB_PASSWORD', 'your_password' );
+define( 'DB_HOST', 'localhost' );
+
+sudo certbot --nginx -d magne-de.com -d www.magne-de.com
+

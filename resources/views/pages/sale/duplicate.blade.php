@@ -98,8 +98,7 @@
                             </td>
                             <td class="text-center">{{($dup->user) ? $dup->user->real_name : ''}} </td>
                             <td>
-                                
-
+                                   
                                 @if (!$dup->type_TN)
                                     @if (!$dup->old_customer)
                                     <span class="fb span-col ttgh7" style="cursor: pointer; width: calc(100% - 60px);">Data nóng</span> 
@@ -109,7 +108,8 @@
                                     <span class="fb span-col" style="cursor: pointer; width: calc(100% - 60px);">Hotline</span> 
                                     @endif
                                 @else
-                                <span class="fb span-col  <?= ($dup->has_TN) ?: 'ttgh7' ?>" style="cursor: pointer; width: calc(100% - 60px);"> {{$dup->typeTN->name}}</span>
+                                <span class="fb span-col  <?= ($dup->has_TN) ?: 'ttgh7' ?>" style="cursor: pointer; width: calc(100% - 60px);"> 
+                                    {{$dup->typeTN ? $dup->typeTN->name : ''}}</span>
                                 @endif
                                 
                             </td>

@@ -614,6 +614,7 @@ class OrdersController extends Controller
         // Tối ưu: Cache Auth::user() để tránh gọi nhiều lần
         $authUser = Auth::user();
         
+        // dd($dataFilter);
         if ($dataFilter) {
             if (isset($dataFilter['daterange'])) {
                 $time       = $dataFilter['daterange'];
@@ -637,7 +638,8 @@ class OrdersController extends Controller
                     ->whereDate('orders.created_at', '<=', $dateEnd);
             }
 
-            if (isset($dataFilter['status'])) {
+            // dd($dataFilter);
+            if (isset($dataFilter['status']) && $dataFilter['status'] != 999) {
                 // 0 1 2 3
                 //4 Chờ vận đơn
                 //5 Có vận đơn, đvvc chưa lấy
@@ -801,8 +803,7 @@ class OrdersController extends Controller
                     $list = $list->whereIn('orders.id', $ids);
                 }
                 
-            }
-        
+            }       
             
             if (isset($dataFilter['group'])) {
                 $group = Group::find($dataFilter['group']);
@@ -902,6 +903,7 @@ class OrdersController extends Controller
            $checkAll = isFullAccess($authUser->role);
         }
         
+        // dd($list->get());
         $isLeadSale = Helper::isLeadSale($authUser->role);
         $isKho = Helper::isKho($authUser);
         if ((isset($dataFilter['sale']) && $dataFilter['sale'] != 999) && ($checkAll || $isLeadSale || $isKho)) {
@@ -910,7 +912,9 @@ class OrdersController extends Controller
             // dd($dataFilter);
             // Tối ưu: Chỉ rõ table name để tránh ambiguous khi có JOIN
             $list = $list->where('orders.assign_user', $dataFilter['sale']);
-        } else if ((!$checkAll || !$isLeadSale) && !$user->is_digital && $user->is_sale) {
+        // } else if ((!$checkAll || !$isLeadSale) && !$user->is_digital && $user->is_sale) {
+        } else if ( $user->is_sale && !$user->is_digital && !$checkAll && !$isLeadSale) {
+
             /** sale đag xem report của mình */
             // Tối ưu: Chỉ rõ table name để tránh ambiguous khi có JOIN
             $list = $list->where('orders.assign_user', $user->id);

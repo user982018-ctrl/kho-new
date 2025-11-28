@@ -176,6 +176,8 @@ class ShippingOrderController extends Controller
                 "LIST_ITEM" => $listItems
             ];
 
+            // dd(json_encode($data));
+
             try {
                 // Token ViettelPost - Cần thay bằng token thật
                 $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiVXNlcklkIjoxNjk4MjMwNiwiRnJvbVNvdXJjZSI6NSwiVG9rZW4iOiJBRTVRTjBWSklYN1pSTEUiLCJleHAiOjE4NDY1ODMzNzksIlBhcnRuZXIiOjE2OTgyMzA2fQ.oEZ11NmDf9YqUBj7WYLD4DDBD72QNWVvOqJwur2dj0WaFgIXPCnoFaFxmLxYudf_hcxzht6fVJmghMnxSxU0dQ';
@@ -482,6 +484,8 @@ class ShippingOrderController extends Controller
                 // "pick_shift" => [2],
                 "items" => $items,
             ];
+
+            // dd(json_encode($data));
 
             /* token test
             * $shopId = '190998';
@@ -1007,7 +1011,7 @@ class ShippingOrderController extends Controller
     public function detailDataVTPost($orderCode)
     {
         $result = [];
-        $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiaW50ZXJuYWwiOmZhbHNlLCJGcm9tU291cmNlIjozLCJUb2tlbiI6IkJDMDVGMThBRTM5QUIwNEY4RDhBOTBGNDNEM0VDNUM2Iiwic2Vzc2lvbklkIjoiMTAyQTBFQjhEMEE4ODdCQzNDOThDNzJGREUzRDYxQzEiLCJsc3RDaGlsZHJlbiI6IiIsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MSwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsIlVzZXJJZCI6MTY5ODIzMDYsIkJQSWQiOiIiLCJleHAiOjE3NjM2MDM5MjYsIlBhcnRuZXIiOjB9.bzF8xdFJiAgyokWyxv-Mr1RbERsbMlLCzZ6bpQ5WGMq_2kUGiEkorZvheecK6gl9t2inSIbiBIFyJD234m98ww';
+        $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiaW50ZXJuYWwiOmZhbHNlLCJGcm9tU291cmNlIjozLCJUb2tlbiI6IkJDMDVGMThBRTM5QUIwNEY4RDhBOTBGNDNEM0VDNUM2Iiwic2Vzc2lvbklkIjoiMTAyQTBFQjhEMEE4ODdCQzNDOThDNzJGREUzRDYxQzEiLCJsc3RDaGlsZHJlbiI6IiIsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MSwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsIlVzZXJJZCI6MTY5ODIzMDYsIkJQSWQiOiIiLCJleHAiOjE3NjQyMjA3MjMsIlBhcnRuZXIiOjB9.MfuDgmJZb6xEHqH3UGhnIZVlQ-oBuwqx5ybSKhxUDlLQI3lxOJHImG9pQuljzbRaPdR7w_yRoqhrRxzfmi2PEg';
 
         try {
             //token lấy từ web

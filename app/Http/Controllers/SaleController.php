@@ -52,7 +52,6 @@ class SaleController extends Controller
             $listUserInGroup = GroupUser::find($dataFilter['groupUser']);
             if ($listUserInGroup) {
                 $listUserGroupIds = $listUserInGroup->users->pluck('id')->toArray();
-                // dd($listUserGroupIds);
                 $listSale = $listSale->whereIn('id', $listUserGroupIds);
             }
         }
@@ -348,7 +347,6 @@ class SaleController extends Controller
 
         // Paginate sau khi đã tính count
         $saleCare = $saleCareQuery->paginate(50);
-        // dd($saleCare);
 
         return view('pages.sale.index')->with('listSrc', $listSrc)
             ->with('groups', $groups)
@@ -385,7 +383,6 @@ class SaleController extends Controller
         $src_id = $r->src_id;
         $srcPage = SrcPage::find($src_id);
         $shareDataSale = $r->shareDataSale;
-        // dd($srcPage);
         if ($srcPage) {
             $linkPage = $srcPage->link;
             $namePage = $srcPage->name;
@@ -448,7 +445,6 @@ class SaleController extends Controller
             'src_id' => $src_id,
             'type_TN' => 1, 
         ];
-        // dd($data);
 
         $r->replace($data);
         $save = $this->save($r);
@@ -807,7 +803,6 @@ class SaleController extends Controller
         $roles  = $user->role;
         $list   = SaleCare::orderBy('created_at', 'desc');
         // $list->where('phone', '0388074466');
-        // dd($list->get());
         // Tối ưu: Cache Auth::user() để tránh gọi nhiều lần
         $authUser = Auth::user();
         $isLeadSale = Helper::isLeadSale($authUser->role);
@@ -820,7 +815,6 @@ class SaleController extends Controller
 
         if ($dataFilter) {
             if (isset($dataFilter['typeDate'])) {
-               
                 /* 
                 * 2: ngày sale chốt đơn
                 * 1: ngày data về hệ thống
@@ -838,7 +832,6 @@ class SaleController extends Controller
                    
                     $ordersCtl = new OrdersController();
                     $listOrder = $ordersCtl->getListOrderByPermisson($authUser, $dataFilter);
-                   
                     $listIdSale = [];
                     foreach ($listOrder->get() as $order) {
                         $listIdSale[] = $order->sale_care;
@@ -1101,9 +1094,7 @@ class SaleController extends Controller
             // Tối ưu: Sử dụng $authUser đã cache thay vì gọi Auth::user() lại
             $groupsUserCollection = Helper::getListSaleV3($authUser);
             $groupsUser = $groupsUserCollection->pluck('id')->toArray();
-            // dd($groupsUser);
             $list = $list->whereIn('assign_user', $groupsUser);
-            // dd($list->get());
 
         } else if ((!$checkAll || !$isLeadSale ) && !$user->is_digital) {
             $list = $list->where('assign_user', $user->id);

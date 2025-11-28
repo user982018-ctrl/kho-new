@@ -7,6 +7,141 @@
 <script type="text/javascript" src="{{asset('public/js/moment.js')}}"></script>
 <link rel="stylesheet" type="text/css" href="{{asset('public/css/daterangepicker.css')}}" /> 
 
+
+<style>
+  /* Honor Bar */
+  .honor-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    z-index: 9999;
+  }
+
+  .scroll-text {
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    animation: scrollLeft 26s linear infinite;
+    font-size: 18px;
+  }
+
+  .rank {
+    margin: 0 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .rankBadge {
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+    font-weight: bold;
+    padding: 8px 14px;
+    border-radius: 25px;
+    font-size: 16px;
+    animation: pulse 2s infinite;
+  }
+
+  .rankBadge.gold { background: gold; color: black; }
+  .rankBadge.silver { background: silver; color: black; }
+  .rankBadge.bronze { background: #cd7f32; color: white; }
+
+  .info {
+    line-height: 1.4;
+  }
+
+  .info span {
+    display: block;
+  }
+
+  @keyframes scrollLeft {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(-100%); }
+  }
+
+  @keyframes pulse {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  /* --- Confetti --- */
+  .confetti-piece {
+    position: fixed;
+    width: 8px;
+    height: 14px;
+    opacity: 0.9;
+    animation: fall linear forwards;
+    z-index: 9999;
+  }
+  @keyframes fall {
+    to {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  /* --- Tim bay lên --- */
+  .heart {
+    position: fixed;
+    bottom: -20px;
+    font-size: 24px;
+    animation: rise 5s linear forwards;
+    z-index: 5000;
+    pointer-events: none;
+  }
+  @keyframes rise {
+    to {
+      transform: translateY(-100vh);
+      opacity: 0;
+    }
+  }
+
+  /* --- Avatar rơi xuống --- */
+img.avatar {
+    position: fixed;
+    top: -60px;
+    width: 80px;
+    height: 80px;
+    /* border-radius: 50%; */
+    pointer-events: none;
+    z-index: 1000;
+}
+.explosion {
+    position: fixed;
+    font-size: 28px;
+    pointer-events: none;
+    z-index: 1001;
+    animation: explode 1.2s ease-out forwards;
+  }
+@keyframes explode {
+    to {
+      transform: translate(var(--dx), var(--dy)) scale(0.6);
+      opacity: 0;
+    }
+  }
+
+  /* --- Icon nổ ra --- */
+   /* Icon nổ ra */
+  .burst {
+    position: fixed;
+    font-size: 32px;
+    animation: burstUp 1.2s ease-out forwards;
+    z-index: 6001;
+  }
+  @keyframes burstUp {
+    0%   { transform: scale(0.5) translateY(0); opacity:1; }
+    60%  { transform: scale(1.3) translateY(-40px); opacity:1; }
+    100% { transform: scale(0.8) translateY(-80px); opacity:0; }
+  }
+</style>
 <style>
   .form-group, .mb12 {
     margin-bottom: 12px !important;
@@ -197,6 +332,15 @@
         <option value="40">Hiển thị 40 dòng</option>
         <option value="60">Hiển thị 60 dòng</option>
         <option value="80">Hiển thị 80 dòng</option>
+      </select>
+    </div>
+
+    <div class="col-xs-12 col-sm-6 col-md-2 form-group mb-1">
+      <select name="sort" id="sort-filter" class="form-select">
+        <option value="">Sắp xếp theo</option>
+        <option value="total_desc">Doanh số giảm dần</option>
+        <option value="total_asc">Doanh số tăng dần</option>
+        <option value="user_id">Thứ tự nhân viên</option>
       </select>
     </div>
   </div>
@@ -447,40 +591,380 @@
       </div>
     </div>
   </div>
+ <!-- Dòng chữ chạy chân trang -->
+ <div class="honor-bar">
+  <div class="scroll-text">
+    <div class="rank">
+      <span class="rankBadge gold">🥇 Top 1</span>
+        
+        <div class="info">
+          <span><strong>Hoàng Thị Thanh Huyền        </strong></span>
+          <span>Doanh số: 1,698,542,000          </span>
+        </div>
+    </div>
+
+    <div class="rank">
+      <span class="rankBadge silver">🥈 Top 2</span>
+      
+      <div class="info">
+        <span><strong>Nguyễn Đức Thắng</strong></span>
+        <span>1,201,763,000        </span>
+      </div>
+    </div>
+
+    <div class="rank">
+      <span class="rankBadge bronze">🥉 Top 3</span>
+        
+        <div class="info">
+          <span><strong>Nguyễn Thị Anh Luyến</strong></span>
+          <span>Doanh số: 1,071,456,000
+          </span>
+        </div>
+    </div>
+    
+    <div class="rank">
+      <span class="rankBadge gold">🥇 Top 1</span>
+        
+        <div class="info">
+          <span><strong>⁠Trần Nguyễn Đăng Khoa        </strong></span>
+          <span>Doanh số: 482,640,000   </span>
+        </div>
+    </div>
+
+    <div class="rank">
+      <span class="rankBadge silver">🥈 Top 2</span>
+      
+      <div class="info">
+        <span><strong>Phạm Thị Ánh Tuyết      </strong></span>
+        <span>Doanh số: 481,600,000</span>
+      </div>
+    </div>
+
+    <div class="rank">
+      <span class="rankBadge bronze">🥉 Top 3</span>
+        <div class="info">
+          <span><strong>Nguyễn Ý Nhật        </strong></span>
+          <span>Doanh số: 471,920,000
+          </span>
+        </div>
+    </div>
+  </div>
+</div>
+  <style>
+   /* Honor Bar */
+.honor-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  /* height: 70px; */
+  background: #fff;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.honor-track {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 18px;
+  width: max-content;
+  animation: scrollLeft 25s linear infinite;
+}
+
+.rank-set {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.rank {
+  margin: 0 40px;
+  /* display: flex; */
+  align-items: center;
+  gap: 12px;
+}
+
+@keyframes scrollLeft {
+  0% { transform: translateX(50%); }
+  100% { transform: translateX(-100%); }
+}
+
+.rankBadge {
+  display: inline-block;
+  min-width: 60px;
+  text-align: center;
+  font-weight: bold;
+  padding: 8px 14px;
+  border-radius: 25px;
+  font-size: 16px;
+  animation: pulse 0.5s infinite;
+}
+
+.rankBadge.gold { background: gold; color: black; }
+.rankBadge.silver { background: silver; color: black; }
+.rankBadge.bronze { background: #cd7f32; color: white; }
+
+/* Snow effect */
+.snow-container {
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 9998;
+}
+.snowflake {
+  position: absolute;
+  top: -10px;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 0 6px rgba(15, 23, 42, 0.4);
+  animation-name: snowFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes snowFall {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate3d(var(--drift, 20px), 110vh, 0) rotate(360deg);
+  }
+}
+
+.info {
+  line-height: 1.4;
+}
+
+.info span {
+  display: block;
+}
+.scroll-text {
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    animation: scrollLeft 36s linear infinite;
+    font-size: 18px;
+  }
+
+  </style>
 
  <!-- Dòng chữ chạy chân trang -->
- {{-- <div id="running-text-footer" style="position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 10px 0; z-index: 9998; overflow: hidden; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);">
-  <div style="display: flex; animation: scroll-left 10s linear infinite; white-space: nowrap;">
-      <span style="padding-right: 100px; font-weight: bold; font-size: 16px;">
-          🏆 CHÚC MỪNG TOP SALES: Phạm Thị Ánh Tuyết - Nguyễn Thị Quỳnh - Nguyễn Thị Quỳnh Như 
-      </span>
-      <span style="padding-right: 100px; font-weight: bold; font-size: 16px;">
-          💻 CHÚC MỪNG TOP DIGITAL: Hoàng Thị Thanh Huyền - Nguyễn Thị Anh Luyến - Lang Thuý Hiền 
-      </span>
-      <span style="padding-right: 100px; font-weight: bold; font-size: 16px;">
-          🎓 CHÚC MỪNG THỰC TẬP SINH XUẤT SẮC: Nguyễn Đức Thắng 
-      </span>
-      <span style="padding-right: 100px; font-weight: bold; font-size: 16px;">
-          ⭐ TUYÊN DƯƠNG NHÂN VIÊN XUẤT SẮC THÁNG NÀY 
-      </span>
-      <!-- Lặp lại để chạy liên tục -->
-      <span style="padding-right: 100px; font-weight: bold; font-size: 16px;">
-          🏆 CHÚC MỪNG TOP SALES: Phạm Thị Ánh Tuyết - Nguyễn Thị Quỳnh - Nguyễn Thị Quỳnh Như 
-      </span>
-      <span style="padding-right: 100px; font-weight: bold; font-size: 16px;">
-          💻 CHÚC MỪNG TOP DIGITAL: Hoàng Thị Thanh Huyền - Nguyễn Thị Anh Luyến - Lang Thuý Hiền 
-      </span>
-      <span style="padding-right: 100px; font-weight: bold; font-size: 16px;">
-          🎓 CHÚC MỪNG THỰC TẬP SINH XUẤT SẮC: Nguyễn Đức Thắng 
-      </span>
-      <span style="padding-right: 100px; font-weight: bold; font-size: 16px;">
-          ⭐ TUYÊN DƯƠNG NHÂN VIÊN XUẤT SẮC THÁNG NÀY 
-      </span>
+ <div class="honor-bar">
+  <div class="scroll-text">
+    <div class="rank">
+      <span class="rankBadge gold">🥇 Top 1</span>
+        
+        <div class="info">
+          <span><strong>Hoàng Thị Thanh Huyền        </strong></span>
+          <span>Doanh số: 1,698,542,000          </span>
+        </div>
+    </div>
+
+    <div class="rank">
+      <span class="rankBadge silver">🥈 Top 2</span>
+      
+      <div class="info">
+        <span><strong>Nguyễn Đức Thắng</strong></span>
+        <span>1,201,763,000        </span>
+      </div>
+    </div>
+
+    <div class="rank">
+      <span class="rankBadge bronze">🥉 Top 3</span>
+        
+        <div class="info">
+          <span><strong>Nguyễn Thị Anh Luyến</strong></span>
+          <span>Doanh số: 1,071,456,000
+          </span>
+        </div>
+    </div>
+    
+    <div class="rank">
+      <span class="rankBadge gold">🥇 Top 1</span>
+        
+        <div class="info">
+          <span><strong>⁠Trần Nguyễn Đăng Khoa        </strong></span>
+          <span>Doanh số: 482,640,000   </span>
+        </div>
+    </div>
+
+    <div class="rank">
+      <span class="rankBadge silver">🥈 Top 2</span>
+      
+      <div class="info">
+        <span><strong>Phạm Thị Ánh Tuyết      </strong></span>
+        <span>Doanh số: 481,600,000</span>
+      </div>
+    </div>
+
+    <div class="rank">
+      <span class="rankBadge bronze">🥉 Top 3</span>
+        <div class="info">
+          <span><strong>Nguyễn Ý Nhật        </strong></span>
+          <span>Doanh số: 471,920,000
+          </span>
+        </div>
+    </div>
   </div>
-</div> --}}
+</div>
+  <div class="snow-container" aria-hidden="true"></div>
+ 
+<div id="topEmployeesPopup" class="top-employees-popup hidden">
+  <div class="popup-backdrop"></div>
+  <div class="popup-card">
+    <button type="button" class="popup-close" aria-label="Đóng">&times;</button>
+    <div class="popup-header">
+      <div>
+        <p class="popup-subtitle mb-1">Tháng {{ date('m/Y') }}</p>
+        <h3 class="m-0">Tuyên dương nhân viên xuất sắc</h3>
+      </div>
+      <span class="popup-badge">🏆</span>
+    </div>
+    <div class="popup-body">
+      <div class="popup-column">
+        <h4>Top Digital</h4>
+        <div class="popup-person gold">
+          <span class="popup-medal gold">🥇</span>
+          <div class="popup-person-content">
+            <p class="popup-name">1. Hoàng Thị Thanh Huyền</p>
+            <p>Doanh số: <strong>1,698,542,000</strong></p>
+            <p>Lương & Thưởng: <strong>42,084,624</strong></p>
+          </div>
+          <img class="popup-avatar" src="https://kho.phanbonmiennam.net/storage/app/public/uploads/1761718987_z5010330060023_655caccc35cbb5b5ffedfce00bbae709_092133_5411cfd4-23e3-4f2f-91d4-9396bfb9c8da.jpg" alt="Hoàng Thị Thanh Huyền">
+        </div>
+        <div class="popup-person silver">
+          <span class="popup-medal silver">🥈</span>
+          <div class="popup-person-content">
+            <p class="popup-name">2. Nguyễn Đức Thắng</p>
+            <p>Doanh số: <strong>1,201,763,000</strong></p>
+            <p>Lương & Thưởng: <strong>31,957,897</strong></p>
+          </div>
+          <img class="popup-avatar" src="https://kho.phanbonmiennam.net/storage/app/public/uploads/1763612075_đâfadf.jpg" alt="Nguyễn Đức Thắng">
+        </div>
+        <div class="popup-person bronze">
+          <span class="popup-medal bronze">🥉</span>
+          <div class="popup-person-content">
+            <p class="popup-name">3. Nguyễn Thị Anh Luyến</p>
+            <p>Doanh số: <strong>1,071,456,000</strong></p>
+            <p>Lương & Thưởng: <strong>31,313,922</strong></p>
+          </div>
+          <img class="popup-avatar" src="https://kho.phanbonmiennam.net/storage/app/public/uploads/1753430384_7688e70ba60e2f50761f.jpg" alt="Nguyễn Thị Anh Luyến">
+        </div>
+      </div>
+      <div class="popup-column">
+        <h4>Top Sale</h4>
+        <div class="popup-person gold">
+          <span class="popup-medal gold">🥇</span>
+          <div class="popup-person-content">
+            <p class="popup-name">1. Trần Nguyễn Đăng Khoa</p>
+            <p>Doanh số: <strong>482,640,000</strong></p>
+            <p>Lương & Thưởng: <strong>36,834,681</strong></p>
+          </div>
+          <img class="popup-avatar" src="https://kho.phanbonmiennam.net/storage/app/public/uploads/1764225269_z7267666472686_67341ec222a7118697e213126e9b1dfd.jpg" alt="Trần Nguyễn Đăng Khoa">
+        </div>
+        <div class="popup-person silver">
+          <span class="popup-medal silver">🥈</span>
+          <div class="popup-person-content">
+            <p class="popup-name">2. Phạm Thị Ánh Tuyết</p>
+            <p>Doanh số: <strong>481,600,000</strong></p>
+            <p>Lương & Thưởng: <strong>36,721,848</strong></p>
+          </div>
+          <img class="popup-avatar" src="https://kho.phanbonmiennam.net/storage/app/public/uploads/1757235240_z6986294919981_44106868eaa2f00ccc94b1e6afd1291f.jpg" alt="Phạm Thị Ánh Tuyết">
+        </div>
+        <div class="popup-person bronze">
+          <span class="popup-medal bronze">🥉</span>
+          <div class="popup-person-content">
+            <p class="popup-name">3. Nguyễn Ý Nhật</p>
+            <p>Doanh số: <strong>471,920,000</strong></p>
+            <p>Lương & Thưởng: <strong>35,879,239</strong></p>
+          </div>
+          <img class="popup-avatar" src="https://kho.phanbonmiennam.net/storage/app/public/uploads/1759976371_db124630-9dab-46c3-a4ff-39ab7cc20589.jpeg" alt="Nguyễn Ý Nhật">
+        </div>
+      </div>
+    </div>
+    <div class="popup-footer">
+      <label class="popup-dontshow">
+        <input type="checkbox" id="popupDontShow" class="popup-checkbox">
+        <span class="popup-dontshow-text">Không hiển thị lại trong tháng này</span>
+      </label>
+    </div>
+  </div>
+</div>
 <script type="text/javascript" src="{{asset('public/js/dateRangePicker/daterangepicker.min.js')}}"></script>
 
 <script>
+const POPUP_STORAGE_KEY = "topEmployeesPopup_v3_{{ date('Y_m') }}";
+
+function showTopEmployeesPopup() {
+  const popup = document.getElementById('topEmployeesPopup');
+  if (!popup) return;
+  popup.classList.remove('hidden');
+  const dontShowCheckbox = document.getElementById('popupDontShow');
+  if (dontShowCheckbox) {
+    dontShowCheckbox.checked = false;
+  }
+  setTimeout(() => popup.classList.add('visible'), 100);
+}
+
+function hideTopEmployeesPopup() {
+  const popup = document.getElementById('topEmployeesPopup');
+  if (!popup) return;
+  popup.classList.remove('visible');
+  setTimeout(() => popup.classList.add('hidden'), 200);
+  if (window.sessionStorage) {
+    const dontShowCheckbox = document.getElementById('popupDontShow');
+    try {
+      if (dontShowCheckbox && dontShowCheckbox.checked) {
+        sessionStorage.setItem(POPUP_STORAGE_KEY, 'true');
+      } else {
+        sessionStorage.removeItem(POPUP_STORAGE_KEY);
+      }
+    } catch (err) {
+      console.warn('Không thể cập nhật trạng thái popup:', err);
+    }
+  }
+}
+
+function initSnowEffect() {
+  const container = document.querySelector('.snow-container');
+  if (!container) return;
+  const flakeCount = 140;
+  for (let i = 0; i < flakeCount; i++) {
+    const flake = document.createElement('span');
+    flake.className = 'snowflake';
+    flake.textContent = Math.random() > 0.3 ? '❄' : '✻';
+    flake.style.left = `${Math.random() * 100}%`;
+    flake.style.animationDuration = `${6 + Math.random() * 12}s`;
+    flake.style.animationDelay = `${Math.random() * 10}s`;
+    flake.style.fontSize = `${8 + Math.random() * 20}px`;
+    flake.style.opacity = 0.3 + Math.random() * 0.6;
+    flake.style.setProperty('--drift', `${-60 + Math.random() * 120}px`);
+    container.appendChild(flake);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  const closeBtn = document.querySelector('#topEmployeesPopup .popup-close');
+  const backdrop = document.querySelector('#topEmployeesPopup .popup-backdrop');
+  if (closeBtn) closeBtn.addEventListener('click', hideTopEmployeesPopup);
+  if (backdrop) backdrop.addEventListener('click', hideTopEmployeesPopup);
+  let shouldShow = true;
+  try {
+    shouldShow = !sessionStorage.getItem(POPUP_STORAGE_KEY);
+  } catch (err) {
+    console.warn('Không thể truy cập sessionStorage:', err);
+    shouldShow = true;
+  }
+  if (shouldShow) {
+    setTimeout(showTopEmployeesPopup, 800);
+  }
+  initSnowEffect();
+});
   $(document).ready(function() {
     
     $('input[name="daterange"]').daterangepicker({
@@ -625,8 +1109,227 @@
           $('#product-filter').parent().remove();
       }
   });
+
+  // Auto reload when sort option changes
+  $("#sort-filter").change(function() {
+    const data = buildFilterData();
+    ajaxGetListCskhDt(data);
+    ajaxGetListSale(data);
+    ajaxGetListDigital(data);
+  });
   });
 </script>
+
+<style>
+.top-employees-popup.hidden { display: none; }
+.top-employees-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.top-employees-popup .popup-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(2px);
+}
+.top-employees-popup .popup-card {
+  position: relative;
+  width: min(900px, 90vw);
+  background: #fff;
+  border-radius: 18px;
+  padding: 24px 28px;
+  z-index: 1;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
+  transform: translateY(30px);
+  opacity: 0;
+  transition: all 0.25s ease;
+}
+.top-employees-popup.visible .popup-card {
+  transform: translateY(0);
+  opacity: 1;
+}
+.popup-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 24px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #94a3b8;
+}
+.popup-close:hover { color: #0f172a; }
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.popup-subtitle {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #64748b;
+}
+.popup-header h3 {
+  font-weight: 700;
+  color: #f6000b;
+}
+.popup-badge {
+  font-size: 34px;
+}
+.popup-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.popup-column {
+  flex: 1;
+  min-width: 260px;
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+}
+.popup-column h4 {
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #0f172a;
+}
+.popup-person {
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.popup-person:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15);
+}
+.popup-medal {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #78350f;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.5), 0 3px 8px rgba(15,23,42,0.18);
+  border: 2px solid rgba(255,255,255,0.8);
+}
+.popup-medal.silver {
+  background: linear-gradient(135deg, #f8fafc, #cbd5f5);
+  color: #0f172a;
+}
+.popup-medal.gold {
+  background: linear-gradient(135deg, #fef9c3, #fcd34d);
+}
+.popup-medal.bronze {
+  background: linear-gradient(135deg, #fde68a, #fb923c);
+  color: #7c2d12;
+}
+.popup-person:last-child { margin-bottom: 0; }
+.popup-person-content {
+  flex: 1;
+}
+.popup-name {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #111827;
+}
+.popup-person p {
+  margin: 0;
+  font-size: 14px;
+  color: #475569;
+}
+.popup-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.8);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+  transition: transform 0.2s ease;
+}
+.popup-person:hover .popup-avatar {
+  transform: scale(1.05);
+}
+.popup-person.gold {
+  border-color: #eab308;
+  background: linear-gradient(135deg, #fef9c3, #fde047);
+  box-shadow: 0 6px 20px rgba(234, 179, 8, 0.35);
+}
+.popup-person.silver {
+  border-color: #94a3b8;
+  background: linear-gradient(135deg, #f1f5f9, #cbd5f5);
+  box-shadow: 0 6px 20px rgba(148, 163, 184, 0.35);
+}
+.popup-person.bronze {
+  border-color: #c08401;
+  background: linear-gradient(135deg, #fef3c7, #f97316);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.35);
+}
+.popup-person strong { color: #0f172a; }
+.popup-footer {
+  margin-top: 12px;
+  text-align: right;
+}
+.popup-dontshow {
+  font-size: 13px;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.popup-dontshow input {
+  opacity: 1;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 2px solid #cbd5f5;
+  border-radius: 4px;
+  background: #fff;
+  position: relative;
+  display: inline-block;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  transition: all 0.15s ease;
+}
+.popup-dontshow input:checked {
+  border-color: #0f172a;
+  background: #0f172a;
+}
+.popup-dontshow input:checked::after {
+  content: "✓";
+  position: absolute;
+  top: -2px;
+  left: 3px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+.popup-dontshow-text {
+  line-height: 1.2;
+}
+@media (max-width: 768px) {
+  .popup-body { flex-direction: column; }
+}
+</style>
 
 <script>
   $.urlParam = function(name){
@@ -714,7 +1417,8 @@
       group: $("select[name='group']").val(),
       groupUser: $("select[name='groupUser']").val(),
       groupDigital: $("select[name='groupDigital']").val(),
-      show: $("select[name='show']").val()
+      show: $("select[name='show']").val(),
+      sort: $("select[name='sort']").val()
     };
 
     const data = {
@@ -726,7 +1430,7 @@
     // Only add non-default values
     Object.keys(filters).forEach(key => {
       const value = filters[key];
-      if (value && value != '999' && value != '20') {
+      if (value && value != '999' && value != '20' && value != '') {
         data[key] = value;
       }
     });
@@ -734,10 +1438,50 @@
     return data;
   }
 
+  // Helper: Sort data array based on sort option
+  function sortData(dataArray, sortOption) {
+    if (!sortOption || !dataArray || dataArray.length === 0) {
+      return dataArray;
+    }
+
+    const sortedData = [...dataArray]; // Create a copy to avoid mutating original
+
+    switch(sortOption) {
+      case 'total_desc':
+        sortedData.sort((a, b) => {
+          const totalA = (a.summary_total?.total || 0);
+          const totalB = (b.summary_total?.total || 0);
+          return totalB - totalA; // Descending
+        });
+        break;
+      case 'total_asc':
+        sortedData.sort((a, b) => {
+          const totalA = (a.summary_total?.total || 0);
+          const totalB = (b.summary_total?.total || 0);
+          return totalA - totalB; // Ascending
+        });
+        break;
+      case 'user_id':
+        sortedData.sort((a, b) => {
+          // Try to get id from multiple possible locations
+          const idA = (a.id || a.new_customer?.id || a.old_customer?.id || 0);
+          const idB = (b.id || b.new_customer?.id || b.old_customer?.id || 0);
+          return idA - idB; // Ascending by user ID
+        });
+        break;
+      default:
+        return sortedData;
+    }
+
+    return sortedData;
+  }
+
   function ajaxGetListDigital(dataInput)
   {
     if ($cached.tableDigital.length > 0) {
       toggleTableLoader('.table_digital', true);
+      // console.log('dataInput', dataInput);
+      // return;
         $.ajax({
           url: "{{ route('filter-total-digital') }}",
           type: 'GET',
@@ -748,16 +1492,20 @@
             if (data.length == 0) {
               $("#body-digital").html('');
             } else if (data.data.length > 0) {
+              // Get sort option and sort data
+              const sortOption = $("select[name='sort']").val();
+              let sortedData = sortData(data.data, sortOption);
+
               /* lọc data digital*/
               var str = '';
               // console.log('data', data.data) // Commented for production
               var newCusomerTrSum = data.trSum.new_customer;
               var oldCusomerTrSum = data.trSum.old_customer;
               var summaryCusomerTrSum = data.trSum.sumary_total;
-              var maxAvcElem = data.data[0].summary_total.avg;
+              var maxAvcElem = sortedData[0].summary_total.avg;
 
               /** lấy ra trung bình đơn lớn nhất của trong list sale**/
-              data.data.forEach((element, k) => {
+              sortedData.forEach((element, k) => {
                   if (element.summary_total.avg > maxAvcElem) {
                       maxAvcElem = element.summary_total.avg;
                   }
@@ -782,7 +1530,7 @@
 
               $("#tr-sum-digital").html(strTdSum);
 
-              data.data.forEach((element, k) => {
+              sortedData.forEach((element, k) => {
                 // Calculate percentages using helper function
                 const perCentContactNew = calcPercent(element.new_customer.contact, newCusomerTrSum.contact);
                 const perCentOrderNew = calcPercent(element.new_customer.count_order, newCusomerTrSum.count_order);
@@ -869,21 +1617,25 @@
           if (data.length == 0) {
             $("#body-cskh-DT").html('');
           } else if (data.data.length > 0) {
+            // Get sort option and sort data
+            const sortOption = $("select[name='sort']").val();
+            let sortedData = sortData(data.data, sortOption);
+
             var str = '';
             var newCusomerTrSum = data.trSum.new_customer;
             var oldCusomerTrSum = data.trSum.old_customer;
             var summaryCusomerTrSum = data.trSum.sumary_total;
-            var maxAvcElem = data.data[0].summary_total.avg;
+            var maxAvcElem = sortedData[0].summary_total.avg;
             // console.log(summaryCusomerTrSum) // Commented for production
             /** lấy ra trung bình đơn lớn nhất của trong list sale**/
-            data.data.forEach((element, k) => {
+            sortedData.forEach((element, k) => {
               if (element.old_customer.avg > maxAvcElem) {
                   maxAvcElem = element.old_customer.avg;
               }
             });
 
             trSum = data.trSum;
-            data.data.forEach((element, k) => {
+            sortedData.forEach((element, k) => {
               perCentContactNew = (newCusomerTrSum.contact != 0) ? (element.new_customer.contact / newCusomerTrSum.contact * 100) : 0;
               perCentOrderNew =  (newCusomerTrSum.order != 0) ? (element.new_customer.order / newCusomerTrSum.order * 100) : 0;
               perCentProductNew = (newCusomerTrSum.product != 0) ? (element.new_customer.product / newCusomerTrSum.product * 100) : 0;
@@ -998,11 +1750,15 @@
           if (data.length == 0) {
             $("#body-sale").html('');
           } else if (data.data.length > 0) {
+            // Get sort option and sort data
+            const sortOption = $("select[name='sort']").val();
+            let sortedData = sortData(data.data, sortOption);
+
             var str = '';
             var newCusomerTrSum = data.trSum.new_customer;
             var oldCusomerTrSum = data.trSum.old_customer;
             var summaryCusomerTrSum = data.trSum.sumary_total;
-            var maxAvcElem = data.data[0].summary_total.avg;
+            var maxAvcElem = sortedData[0].summary_total.avg;
 
              var strTdSum = '';
             strTdSum += '<td colspan="2" class="text-center font-weight-bold">Tổng: </td>'
@@ -1025,13 +1781,13 @@
 
             $("#tr-sum-sale").html(strTdSum);
               /** lấy ra trung bình đơn lớn nhất của trong list sale**/
-            data.data.forEach((element, k) => {
+            sortedData.forEach((element, k) => {
               if (element.summary_total.avg > maxAvcElem) {
                   maxAvcElem = element.summary_total.avg;
               }
             });
 
-            data.data.forEach((element, k) => {
+            sortedData.forEach((element, k) => {
               perCentContactNew = (newCusomerTrSum.contact != 0) ? (element.new_customer.contact / newCusomerTrSum.contact * 100) : 0;
               perCentOrderNew =  (newCusomerTrSum.order != 0) ? (element.new_customer.order / newCusomerTrSum.order * 100) : 0;
               perCentProductNew = (newCusomerTrSum.product != 0) ? (element.new_customer.product / newCusomerTrSum.product * 100) : 0;

@@ -169,12 +169,12 @@ class FbWebHookController extends Controller
     // Xử lý sự kiện webhook
     public function handle(Request $request)
     {
-        // if ($request->isMethod('get')) {
-        //     if ($request->get('hub_verify_token') === 'dat1shot') {
-        //         return response($request->get('hub_challenge'), 200);
-        //     }
-        //     return response('Invalid token', 403);
-        // }
+        if ($request->isMethod('get')) {
+            if ($request->get('hub_verify_token') === 'dat1shot') {
+                return response($request->get('hub_challenge'), 200);
+            }
+            return response('Invalid token', 403);
+        }
 
         // Log message
         // Log::channel('daily')->info('Webhook received: ', $request->all());
@@ -184,7 +184,7 @@ class FbWebHookController extends Controller
         //     $this->callDataPc($data);
         // }
          $input = $request->all();
-        Log::channel('a')->info(json_encode($input));
+        // Log::channel('a')->info(json_encode($input));
         
         // dd($input);
         // $input = json_decode($request->all(), true);

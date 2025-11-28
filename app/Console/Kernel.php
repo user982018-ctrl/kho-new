@@ -19,6 +19,7 @@ use PHPUnit\TextUI\Help;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use App\Http\Controllers\ShippingOrderController;
 use App\Http\Controllers\ToolController;
+use App\Http\Controllers\TestController;
 
 class Kernel extends ConsoleKernel
 {
@@ -30,6 +31,7 @@ class Kernel extends ConsoleKernel
       $schedule->call(function() {
         $this->crawlerGroup();
         $this->ghtkToShipping();
+        $this->updateDateSuccess();
         // $this->updateStatusOrderGHTK();
         // $this->updateStatusOrderGhnV2();
       })->cron('*/10 * * * *');
@@ -59,6 +61,12 @@ class Kernel extends ConsoleKernel
         $this->testCron('updateName');
       })->everyTenMinutes();
     }
+
+  public function updateDateSuccess()
+  {
+    $testController = new TestController();
+    $testController->updateDateSuccess(new \Illuminate\Http\Request());
+  }
 
   public static function testCron($string = '')
   {
@@ -803,7 +811,7 @@ class Kernel extends ConsoleKernel
 
       $pages = $group->srcs;
       foreach ($pages as $page) {
-        if ($page->type == 'pc') {
+        if ($page->type == 'pc' && $page->status == 1) {
           $this->crawlerPancakePage($page, $group);
         }
       }

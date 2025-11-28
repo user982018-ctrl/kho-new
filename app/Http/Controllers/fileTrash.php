@@ -2746,3 +2746,427 @@
     // dd($dataExport);
     return Excel::download(new UsersExport($dataExport), 'GHN-(10-10)-(17-10)-2025.xlsx');
   }
+
+  public function exportTaxV4()
+  {
+    $time = ['08/11/2025', '9/11/2025'];
+    $timeBegin  = str_replace('/', '-', $time[0]);
+    $timeEnd    = str_replace('/', '-', $time[1]);
+    $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
+    $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
+
+    $list = Orders::select('orders.*')->join('shipping_order', 'shipping_order.order_id', '=', 'orders.id')
+      ->join('sale_care', 'sale_care.id', '=', 'orders.sale_care')
+      ->where('shipping_order.vendor_ship', 'GHN')
+      ->where('orders.status', 3)
+      ->whereDate('orders.created_at', '>=', $dateBegin)
+      ->whereDate('orders.created_at', '<=', $dateEnd)
+      // ->where('sale_care.group_id', '!=', 11)
+      ->whereNotIn('sale_care.group_id', [11, 12])
+      // ->where('orders.id', '29214')
+      ->orderBy('orders.id', 'desc');
+
+
+    $dataExport[] = [
+      'Số thứ tự hóa đơn (*)' , 'Ngày hóa đơn', 'Tên đơn vị mua hàng', 'Mã khách hàng', 'Địa chỉ', 'Mã số thuế', 'Người mua hàng', 
+      'Email', 'Hình thức thanh toán', 'Loại tiền', 'Tỷ giá', 'Tỷ lệ CK(%)', 'Tiền CK', 'Mã đơn vận', 'Số điện thoại', 'Tên hàng hóa/dịch vụ (*)', 'Mã hàng', 
+      'ĐVT', 'Số lượng', 'Đơn giá', 'Tỷ lệ CK (%)', 'Tiền CK', '% thuế GTGT', 'Tiền thuế GTGT', 'Thành tiền(*)'
+    ];
+
+    $i = 1;
+    $orderTmp = [];
+    $list = $list->get();
+    // dd($list);
+
+    $bottlesInfo = [
+      'Thùng nhựa 11L có nắp (Hàng tặng không thu tiền)' => 'Bộ',
+      'Chai nhựa 1 lít (Hàng tặng không thu tiền)' => 'Cái',
+      'Can Nhựa 5L (Hàng tặng không thu tiền)' => 'Bộ',
+      'Can nhựa NPK' => 'Bộ',
+    ];
+    foreach ($list as $data) {
+      $orderTmp[] = $data->id;
+      $listProduct = json_decode($data->id_product,true);
+       //trường hợp đơn chỉ cho 1 sp
+      $percenTax = '5';
+      $totalGTGT = '';
+      
+      if (count($listProduct) == 1) {
+        $item = $listProduct[0];
+        $product = getProductByIdHelper($item['id']);
+        $unit = $product->unit;
+        $total = $data->total;
+        $weight = $product->weight;
+        if (!$product) {
+          continue;
+        }
+
+        $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+
+        $k = $i;
+
+        //check trường hợp sản phẩm cb và sản phẩm lẻ
+        // có dấu + là sản phẩm combo
+        $totalBefore = $product->price;
+        $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+        $bottleName = $product->bottle;
+
+        if ($product->id == 83) {
+          $variantId = $item['variantId'];
+          $variant = HelperProduct::getProductVariantById($variantId);
+          $weight = $variant->weight;
+          $bottleName = $variant->bottle;
+          // dd($variant);
+          $productName = $variant->tax_name;
+          $unit = 'Bộ';
+          if ($variant->tax_name) {
+            $productName = $variant->tax_name;
+          }
+
+          // if (!isset($variant->weight)) {
+          //   $productName .= ' 5kg';
+          // } else {
+          //   $weight = $variant->weight;
+          //   if ($weight == 5000.0) {
+          //     $productName .= ' 5kg';
+          //   } else {
+          //     $productName .= ' 20kg';
+          //   }
+          // }
+        }
+
+        $kg = 0;
+        $qty = $data->qty;
+        if ($product->unit == 'lít' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
+          //5000g => chia 1000 => 5kg
+          $kg = (int)($weight/1000);
+          $qty = $qty * $kg;
+        }
+        $rateTax = 1.05; // tax = 5
+        if ($product->tax == 8) {
+          $rateTax = 1.08;
+          $percenTax = '8';
+        }
+
+        if (strpos($productName, "Hàng tặng") !== false ) {
+          $percenTax = '../..';
+          $totalGTGT = '../..';
+        } else {
+          $qty = $data->qty;
+          $totalOrder = $total;
+          $totalBefore = $totalOrder / $rateTax;
+          $taxbeforeProduct = $totalBefore / $qty;
+          $productPrice = $taxbeforeProduct;
+          $totalGTGT = $totalOrder - $totalBefore;
+          $total = $totalOrder;
+        }
+
+        // }
+
+        if ($k != $i) {
+          $tmp = [
+            '',//Số thứ tự hóa đơn (*)
+            '', // Ngày hóa đơn
+            '',// Tên đơn vị mua hàng
+            '',// Mã khách hàng
+            '',// Địa chỉ
+            '',// Mã số thuế
+            '',// Người mua hàng
+            '',// Mã đơn vận
+            '',// Email
+            '',// Hình thức thanh toán
+            '',// Loại tiền
+            '',// Tỷ giá
+            '',// Tỷ lệ CK(%)
+            '',// Tiền CK
+            '',
+            $productName,// Tên hàng hóa/dịch vụ (*)
+            '',// Mã hàng
+            $product->unit,// 'ĐVT',
+            $item->val,//  'Số lượng', 
+            $productPrice,//  'Đơn giá', 
+            '',//  'Tỷ lệ CK (%)', 
+            '',//  'Tiền CK',
+            $percenTax, // '% thuế GTGT',
+            $totalGTGT, //  'Tiền thuế GTGT',
+            $total,   // 'Thành tiền(*)'
+          ];  
+        } else {
+          $tmp = [
+          $i,//Số thứ tự hóa đơn (*)
+          date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
+          '',// Tên đơn vị mua hàng
+            '',// Mã khách hàng
+            $data->address,// Địa chỉ
+            '',// Mã số thuế
+            $data->name,// Người mua hàng
+            '',// Email
+            '',// Hình thức thanh toán
+            '',// Loại tiền
+            '',// Tỷ giá
+            '',// Tỷ lệ CK(%)
+            '',// Tiền CK
+            $data->shippingOrder->order_code,// Mã đơn vận
+            $data->phone,
+            $productName,// Tên hàng hóa/dịch vụ (*)
+            '',// Mã hàng
+            $product->unit,// 'ĐVT',
+            $item['val'],//  'Số lượng', 
+            $productPrice,//  'Đơn giá', 
+            '',//  'Tỷ lệ CK (%)', 
+            '',//  'Tiền CK',
+            $percenTax, // '% thuế GTGT',
+            $totalGTGT, //  'Tiền thuế GTGT',
+            $total,   // 'Thành tiền(*)'
+          ];
+        }
+        $dataExport[] = $tmp;
+        
+        if ($kg > 0) {
+          $tmp = [
+            '',//Số thứ tự hóa đơn (*)
+            '', // Ngày hóa đơn
+            '',// Tên đơn vị mua hàng
+            '',// Mã khách hàng
+            '',// Địa chỉ
+            '',// Mã số thuế
+            '',// Mã đơn vận
+            '',// Người mua hàng
+            '',// Email
+            '',// Hình thức thanh toán
+            '',// Loại tiền
+            '',// Tỷ giá
+            '',// Tỷ lệ CK(%)
+            '',// Tiền CK
+            // '',
+            '',
+            $bottleName,// Tên hàng hóa/dịch vụ (*)
+            '',// Mã hàng
+            $unit,// 'ĐVT',
+            (int)($qty/$kg),//  'Số lượng', 
+            '',//  'Đơn giá', 
+            '',//  'Tỷ lệ CK (%)', 
+            '',//  'Tiền CK',
+            '../..', // '% thuế GTGT',
+            '../..', //  'Tiền thuế GTGT',
+            '',   // 'Thành tiền(*)'
+          ];
+          $dataExport[] = $tmp;
+        }
+        $k++;
+
+        /** số tổng sản phẩm lớn hơn 1 */
+      } else {
+        $j = $i;
+        $percenTax = '5';
+        $totalGTGT = '';
+
+        $qtyNPK = 0;
+        $isNPK = false;
+        $voucher = 'false';
+
+        // Sắp xếp listProduct: gift = false trước, gift = true sau
+        usort($listProduct, function($a, $b) {
+            $giftA = isset($a['gift']) && $a['gift'] === 'true' ? 1 : 0;
+            $giftB = isset($b['gift']) && $b['gift'] === 'true' ? 1 : 0;
+            return $giftA - $giftB;
+        });
+
+        // dd($listProduct);
+        foreach ($listProduct as $key => $item) {
+          $product = getProductByIdHelper($item['id']);
+          $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+          $total = 0;
+          $tmp = [];
+          
+          if (!$product) {
+            continue;
+          }
+          // if ($product->id != 61) {
+          //   continue;
+          // }
+          $voucher = isset($item['gift']) ? $item['gift'] : 'false';
+          $totalOrder = $data->total;
+          $productPrice = $product->price;
+          $qty = (int)$item['val'];
+          $percenTax = '5';
+          $totalGTGT = '';
+          // dd($qty);
+          
+          $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+          // dd($productName);
+          $weight = $product->weight;
+          $bottleName = $product->bottle;
+          $unit = $product->unit;
+          if ($product->id == 83) {
+            $variantId = $item['variantId'];
+            $variant = HelperProduct::getProductVariantById($variantId);
+            $bottleName = $variant->bottle;
+            $weight = $variant->weight;
+            $unit = 'Bộ';
+            if ($variant->tax_name) {
+              $productName = $variant->tax_name;
+            }
+          }
+
+          // dd($qty);
+          $kg = 0;
+          if ($product->unit == 'lít' || $product->unit == 'Lit' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
+            //5000g => chia 1000 => 5kg
+            $kg = (float)($weight/1000);
+            $qty = $qty * $kg;
+            $unit = 'Bộ';
+          }
+          // dd($kg);
+          $rateTax = 1.05; // tax = 5
+          if ($product->tax == 8) {
+            $rateTax = 1.08;
+            $percenTax = '8';
+          }
+
+          // dd($unit);
+
+          // Fulvic Acid
+          if ($productName == 'Fulvic Acid' || $product->id == 91 || $product->id == 61) {
+            $qty = $item['val']/2;
+            $bottleName = 'Chai 0,5 lít (nhựa) (Hàng tặng không thu tiền) ';
+            $unit = 'Cái';
+          }
+
+          // echo $productName . ' weight: '.$weight.'<br>';
+          // echo $product->unit . ' unit: '.$product->unit.'<br>';
+          if ($voucher == "true") {
+            $productName .= " (Hàng tặng không thu tiền)";
+            $percenTax = '../..';
+            $totalGTGT = '../..';
+            $productPrice = '';
+            $total = '';
+          } else {
+            $taxBeforeTotal = $totalOrder / $rateTax;
+            $taxbeforeProduct = $taxBeforeTotal / $qty;
+            $productPrice = $taxbeforeProduct;
+            $totalGTGT = $totalOrder - $taxBeforeTotal;
+            $total = $totalOrder;
+          }
+         
+          if ($j != $i) {
+            $tmp = ['', '', '', '', '', '',  '', '','', '', '','', '', '','', $productName,'', $product->unit, $qty, $productPrice,
+              '', '', $percenTax, $totalGTGT, $total,   
+            ];  
+            $dataExport[] = $tmp;
+            if ($kg > 0 || $productName == 'Fulvic Acid (Hàng tặng không thu tiền)') {
+              if ($productName == 'Fulvic Acid (Hàng tặng không thu tiền)' || $product->id == 91 || $product->id == 61) {
+                $qtyTmp = $item['val'];
+              } else {
+                $qtyTmp = (float)($qty/$kg);
+              }
+              $tmp = [
+                '',//Số thứ tự hóa đơn (*)
+                '', // Ngày hóa đơn
+                '',// Tên đơn vị mua hàng
+                '',// Mã khách hàng
+                '',// Địa chỉ
+                '',// Mã số thuế
+                '',// Người mua hàng
+                '',// Email
+                '',// Mã đơn vận
+                '',// Hình thức thanh toán
+                '',// Loại tiền
+                '',// Tỷ giá
+                '',// Tỷ lệ CK(%)
+                '',// Tiền CK
+                '',
+                $bottleName,// Tên hàng hóa/dịch vụ (*)
+                '',// Mã hàng
+                $unit,// 'ĐVT',
+                $qtyTmp,//  'Số lượng', 
+                '',//  'Đơn giá', 
+                '',//  'Tỷ lệ CK (%)', 
+                '',//  'Tiền CK',
+                '../..', // '% thuế GTGT',
+                '../..', //  'Tiền thuế GTGT',
+                '',   // 'Thành tiền(*)'
+              ];
+              $dataExport[] = $tmp;
+            }
+          } else {
+              // dd($product->name);
+            $tmp = [
+            $i,//Số thứ tự hóa đơn (*)
+            date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
+            '',// Tên đơn vị mua hàng
+              '',// Mã khách hàng
+              $data->address,// Địa chỉ
+              '',// Mã số thuế
+              $data->name,// Người mua hàng
+              // $data->shippingOrder->order_code,// Mã đơn vận
+              '',// Email
+              '',// Hình thức thanh toán
+              '',// Loại tiền
+              '',// Tỷ giá
+              '',// Tỷ lệ CK(%)
+              '',// Tiền CK
+              $data->shippingOrder->order_code,// Mã đơn vận
+              $data->phone,
+              $productName,// Tên hàng hóa/dịch vụ (*)
+              '',// Mã hàng
+              $product->unit,// 'ĐVT',
+              $qty,//  'Số lượng', 
+              $productPrice,//  'Đơn giá', 
+              '',//  'Tỷ lệ CK (%)', 
+              '',//  'Tiền CK',
+              $percenTax, // '% thuế GTGT',
+              $totalGTGT, //  'Tiền thuế GTGT',
+              $total,   // 'Thành tiền(*)'
+            ];
+            $dataExport[] = $tmp;
+
+
+            // echo $productName . ' kg :'.$kg.'<br>';
+            if ($kg > 0) {
+              
+              if ($productName == 'Fulvic Acid (Hàng tặng không thu tiền)' || $product->id == 91 || $product->id == 61) {
+                $qtyTmp = $item['val'];
+              } else {
+                $qtyTmp = (float)($qty/$kg);
+              }
+              $tmp = [
+                '',//Số thứ tự hóa đơn (*)
+                '', // Ngày hóa đơn
+                '',// Tên đơn vị mua hàng
+                '',// Mã khách hàng
+                '',// Địa chỉ
+                '',// Mã số thuế
+                '',// Người mua hàng
+                '',// Email
+                '',// Hình thức thanh toán
+                '',// Loại tiền
+                '',// Tỷ giá
+                '',// Tỷ lệ CK(%)
+                '',// Tiền CK
+                '',
+                '',
+                $bottleName,// Tên hàng hóa/dịch vụ (*)
+                '',// Mã hàng
+                $unit,// 'ĐVT',
+                $qtyTmp,//  'Số lượng', 
+                '',//  'Đơn giá', 
+                '',//  'Tỷ lệ CK (%)', 
+                '',//  'Tiền CK',
+                '../..', // '% thuế GTGT',
+                '../..', //  'Tiền thuế GTGT',
+                '',   // 'Thành tiền(*)'
+              ];
+              $dataExport[] = $tmp;
+            }
+              
+          }
+          $j++;
+        }
+      }
+      $i++;
+    }
+    // die();
+    // dd($dataExport);
+    return Excel::download(new UsersExport($dataExport), 'GHTK-10-11.xlsx');
+  }

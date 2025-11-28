@@ -43,7 +43,9 @@ $routeName    = \Route::getCurrentRoute()->uri;
 $asRouteName  = (\Route::getCurrentRoute()->action['as']) ?? null;
 ?>
 <div class="card mb-4">
-  <div class="card-header"><strong>Quản lý sản phẩm</strong> </div>
+  <div class="card-header"><strong>
+    <a href="{{route('product')}}">
+    Quản lý sản phẩm</a></strong> </div>
     <div class="card-body">
       <div class="example mt-0">
         <ul class="nav nav-tabs" role="tablist">
