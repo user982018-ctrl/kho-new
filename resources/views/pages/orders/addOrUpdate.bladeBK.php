@@ -544,17 +544,12 @@ if (isset($order)) {
                                              
                                         foreach (json_decode($order->id_product) as $item) {
                                             $product = getProductByIdHelper($item->id);
-                                            $priceOrderItem = (empty($item->price) || $item->price == 0) ? 0 : $item->price;
-                                           
+                                        
                                             if ($product) {
                                                 $rowClass = '';
                                                 $type = $product->type;
                                                 
-                                                if (empty($priceOrderItem) || $priceOrderItem == 0) {
-                                                    $price = $product->price;
-                                                }
-
-                                                // dd($price);
+                                                $price = $product->price;
                                                 $variantId = 0;
                                                 $listAttributeOfItem = [];
                                                 if ($type == 2 && !empty($item->variantId)) {
@@ -562,21 +557,13 @@ if (isset($order)) {
                                                    
                                                     $variantId = $item->variantId;
                                                     $variant = HelperProduct::getProductVariantById($variantId);
-                                                    if (empty($priceOrderItem) || $priceOrderItem == 0) {
-                                                        $price = $variant->price;
-                                                    }
-
+                                                    $price = $variant->price;
                                                     if ($variant) {
                                                         foreach ($variant->attributeValues as $attribute) {
                                                             $listAttributeOfItem[] = $attribute->attribute_value_id;
                                                         }
                                                     }
                                                 }
-
-                                                if (!empty($priceOrderItem) && $priceOrderItem != 0) {
-                                                    $price = $priceOrderItem;
-                                                }
-                                               
                                                 
                                                 $sumQty += $item->val;
                                                 $totalTmp += $item->val * $price;
@@ -611,9 +598,7 @@ if (isset($order)) {
                                             <td class="text-center gift-td">
                                                 <input {{ (isset($item->gift) && $item->gift == 'true') ? 'checked' : '' }} {{$isDisableTotal ? 'disabled' : ''}} class="row-check gift gift-checkbox" type="checkbox" />
                                             </td>
-                                            <td class="no-wrap text-center">
-                                                <input class="unit-price form-control text-center price_class" value="{{$price}}" min="0" {{$isDisableTotal ? 'disabled' : ''}} style="width: 100%;">
-                                            </td>
+                                            <td class="no-wrap unit-price text-center" style="width: 80px">{{number_format($price)}}</td>
                                             <td style="text-align: left;" class="number">
                                                 <input data-product_id="{{$product->id}}" type="number" class="qty" value="{{$item->val}}" min="1" {{$isDisableTotal ? 'disabled' : ''}}>
                                             </td>
@@ -1165,16 +1150,10 @@ $(document).ready(function() {
     });
 });
 
-function initCleaveForPriceInput(input) {
-    if (input && !input._cleaveInstance) {
-        input._cleaveInstance = new Cleave(input, {
-            numeral: true,
-            numeralThousandsGroupStyle: 'thousand'
-        });
-    }
-}
-
-document.querySelectorAll('.price_class').forEach(inp => initCleaveForPriceInput(inp));
+document.querySelectorAll('.price_class').forEach(inp => new Cleave(inp, {
+    numeral: true,
+    numeralThousandsGroupStyle: 'thousand'
+}));
 
 </script>
 <script>
@@ -1287,6 +1266,8 @@ $.urlParam = function(name){
                 };
             }).get();
 
+            console.log('Danh sách quận/huyện:', allDistricts);
+
             // Tìm quận/huyện trong địa chỉ
             var addressLower = address.toLowerCase();
             for (var i = 0; i < allDistricts.length; i++) {
@@ -1394,8 +1375,7 @@ function validatePhone() {
 
       rows.forEach(row => {
         const checkbox = row.querySelector(".gift");
-        const unitPriceInput = row.querySelector('.unit-price');
-        const price = unitPriceInput ? parseVND(unitPriceInput.value) || 0 : parseInt(row.dataset.price) || 0;
+        const price = parseInt(row.dataset.price);
         const qty = parseInt(row.querySelector('.qty').value) || 0;
         const lineTotal = price * qty;
 
@@ -1458,24 +1438,6 @@ function validatePhone() {
       });
     }
 
-    // Gắn sự kiện khi thay đổi đơn giá
-    function bindUnitPriceInputs() {
-      document.querySelectorAll('.unit-price').forEach(input => {
-        input.addEventListener('input', function() {
-          const row = this.closest('tr');
-          const qty = parseFloat(row.querySelector('.qty').value) || 0;
-          const unitPrice = parseVND(this.value) || 0;
-          const lineTotal = unitPrice * qty;
-          const checkbox = row.querySelector(".gift");
-          
-          if (!checkbox.checked) {
-            row.querySelector('.line-total').textContent = formatVND(lineTotal);
-          }
-          updateSubtotal();
-        });
-      });
-    }
-
     function bindGiftInputs() {
       document.querySelectorAll(".gift").forEach(cb => cb.addEventListener("change", updateSubtotal));
     }
@@ -1514,17 +1476,8 @@ function validatePhone() {
                         // var trProduct = document.querySelector(`tr[data-id="${idProduct}"]`); 
                         trProduct = row;
                         priceVariant = variant.price;
-                        const unitPriceInput = trProduct.querySelector('.unit-price');
-                        if (unitPriceInput) {
-                            if (unitPriceInput._cleaveInstance) {
-                                unitPriceInput._cleaveInstance.setRawValue(priceVariant);
-                            } else {
-                                unitPriceInput.value = priceVariant;
-                            }
-                        }
-                        const qty = parseFloat(trProduct.querySelector('.qty').value) || 1;
-                        const lineTotal = priceVariant * qty;
-                        trProduct.querySelector('.line-total').textContent = formatVND(lineTotal);
+                        trProduct.querySelector('.unit-price').textContent = formatVND(priceVariant);
+                        trProduct.querySelector('.line-total').textContent = formatVND(priceVariant);
                         trProduct.querySelector('.number input.qty').value = 1;
 
                         const priceVariantInt = parseInt(priceVariant);
@@ -1541,7 +1494,6 @@ function validatePhone() {
     updateSubtotal();
     bindDeleteButtons();
     bindQtyInputs();
-    bindUnitPriceInputs();
     bindSelectAttr();
     bindGiftInputs();
 </script>
@@ -1557,12 +1509,12 @@ function validatePhone() {
         const productId = parseInt(id);
         const productType = parseInt(type);
 
-        // const existingRow = cartBody.querySelector(`tr[data-id="${productId}"]`);
+        const existingRow = cartBody.querySelector(`tr[data-id="${productId}"]`);
 
-        // if (existingRow && productType != 2) {
-        //     const qtyInput = existingRow.querySelector('.qty');
-        //     qtyInput.value = parseInt(qtyInput.value) + 1;
-        // } else {
+        if (existingRow && productType != 2) {
+            const qtyInput = existingRow.querySelector('.qty');
+            qtyInput.value = parseInt(qtyInput.value) + 1;
+        } else {
             var strVariants = '';
              const tr = document.createElement('tr');
             tr.dataset.price = priceInt;
@@ -1610,29 +1562,15 @@ function validatePhone() {
             <td class="text-center gift-td"> 
                 <input class="row-check gift-checkbox gift" type="checkbox" />
             </td>
-            <td class="text-center">
-                <input class="unit-price text-center price_class" value="${priceInt}">
-            </td>
+            <td class="price unit-price text-center">${formatVND(priceInt)}</td>
             <td class="number"><input data-product_id="${productId}" type="number" class="qty" value="1" min="0"></td>
             <td class="line-total text-center">${formatVND(priceInt)}</td>
             <td class="text-center"><button type="button" class="delete-btn text-center">🗑️</button></td>
             `;
             cartBody.appendChild(tr);
             bindQtyInputs();
-            bindUnitPriceInputs();
             bindGiftInputs();
             bindDeleteButtons();
-            
-            // Khởi tạo Cleave cho input unit-price mới
-            const newUnitPriceInput = tr.querySelector('.unit-price');
-            if (newUnitPriceInput) {
-                const rawValue = newUnitPriceInput.value;
-                initCleaveForPriceInput(newUnitPriceInput);
-                // Set lại giá trị để Cleave format nó
-                if (newUnitPriceInput._cleaveInstance && rawValue) {
-                    newUnitPriceInput._cleaveInstance.setRawValue(rawValue);
-                }
-            }
             
             // if (values != '') {
             //     values = JSON.parse(values);
@@ -1642,7 +1580,7 @@ function validatePhone() {
             //     });
             // }
             
-        //}
+        }
         updateSubtotal();
         bindSelectAttr();
        
@@ -1695,7 +1633,6 @@ function validatePhone() {
             const quantity = row.querySelector(".qty")?.value || 0;
             const type = row.dataset.type || 1;
             const gift  = row.querySelector('.gift-checkbox')?.checked || false;
-            const price = row.querySelector('.unit-price')?.value || 0;
 
             var data;
             const variantId = row.dataset.variantId || 0;
@@ -1705,7 +1642,6 @@ function validatePhone() {
                 variantId: parseInt(variantId),
                 type: parseInt(type),
                 gift: Boolean(gift),
-                price: parseVND(price),
             }
             cartData.push(data);
         });

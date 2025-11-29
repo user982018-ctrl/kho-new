@@ -1557,12 +1557,12 @@ function validatePhone() {
         const productId = parseInt(id);
         const productType = parseInt(type);
 
-        // const existingRow = cartBody.querySelector(`tr[data-id="${productId}"]`);
+        const existingRow = cartBody.querySelector(`tr[data-id="${productId}"]`);
 
-        // if (existingRow && productType != 2) {
-        //     const qtyInput = existingRow.querySelector('.qty');
-        //     qtyInput.value = parseInt(qtyInput.value) + 1;
-        // } else {
+        if (existingRow && productType != 2) {
+            const qtyInput = existingRow.querySelector('.qty');
+            qtyInput.value = parseInt(qtyInput.value) + 1;
+        } else {
             var strVariants = '';
              const tr = document.createElement('tr');
             tr.dataset.price = priceInt;
@@ -1642,7 +1642,7 @@ function validatePhone() {
             //     });
             // }
             
-        //}
+        }
         updateSubtotal();
         bindSelectAttr();
        
