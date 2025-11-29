@@ -389,7 +389,7 @@ if (isset($saleCare)) {
 if ($checkAll || Auth::user()->id == 58 || $isKho) {
     $flagAccessDis = '';
 }
-if (isset($order) && ($order->status != 1 || $order->shippingOrder) && !$checkAll && Auth::user()->id != 58) {
+if (isset($order) && ($order->status != 1 || $order->shippingOrder) && !$checkAll && !$isKho && Auth::user()->id != 58) {
     $isDisableTotal = true;
 } 
 if (isset($order)) {
@@ -505,6 +505,8 @@ if (isset($order)) {
                         
                     </div>
                     <div class="col-sm-12 col-lg-8" style="padding: 20px 0;">
+                        @if (!$isDisableTotal)
+                        
                         <div class="row product-list-order">
                             <div class="col-xs-12 col-sm-6 col-md-4 form-group" style="text-align:center; margin-bottom: 20px;">
                                 <select id="product-select" style="display: none;">
@@ -520,6 +522,7 @@ if (isset($order)) {
                                <p class="error_msg" id="qty"></p>
                             </div>
                         </div>
+                        @endif
                                 
                         <div class="row">
                             <div class="col-12">
@@ -578,7 +581,7 @@ if (isset($order)) {
                                                 ?>
                                                 <div class="select-attribute col-sm-12 col-lg-6" data-id="{{$product->id}}">
                                                     <label for="{{$attribute->id}}-filter">{{$attribute->name}}:</label>
-                                                    <select name="attribute-{{$attribute->id}}" id="{{$attribute->id}}-filter" class="slb-attribute form-control">       
+                                                    <select name="attribute-{{$attribute->id}}" id="{{$attribute->id}}-filter" class="slb-attribute form-control" {{$isDisableTotal ? 'disabled' : ''}}>       
                                                         
                                                         @foreach ($attribute->values as $value)
                                                         <option <?php echo (in_array($value->id, $listAttributeOfItem)) ? 'selected' : ''; ?>
@@ -593,14 +596,14 @@ if (isset($order)) {
                                                 ?>
                                             </td>
                                             <td class="text-center gift-td">
-                                                <input {{ (isset($item->gift) && $item->gift == 'true') ? 'checked' : '' }} class="row-check gift gift-checkbox" type="checkbox" />
+                                                <input {{ (isset($item->gift) && $item->gift == 'true') ? 'checked' : '' }} {{$isDisableTotal ? 'disabled' : ''}} class="row-check gift gift-checkbox" type="checkbox" />
                                             </td>
                                             <td class="no-wrap unit-price text-center" style="width: 80px">{{number_format($price)}}</td>
                                             <td style="text-align: left;" class="number">
-                                                <input data-product_id="{{$product->id}}" type="number" class="qty" value="{{$item->val}}" min="1">
+                                                <input data-product_id="{{$product->id}}" type="number" class="qty" value="{{$item->val}}" min="1" {{$isDisableTotal ? 'disabled' : ''}}>
                                             </td>
                                             <td class="line-total no-wrap text-center" style="width: 30px"> {{number_format($tmp)}}</td>
-                                            <td class="text-center"><button type="button" class="delete-btn">🗑️</button></td>
+                                            <td class="text-center"><button type="button" class="delete-btn" {{$isDisableTotal ? 'disabled' : ''}}>🗑️</button></td>
                                         </tr>
                             
                                         <?php }   

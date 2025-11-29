@@ -527,7 +527,11 @@ class HomeController extends Controller
             }
 
             if (isset($dataFilter['status'])) {
-                $list->whereStatus($dataFilter['status']);
+                if ($dataFilter['status'] == 998) {
+                    $list->where('orders.status', '!=', 0);
+                } else {
+                    $list->whereStatus($dataFilter['status']);
+                }
             }
 
             if (isset($dataFilter['category'])) {

@@ -295,7 +295,8 @@ img.avatar {
 
     <div class="col-xs-12 col-sm-6 col-md-2 form-group mb-1">
       <select name="status" id="status-filter" class="form-select" aria-label="Default select example">
-        <option value="999">--Chọn Trạng Thái--</option>
+        <option value="998">Chọn Trạng Thái (Không huỷ)</option>
+        <option value="999">Tổng trạng thái</option>
         <option value="1">Chưa giao vận</option>
         <option value="2">Đang giao</option>
         <option value="3">Hoàn tất</option>

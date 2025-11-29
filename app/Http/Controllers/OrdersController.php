@@ -651,6 +651,8 @@ class OrdersController extends Controller
                     $list->whereStatus(1);
                     // Tối ưu: Fix bug - không gọi ->get() mà chỉ apply condition
                     $list->whereHas('shippingOrder');
+                } else if ($status == 998) {
+                    $list->where('orders.status', '!=', 0);
                 } else {
                     $list->whereStatus($status);
                 }
