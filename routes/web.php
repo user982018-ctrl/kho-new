@@ -302,12 +302,18 @@ Route::get('/test/fetch-all-viettel-subwards', [TestController::class, 'fetchAll
 
 
 Route::get('/src', [TestController::class, 'updateSrcId'])->name('update-src-id');
-Route::get('/name', [ToolController::class, 'updateName'])->name('update-src-id');
+Route::get('/name', [ToolController::class, 'updateNameV2'])->name('update-src-id');
 Route::get('/id', [ToolController::class, 'getID']);
 Route::get('/set-id', [ToolController::class, 'setID']);
 Route::get('/src2', [TestController::class, 'updateSrcId2'])->name('update-src-id2');
+Route::get('/u2', [ToolController::class, 'getU2Data'])->name('u2');
 
 Route::get('/tranh', [ToolController::class, 'tranh']);
+Route::get('/update-status-vtpost', [ToolController::class, 'updateStatusVTPost']);
+Route::get('/truc', [ToolController::class, 'truc']);
+Route::get('/trung', [ToolController::class, 'trung']);
+
+
 
 
 

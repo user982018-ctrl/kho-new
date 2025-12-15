@@ -50,7 +50,6 @@ class LadipageController  extends Controller
             $messages .= "\n" . $address;
         }
         $all = json_encode($r->all());
- Log::info('sao z');
         Log::info($all);
 
         $ladiPage = Helper::getConfigLadiPage();
@@ -94,18 +93,15 @@ class LadipageController  extends Controller
     public function index(Request $r) 
     {
         $all = json_encode($r->all());
-        // dd($all);
-        // Log::info($all);
-
+        Log::channel('a')->info($all);
         $phone = ($r->phone) ? $r->phone : $r->phone_number;
         $name = ($r->name) ?? 'Không để tên';
-
         $item = $r->form_item3209;
         $address = $r->address;
         $linkPage = $r->link;
         $linkPage = $r->ip;
         $messages = $item;
-        if ( $address) {
+        if ($address) {
             $messages .= "\n" . $address;
         }
 
@@ -129,9 +125,7 @@ class LadipageController  extends Controller
         foreach ($listSrcLadi as $src) {
             if ($slug && $slug == $src->id_page) {
                 $group = $src->group;
-                // Log::info(json_encode($src));
                 break;
-                
             }
         }
 

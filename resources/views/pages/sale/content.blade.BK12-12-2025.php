@@ -971,23 +971,17 @@
 
 <script type="text/javascript" src="{{asset('public/js/dateRangePicker/daterangepicker.min.js')}}"></script>
 <script>
-    var daterangePicker = $('input[name="daterange"]').daterangepicker({
-      timePicker: true,
-      timePicker24Hour: true,
-      timePickerIncrement: 1,
-      timePickerSeconds: false,
-      startDate: moment().startOf('day').hour(0).minute(0),
-      endDate: moment().endOf('day').hour(23).minute(59),
+    $('input[name="daterange"]').daterangepicker({
       ranges: {
-        'Hôm nay': [moment().startOf('day').hour(0).minute(0), moment().endOf('day').hour(23).minute(59)],
-        'Hôm qua': [moment().subtract(1, 'days').startOf('day').hour(0).minute(0), moment().subtract(1, 'days').endOf('day').hour(23).minute(59)],
-        '7 ngày gần đây': [moment().subtract(6, 'days').startOf('day').hour(0).minute(0), moment().endOf('day').hour(23).minute(59)],
-        '30 ngày gần đây': [moment().subtract(29, 'days').startOf('day').hour(0).minute(0), moment().endOf('day').hour(23).minute(59)],
-        'Tháng này': [moment().startOf('month').hour(0).minute(0), moment().endOf('month').hour(23).minute(59)],
-        'Tháng trước': [moment().subtract(1, 'month').startOf('month').hour(0).minute(0), moment().subtract(1, 'month').endOf('month').hour(23).minute(59)]
+        'Hôm nay': [moment(), moment()],
+        'Hôm qua': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+        '7 ngày gần đây': [moment().subtract(6, 'days'), moment()],
+        '30 ngày gần đây': [moment().subtract(29, 'days'), moment()],
+        'Tháng này': [moment().startOf('month'), moment().endOf('month')],
+        'Tháng trước': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
       },
       locale: {
-        "format": 'DD/MM/YYYY HH:mm',
+        "format": 'DD/MM/YYYY',
         "applyLabel": "OK",
         "cancelLabel": "Huỷ",
         "fromLabel": "Từ",
@@ -999,31 +993,7 @@
           "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
 	        "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12" 
         ],
-      },
-      opens: 'left',
-      applyClass: 'btn-sm btn-primary',
-      cancelClass: 'btn-sm btn-default'
-    }, function(start, end, label) {
-      // Tự động set thời gian mặc định: begin 00:00, end 23:59 cho tất cả các range
-      start.hour(0).minute(0);
-      end.hour(23).minute(59);
-      daterangePicker.data('daterangepicker').setStartDate(start);
-      daterangePicker.data('daterangepicker').setEndDate(end);
-    });
-
-    // Đảm bảo khi mở picker, set thời gian mặc định cho tất cả các range
-    $('input[name="daterange"]').on('show.daterangepicker', function(ev, picker) {
-      // Set thời gian mặc định cho tất cả các range
-      if (!picker.chosenLabel || picker.chosenLabel === 'Custom Range') {
-        picker.startDate.hour(0).minute(0);
-        picker.endDate.hour(23).minute(59);
       }
-    });
-    
-    // Đảm bảo khi chọn range, thời gian được set đúng
-    $('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) {
-      picker.startDate.hour(0).minute(0);
-      picker.endDate.hour(23).minute(59);
     });
     $('[data-range-key="Custom Range"]').text('Tuỳ chỉnh');
 </script>
@@ -1091,42 +1061,11 @@
         $('#type_customer-filter').parent().addClass('selectedClass');
     }
 
-    // Parse và set giá trị daterange từ URL (hỗ trợ cả giờ phút)
-    let time = $.urlParam('daterange');
+    let time = $.urlParam('daterange') 
     if (time) {
-        time = decodeURIComponent(time);
-        time = time.replace('+-+', ' - ');
-        // Parse giá trị daterange từ URL (format: DD/MM/YYYY HH:mm - DD/MM/YYYY HH:mm)
-        let parts = time.split(' - ');
-        if (parts.length === 2) {
-            let startStr = parts[0].trim();
-            let endStr = parts[1].trim();
-            let startDate, endDate;
-            
-            // Parse start date
-            if (startStr.indexOf(':') !== -1) {
-                // Có giờ phút
-                startDate = moment(startStr, 'DD/MM/YYYY HH:mm');
-            } else {
-                // Chỉ có ngày - set thời gian mặc định 00:00
-                startDate = moment(startStr, 'DD/MM/YYYY').hour(0).minute(0);
-            }
-            
-            // Parse end date
-            if (endStr.indexOf(':') !== -1) {
-                // Có giờ phút
-                endDate = moment(endStr, 'DD/MM/YYYY HH:mm');
-            } else {
-                // Chỉ có ngày - set thời gian mặc định 23:59
-                endDate = moment(endStr, 'DD/MM/YYYY').hour(23).minute(59);
-            }
-            
-            // Set lại giá trị cho daterangepicker
-            if (startDate.isValid() && endDate.isValid()) {
-                $('input[name="daterange"]').data('daterangepicker').setStartDate(startDate);
-                $('input[name="daterange"]').data('daterangepicker').setEndDate(endDate);
-            }
-        }
+        time = decodeURIComponent(time)
+        time = time.replace('+-+', ' - ') //loại bỏ khoảng trắng
+        $('input[name="daterange"]').val(time)
     }
 
     let group = $.urlParam('group') 

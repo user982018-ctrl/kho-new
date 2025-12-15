@@ -1,0 +1,94 @@
+* GHTK
+1/ Sử dụng token login web => gửi link print của web để lấy $dataAPi["data"]["cipher"]:
+    "https://web.giaohangtietkiem.vn/api/v2/package/pkg-print-encrypt?pkg_orders="
+    $params = ['pkg_orders' => $orderCode];
+    $html = $cipher = "";
+    $bearToken = self::bearTokenGHTK;
+    $link = "https://web.giaohangtietkiem.vn/api/v2/package/pkg-print-encrypt?pkg_orders=$orderCode";
+    $response = Http::withToken($bearToken)->withBody(json_encode($params))->post($link);
+    -> có data cipher
+2/ lấy nội dung html print của ghtk bằng link:
+    $linkPrintGHTK = "https://print-service.ghtk.vn/print-order?shop_code=S21178843&cipher=";    
+    $response = Http::get($linkPrintGHTK . $cipher);
+    $html = $response->body();
+    -> có nội dung html print
+3/ sửa đường dẫn CSS trong html:
+    $html = str_replace(
+        'href="/_next/static/css/',
+        'href="https://print-service.ghtk.vn/_next/static/css/',
+        $html
+    );
+    -> có nội dung html print với đường dẫn CSS đã sửa
+    và cập nhật trạng thái in của đơn usu1
+4/ return html print, style kiểu chữ to lên
+    <style>
+        body {
+        zoom: 1.2; /* phóng to toàn bộ */
+        font-family: Arial, sans-serif;
+        }
+
+        /* .styles_productItem__name__u0VlF:first-child, */
+        .styles_productItem__u8zzn:first-child {
+            font-size: 16px;
+        }
+        .styles_productItem__u8zzn {
+        font-size: 30px;
+        font-weight: bold;
+        line-height: 30px;
+        /* font-style: italic; */
+        }
+
+        .borderBottom .styles_leftContent__OgniN .shrink-0.box-border.borderRight{
+            width: 100%;
+        }
+
+        @media print {
+            /* body .borderBottom .styles_leftContent__OgniN .borderBottom.flex.items-center.justify-between
+            .borderBottom .styles_leftContent__OgniN .shrink-0.box-border
+            {
+                display: none !important;
+                visibility: hidden !important;
+            } */
+        }
+
+        .styles_productItem__u8zzn {
+            display: flex;
+            justify-content: space-between;
+        }
+        .style_page__KlaoL{
+            padding: .75rem;
+        }
+
+        .style_printItem__UXtq8 {
+            margin-bottom: 2.25rem;
+            border: 1px solid #000;
+        }
+
+    </style>
+    <body>
+    {{-- render lại nội dung HTML gốc --}}
+    {!! $html !!}
+
+    <script>
+        // Ví dụ: tự động thêm class vào tên sản phẩm
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".product-name-selector").forEach(el => {
+                el.classList.add("product-name");
+            });
+        });
+    </script>
+
+    <script>
+    //     setTimeout(() => {
+    //   window.print();
+    // }, 500); 
+    // document.querySelectorAll(".styles_page__1R3D9 .flex.text-xs.overflow-hidden .shrink-0.box-border")[0].style.width = "100%";
+    document.querySelectorAll(".styles_page__1R3D9 .flex.text-xs.overflow-hidden .shrink-0.box-border").forEach(el => {
+        el.style.width = "100%";
+        // el.style.display = "none";
+    });
+
+
+    // document.querySelectorAll(".styles_page__1R3D9 .flex.text-xs.overflow-hidden .shrink-0.box-border")[1].style.display = "none";
+    </script>
+    </body>

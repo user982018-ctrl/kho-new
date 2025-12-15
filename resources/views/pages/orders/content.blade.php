@@ -173,10 +173,13 @@ use App\Http\Controllers\OrdersController;
       
       <div class="col-xs-12 col-sm-6 col-md-2 form-group">
         <select name="dvvc" id="dvvc-filter" class="form-select" style="padding-right: 12px !important;padding-left: 12px !important;">
-          <option value="999">--Đơn vị vận chuyển--</option>
+          <option value="999">--Đơn vị vận chuyển (Tất cả)--</option>
           <option value="GHN">Giao hàng nhanh</option>
           <option value="GHTK">Giao hàng tiết kiệm</option>
           <option value="VTPOST">Viettel Post</option>
+          <option value="none">Chưa liên kết</option>
+
+
         </select>
       </div>
       <div class="col-xs-12 col-sm-6 col-md-2 form-group">
@@ -504,17 +507,22 @@ use App\Http\Controllers\OrdersController;
 <script type="text/javascript" src="{{asset('public/js/dateRangePicker/daterangepicker.min.js')}}"></script>
 <script>
 $(document).ready(function() {
-  $('input[name="daterange"]').daterangepicker({
+  var daterangePicker = $('input[name="daterange"]').daterangepicker({
+      timePicker: true,
+      timePickerIncrement: 1,
+      timePicker24Hour: true,
+      startDate: moment().startOf('day').hour(0).minute(0),
+      endDate: moment().endOf('day').hour(23).minute(59),
       ranges: {
-        'Hôm nay': [moment(), moment()],
-        'Hôm qua': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-        '7 ngày gần đây': [moment().subtract(6, 'days'), moment()],
-        '30 ngày gần đây': [moment().subtract(29, 'days'), moment()],
-        'Tháng này': [moment().startOf('month'), moment().endOf('month')],
-        'Tháng trước': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        'Hôm nay': [moment().startOf('day').hour(0).minute(0), moment().endOf('day').hour(23).minute(59)],
+        'Hôm qua': [moment().subtract(1, 'days').startOf('day').hour(0).minute(0), moment().subtract(1, 'days').endOf('day').hour(23).minute(59)],
+        '7 ngày gần đây': [moment().subtract(6, 'days').startOf('day').hour(0).minute(0), moment().endOf('day').hour(23).minute(59)],
+        '30 ngày gần đây': [moment().subtract(29, 'days').startOf('day').hour(0).minute(0), moment().endOf('day').hour(23).minute(59)],
+        'Tháng này': [moment().startOf('month').hour(0).minute(0), moment().endOf('month').hour(23).minute(59)],
+        'Tháng trước': [moment().subtract(1, 'month').startOf('month').hour(0).minute(0), moment().subtract(1, 'month').endOf('month').hour(23).minute(59)]
       },
       locale: {
-        "format": 'DD/MM/YYYY',
+        "format": 'DD/MM/YYYY HH:mm',
         "applyLabel": "OK",
         "cancelLabel": "Huỷ",
         "fromLabel": "Từ",
@@ -526,6 +534,26 @@ $(document).ready(function() {
           "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
 	        "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12" 
         ],
+      },
+      opens: 'left',
+      applyClass: 'btn-sm btn-primary',
+      cancelClass: 'btn-sm btn-default'
+    }, function(start, end, label) {
+      // Tự động set thời gian mặc định: begin 00:00, end 23:59
+      if (label === 'Custom Range' || !label) {
+        start.hour(0).minute(0);
+        end.hour(23).minute(59);
+        daterangePicker.data('daterangepicker').setStartDate(start);
+        daterangePicker.data('daterangepicker').setEndDate(end);
+      }
+    });
+
+    // Đảm bảo khi mở picker, set thời gian mặc định cho custom range
+    $('input[name="daterange"]').on('show.daterangepicker', function(ev, picker) {
+      // Nếu đang ở chế độ custom range, set thời gian mặc định
+      if (!picker.chosenLabel || picker.chosenLabel === 'Custom Range') {
+        picker.startDate.hour(0).minute(0);
+        picker.endDate.hour(23).minute(59);
       }
     });
     $('[data-range-key="Custom Range"]').text('Tuỳ chỉnh');

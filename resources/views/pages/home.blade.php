@@ -593,7 +593,7 @@ img.avatar {
     </div>
   </div>
  <!-- Dòng chữ chạy chân trang -->
- <div class="honor-bar">
+ {{-- <div class="honor-bar">
   <div class="scroll-text">
     <div class="rank">
       <span class="rankBadge gold">🥇 Top 1</span>
@@ -650,7 +650,7 @@ img.avatar {
         </div>
     </div>
   </div>
-</div>
+</div> --}}
   <style>
    /* Honor Bar */
 .honor-bar {
@@ -724,13 +724,40 @@ img.avatar {
   top: -10px;
   color: rgba(255, 255, 255, 0.9);
   text-shadow: 0 0 6px rgba(15, 23, 42, 0.4);
-  animation-name: snowFall;
+  animation-name: snowFallWithWind;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
-@keyframes snowFall {
+@keyframes snowFallWithWind {
   0% {
     transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  10% {
+    transform: translate3d(var(--wind-strength, 10px), 10vh, 0) rotate(36deg);
+  }
+  20% {
+    transform: translate3d(0, 20vh, 0) rotate(72deg);
+  }
+  30% {
+    transform: translate3d(calc(var(--wind-strength, 10px) * -1), 30vh, 0) rotate(108deg);
+  }
+  40% {
+    transform: translate3d(0, 40vh, 0) rotate(144deg);
+  }
+  50% {
+    transform: translate3d(var(--wind-strength, 10px), 50vh, 0) rotate(180deg);
+  }
+  60% {
+    transform: translate3d(0, 60vh, 0) rotate(216deg);
+  }
+  70% {
+    transform: translate3d(calc(var(--wind-strength, 10px) * -1), 70vh, 0) rotate(252deg);
+  }
+  80% {
+    transform: translate3d(0, 80vh, 0) rotate(288deg);
+  }
+  90% {
+    transform: translate3d(var(--wind-strength, 10px), 90vh, 0) rotate(324deg);
   }
   100% {
     transform: translate3d(var(--drift, 20px), 110vh, 0) rotate(360deg);
@@ -755,7 +782,7 @@ img.avatar {
   </style>
 
  <!-- Dòng chữ chạy chân trang -->
- <div class="honor-bar">
+ {{-- <div class="honor-bar">
   <div class="scroll-text">
     <div class="rank">
       <span class="rankBadge gold">🥇 Top 1</span>
@@ -812,10 +839,10 @@ img.avatar {
         </div>
     </div>
   </div>
-</div>
+</div> --}}
   <div class="snow-container" aria-hidden="true"></div>
  
-<div id="topEmployeesPopup" class="top-employees-popup hidden">
+{{-- <div id="topEmployeesPopup" class="top-employees-popup hidden">
   <div class="popup-backdrop"></div>
   <div class="popup-card">
     <button type="button" class="popup-close" aria-label="Đóng">&times;</button>
@@ -895,7 +922,7 @@ img.avatar {
       </label>
     </div>
   </div>
-</div>
+</div> --}}
 <script type="text/javascript" src="{{asset('public/js/dateRangePicker/daterangepicker.min.js')}}"></script>
 
 <script>
@@ -940,11 +967,23 @@ function initSnowEffect() {
     flake.className = 'snowflake';
     flake.textContent = Math.random() > 0.3 ? '❄' : '✻';
     flake.style.left = `${Math.random() * 100}%`;
-    flake.style.animationDuration = `${6 + Math.random() * 12}s`;
+    
+    // Thời gian rơi (kết hợp cả rơi và gió)
+    const fallDuration = 6 + Math.random() * 12;
+    flake.style.animationDuration = `${fallDuration}s`;
     flake.style.animationDelay = `${Math.random() * 10}s`;
+    
     flake.style.fontSize = `${8 + Math.random() * 20}px`;
     flake.style.opacity = 0.3 + Math.random() * 0.6;
-    flake.style.setProperty('--drift', `${-60 + Math.random() * 120}px`);
+    
+    // Độ drift ngang khi rơi (tăng để có hiệu ứng gió mạnh hơn)
+    const driftAmount = -80 + Math.random() * 160;
+    flake.style.setProperty('--drift', `${driftAmount}px`);
+    
+    // Độ mạnh của gió (lắc lư ngang khi rơi)
+    const windStrength = 15 + Math.random() * 35;
+    flake.style.setProperty('--wind-strength', `${windStrength}px`);
+    
     container.appendChild(flake);
   }
 }
@@ -968,17 +1007,23 @@ document.addEventListener('DOMContentLoaded', function () {
 });
   $(document).ready(function() {
     
-    $('input[name="daterange"]').daterangepicker({
+    var daterangePicker = $('input[name="daterange"]').daterangepicker({
+      timePicker: true,
+      timePicker24Hour: true,
+      timePickerIncrement: 1,
+      timePickerSeconds: false,
+      startDate: moment().startOf('day').hour(0).minute(0),
+      endDate: moment().endOf('day').hour(23).minute(59),
       ranges: {
-        'Hôm nay': [moment(), moment()],
-        'Hôm qua': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-        '7 ngày gần đây': [moment().subtract(6, 'days'), moment()],
-        '30 ngày gần đây': [moment().subtract(29, 'days'), moment()],
-        'Tháng này': [moment().startOf('month'), moment().endOf('month')],
-        'Tháng trước': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        'Hôm nay': [moment().startOf('day').hour(0).minute(0), moment().endOf('day').hour(23).minute(59)],
+        'Hôm qua': [moment().subtract(1, 'days').startOf('day').hour(0).minute(0), moment().subtract(1, 'days').endOf('day').hour(23).minute(59)],
+        '7 ngày gần đây': [moment().subtract(6, 'days').startOf('day').hour(0).minute(0), moment().endOf('day').hour(23).minute(59)],
+        '30 ngày gần đây': [moment().subtract(29, 'days').startOf('day').hour(0).minute(0), moment().endOf('day').hour(23).minute(59)],
+        'Tháng này': [moment().startOf('month').hour(0).minute(0), moment().endOf('month').hour(23).minute(59)],
+        'Tháng trước': [moment().subtract(1, 'month').startOf('month').hour(0).minute(0), moment().subtract(1, 'month').endOf('month').hour(23).minute(59)]
       },
       locale: {
-        "format": 'DD/MM/YYYY',
+        "format": 'DD/MM/YYYY HH:mm',
         "applyLabel": "OK",
         "cancelLabel": "Huỷ",
         "fromLabel": "Từ",
@@ -990,6 +1035,26 @@ document.addEventListener('DOMContentLoaded', function () {
           "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
 	        "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12" 
         ],
+      },
+      opens: 'left',
+      applyClass: 'btn-sm btn-primary',
+      cancelClass: 'btn-sm btn-default'
+    }, function(start, end, label) {
+      // Tự động set thời gian mặc định: begin 00:00, end 23:59
+      if (label === 'Custom Range' || !label) {
+        start.hour(0).minute(0);
+        end.hour(23).minute(59);
+        daterangePicker.data('daterangepicker').setStartDate(start);
+        daterangePicker.data('daterangepicker').setEndDate(end);
+      }
+    });
+
+    // Đảm bảo khi mở picker, set thời gian mặc định cho custom range
+    $('input[name="daterange"]').on('show.daterangepicker', function(ev, picker) {
+      // Nếu đang ở chế độ custom range, set thời gian mặc định
+      if (!picker.chosenLabel || picker.chosenLabel === 'Custom Range') {
+        picker.startDate.hour(0).minute(0);
+        picker.endDate.hour(23).minute(59);
       }
     });
     $('[data-range-key="Custom Range"]').text('Tuỳ chỉnh');

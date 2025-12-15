@@ -621,20 +621,13 @@ class OrdersController extends Controller
                 if (is_string($time)) {
                     $time = explode("-", $time);
                 }
-                // $timeBegin  = str_replace('/', '-', $time[0]);
-                // $timeEnd    = str_replace('/', '-', $time[1]);
-                // $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
-                // $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
-                // // Tối ưu: Chỉ rõ table name để tránh ambiguous khi có JOIN
-                // $list->whereDate('orders.created_at', '>=', $dateBegin)
-                //     ->whereDate('orders.created_at', '<=', $dateEnd);
-
-                $saleCtl = new SaleController();
-                $dateRange = $saleCtl->parseDate($time);
-                $dateBegin = $dateRange[0];
-                $dateEnd = $dateRange[1];
-                $list->where('orders.created_at', '>=', $dateBegin)
-                    ->where('orders.created_at', '<=', $dateEnd);
+                $timeBegin  = str_replace('/', '-', $time[0]);
+                $timeEnd    = str_replace('/', '-', $time[1]);
+                $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
+                $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
+                // Tối ưu: Chỉ rõ table name để tránh ambiguous khi có JOIN
+                $list->whereDate('orders.created_at', '>=', $dateBegin)
+                    ->whereDate('orders.created_at', '<=', $dateEnd);
             } else {
                 $timeBegin = $timeEnd = date("d-m-Y", time());
                 $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));

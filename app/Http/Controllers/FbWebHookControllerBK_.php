@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Helpers\Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Models\SaleCare;
-use App\Http\Controllers\ToolController;
 
 class FbWebHookController extends Controller
 {
@@ -88,10 +86,6 @@ class FbWebHookController extends Controller
 
             $assgin_user = $assignSale->id;
             $is_duplicate = ($is_duplicate) ? 1 : 0;
-
-            if ($is_duplicate == 1 && $name == 'Loading') {
-                $name = SaleCare::where('phone', $phone)->first()->full_name;
-            }
             $sale = new SaleController();
             $data = [
             //   'page_link' => $linkPage,
@@ -208,8 +202,8 @@ class FbWebHookController extends Controller
                 $webhookEvent = $entry['messaging'][0];
     // Log::channel('a')->info('Webhook $senderPsid: ', $webhookEvent);
                 // Lấy ID người gửi
-                // $senderPsid = $webhookEvent['sender']['id'];
-                // dd($webhookEvent);
+                $senderPsid = $webhookEvent['sender']['id'];
+                
                 // Kiểm tra nếu có tin nhắn văn bản
                 if (isset($webhookEvent['message']['text'])) {
                     $receivedMessage = $webhookEvent['message']['text'];
@@ -219,8 +213,6 @@ class FbWebHookController extends Controller
                     // Kiểm tra nội dung tin nhắn có chứa số điện thoại không
                     $phoneRegex = '/\b(?:\+?\d[\d\s\-\.\(\)]{8,}\d)\b/';
 
-                    // Loại bỏ ký tự không phải số để quét số điện thoại
-                    $receivedMessage = preg_replace('/[^0-9]/', '', $receivedMessage);
                     if (preg_match_all($phoneRegex, $receivedMessage, $matches)) {
                         $rawPhoneNumbers = $matches[0];
                         $phoneNumbers = [];
@@ -240,7 +232,6 @@ class FbWebHookController extends Controller
                             // sendTextMessage($senderPsid, $response);
                             
                             $mid = $webhookEvent['message']['mid'];
-                            // dd($mid);
                             $pageId = $entry['id'];
                             // Log::channel('daily')->info('xử lý  $phoneNumber: ' . $phoneNumber);
                             $dataParam = [
@@ -268,6 +259,13 @@ class FbWebHookController extends Controller
 
     public function callDataPc($data)
     {
+        // $data = array (
+        //     'phone' => '0973409613',
+        //     'receivedMessage' => '0973409613 go',
+        //     'mid' => 'm_3RWA8svAbHssJhEYb3IrlRSX13JMTib20xEA6BqKI-0Zsa9a4XJoKC3Qe_llMV-tF_q9LRDNFhNDPZIUraidmQ',
+        //     'name' => 'Dat Dinh',
+        //     'pageId' => '381180601741468'
+        // );
 
         $pageId =  $data['pageId'];
         $phone =  $data['phone'];
@@ -280,27 +278,34 @@ class FbWebHookController extends Controller
         $str  .= 'receivedMessage: ' . $receivedMessage . '<br>';
 
         $group = Helper::getGroupByPageId($pageId);
-        // dd($group);
         if (!$group) {
             Log::channel('a')->info('no group');
             return;
         }
         
         $pageSrc = Helper::getPageSrcByPageId($pageId);
-        // dd($pageSrc);
         if (!$pageSrc) {
             Log::channel('a')->info('no pageSrc');
             return;
         }
 
+        // $token = $pageSrc->token;
+        // $endpoint = "https://pancake.vn/api/v1/pages/$pageId/conversations/";
+        // $endpoint .= "search?q=$phone&access_token=$token";
+        // $responseJson = file_get_contents($endpoint);
+        // $response = json_decode($responseJson, true);
 
-        // dd($phone);
-        $toolController = new ToolController();
-        sleep(65);
-        $name = $toolController->getNameFromPancake($phone);
-        if ($name == '') {
-            $name = 'Loading';
-        }
+        
+        // if ($response) {
+        //     if (!$response['success'] || !$response['conversations']) {
+        //         $name = 'Loading';
+        //     } else {
+        //         $data = $response['conversations'][0];
+        //         $name = $data['customers'][0]['name'];
+                
+        //     }
+        // }
+        $name = 'Loading';
         if (Helper::isSeeding($phone)) {
                 Log::channel('new')->info('Số điện thoại đã nằm trong danh sách spam/seeding fb..' . $phone);
                 return;

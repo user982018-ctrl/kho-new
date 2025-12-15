@@ -29,7 +29,6 @@ use Image;
 use Session;
 
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 class SaleController extends Controller
 {
     public function seachSaleCareAPi(Request $request)
@@ -53,6 +52,7 @@ class SaleController extends Controller
             $listUserInGroup = GroupUser::find($dataFilter['groupUser']);
             if ($listUserInGroup) {
                 $listUserGroupIds = $listUserInGroup->users->pluck('id')->toArray();
+                // dd($listUserGroupIds);
                 $listSale = $listSale->whereIn('id', $listUserGroupIds);
             }
         }
@@ -348,6 +348,7 @@ class SaleController extends Controller
 
         // Paginate sau khi đã tính count
         $saleCare = $saleCareQuery->paginate(50);
+        // dd($saleCare);
 
         return view('pages.sale.index')->with('listSrc', $listSrc)
             ->with('groups', $groups)
@@ -384,6 +385,7 @@ class SaleController extends Controller
         $src_id = $r->src_id;
         $srcPage = SrcPage::find($src_id);
         $shareDataSale = $r->shareDataSale;
+        // dd($srcPage);
         if ($srcPage) {
             $linkPage = $srcPage->link;
             $namePage = $srcPage->name;
@@ -446,6 +448,7 @@ class SaleController extends Controller
             'src_id' => $src_id,
             'type_TN' => 1, 
         ];
+        // dd($data);
 
         $r->replace($data);
         $save = $this->save($r);
@@ -799,63 +802,12 @@ class SaleController extends Controller
         return $list;
     }
 
-    public function parseDate($time)
-    {
-        $timeBegin  = str_replace('/', '-', $time[0]);
-        $timeEnd    = str_replace('/', '-', $time[1]);
-        
-        // dd($timeBegin, $timeEnd);
-        // Parse date với hỗ trợ cả giờ phút
-        // Kiểm tra xem có chứa giờ phút không (có dấu :)
-        $hasTimeBegin = strpos($timeBegin, ':') !== false;
-        $hasTimeEnd = strpos($timeEnd, ':') !== false;
-
-
-        // Parse với format phù hợp
-        try {
-            if ($hasTimeBegin) {
-                // Kiểm tra có giây không (có 2 dấu :)
-                $hasSecondsBegin = substr_count($timeBegin, ':') >= 2;
-                if ($hasSecondsBegin) {
-                    // Format: DD-MM-YYYY HH:mm:ss
-                    $dateBegin = Carbon::createFromFormat('d-m-Y H:i:s', $timeBegin)->format('Y-m-d H:i:s');
-                } else {
-                    // Format: DD-MM-YYYY HH:mm
-                    $dateBegin = Carbon::createFromFormat('d-m-Y H:i', $timeBegin)->format('Y-m-d H:i:s');
-                }
-            } else {
-                // Format: DD-MM-YYYY, thêm 00:00:00 cho begin
-                $dateBegin = Carbon::createFromFormat('d-m-Y', $timeBegin)->startOfDay()->format('Y-m-d H:i:s');
-            }
-            
-            if ($hasTimeEnd) {
-                // Kiểm tra có giây không (có 2 dấu :)
-                $hasSecondsEnd = substr_count($timeEnd, ':') >= 2;
-                if ($hasSecondsEnd) {
-                    // Format: DD-MM-YYYY HH:mm:ss
-                    $dateEnd = Carbon::createFromFormat('d-m-Y H:i:s', $timeEnd)->format('Y-m-d H:i:s');
-                } else {
-                    // Format: DD-MM-YYYY HH:mm
-                    $dateEnd = Carbon::createFromFormat('d-m-Y H:i', $timeEnd)->format('Y-m-d H:i:s');
-                }
-            } else {
-                // Format: DD-MM-YYYY, thêm 23:59:59 cho end
-                $dateEnd = Carbon::createFromFormat('d-m-Y', $timeEnd)->endOfDay()->format('Y-m-d H:i:s');
-            }
-        } catch (\Exception $e) {
-            // Fallback về cách parse cũ nếu Carbon parse fail
-            $dateBegin = date('Y-m-d H:i:s', strtotime("$timeBegin"));
-            $dateEnd = date('Y-m-d H:i:s', strtotime("$timeEnd"));
-        }
-        
-        return [$dateBegin, $dateEnd];
-    }
-
     public function getListSalesByPermisson($user, $dataFilter = null, $getJson = false) 
     {
         $roles  = $user->role;
         $list   = SaleCare::orderBy('created_at', 'desc');
         // $list->where('phone', '0388074466');
+        // dd($list->get());
         // Tối ưu: Cache Auth::user() để tránh gọi nhiều lần
         $authUser = Auth::user();
         $isLeadSale = Helper::isLeadSale($authUser->role);
@@ -868,22 +820,25 @@ class SaleController extends Controller
 
         if ($dataFilter) {
             if (isset($dataFilter['typeDate'])) {
+               
                 /* 
                 * 2: ngày sale chốt đơn
                 * 1: ngày data về hệ thống
                 */
                 if ($dataFilter['typeDate'] == 1) {
                     $time       = $dataFilter['daterange'];
-                    
-                    $dateRange = $this->parseDate($time);
-                    $dateBegin = $dateRange[0];
-                    $dateEnd = $dateRange[1];
-                    $list->where('created_at', '>=', $dateBegin)
-                        ->where('created_at', '<=', $dateEnd);
+                    $timeBegin  = str_replace('/', '-', $time[0]);
+                    $timeEnd    = str_replace('/', '-', $time[1]);
+                    $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
+                    $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
+
+                    $list->whereDate('created_at', '>=', $dateBegin)
+                        ->whereDate('created_at', '<=', $dateEnd);
                 } else if ($dataFilter['typeDate'] == 2) {
                    
                     $ordersCtl = new OrdersController();
                     $listOrder = $ordersCtl->getListOrderByPermisson($authUser, $dataFilter);
+                   
                     $listIdSale = [];
                     foreach ($listOrder->get() as $order) {
                         $listIdSale[] = $order->sale_care;
@@ -896,11 +851,11 @@ class SaleController extends Controller
             
             if (isset($dataFilter['daterange']) && !isset($dataFilter['typeDate'])) {
                 $time       = $dataFilter['daterange'];
-                $dateRange = $this->parseDate($time);
-                $dateBegin = $dateRange[0];
-                $dateEnd = $dateRange[1];
-                $list->where('created_at', '>=', $dateBegin)
-                    ->where('created_at', '<=', $dateEnd);
+                $timeBegin  = str_replace('/', '-', $time[0]);
+                $timeEnd    = str_replace('/', '-', $time[1]);
+                $dateBegin  = date('Y-m-d',strtotime("$timeBegin"));
+                $dateEnd    = date('Y-m-d',strtotime("$timeEnd"));
+
                 // Tối ưu: Lấy orders trước để kiểm tra có data không
                 $ordersCtl = new OrdersController();
                 $tmpDataFilter = $dataFilter;
@@ -917,13 +872,9 @@ class SaleController extends Controller
                 }
 
                 // Filter theo ngày data về hệ thống
-                // $list->whereDate('created_at', '>=', $dateBegin)
-                //     ->whereDate('created_at', '<=', $dateEnd);
-                $list->where('created_at', '>=', $dateBegin)
-                    ->where('created_at', '<=', $dateEnd);
-                // dd($list->get());
+                $list->whereDate('created_at', '>=', $dateBegin)
+                    ->whereDate('created_at', '<=', $dateEnd);
 
-                // dd($listIdSale);
                 // Tối ưu: Chỉ merge nếu có orders, nếu không chỉ dùng filter theo created_at
                 if (!empty($listIdSale)) {
                     $listIdSale2 = $list->pluck('id')->toArray();
@@ -944,13 +895,7 @@ class SaleController extends Controller
                 } else {
                     $list->where('page_link', 'like', '%' . $dataFilter['src'] . '%');
                 }*/
-                // $listId = $list->pluck('id')->toArray();
-                // // dd($listId);
-                // $list = SaleCare::
-                // // whereIn('id', $listId)
-                // where('sale_care.src_id', (int)$dataFilter['src']);
-                $list = $list->where('sale_care.src_id', $dataFilter['src']);
-                // dd($list->get());
+                $list = $list->where('src_id', $dataFilter['src']);
 
                 // $srcType = [
                 //     'filterByIdSrc' => $dataFilter['src'],
@@ -1150,7 +1095,9 @@ class SaleController extends Controller
             // Tối ưu: Sử dụng $authUser đã cache thay vì gọi Auth::user() lại
             $groupsUserCollection = Helper::getListSaleV3($authUser);
             $groupsUser = $groupsUserCollection->pluck('id')->toArray();
+            // dd($groupsUser);
             $list = $list->whereIn('assign_user', $groupsUser);
+            // dd($list->get());
 
         } else if ((!$checkAll || !$isLeadSale ) && !$user->is_digital) {
             $list = $list->where('assign_user', $user->id);
@@ -1189,9 +1136,7 @@ class SaleController extends Controller
 
         if ($req->daterange) {
             $time       = $req->daterange;
-            // dd($time);
             $arrTime    = explode("-",$time); 
-            // dd($arrTime);
             $dataFilter['daterange'] = $arrTime;
         } else {
             $dataFilter['daterange']  = [date('d/m/Y'), date('d/m/Y')];

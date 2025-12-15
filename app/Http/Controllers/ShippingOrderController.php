@@ -105,6 +105,7 @@ class ShippingOrderController extends Controller
             $totalWeight = 0;
             $listItems = [];
 
+            $name = '';
             foreach ($dataReq['products'] as $product) {
                 $weight = (int) str_replace(",", "", $product['weight']);
                 $totalWeight += $weight * (int)$product['qty'];
@@ -115,6 +116,7 @@ class ShippingOrderController extends Controller
                     "PRODUCT_WEIGHT" => $weight,
                     "PRODUCT_QUANTITY" => (int)$product['qty']
                 ];
+                $name .= $product['name'] . ', ';
             }
 
             $codAmount = (int) str_replace(",", "", $dataReq['cod_amount']);
@@ -144,7 +146,7 @@ class ShippingOrderController extends Controller
                 "RECEIVER_PROVINCE" => (int)$dataReq['province'],
                 
                 // Thông tin sản phẩm
-                "PRODUCT_NAME" => "Phân bón",
+                "PRODUCT_NAME" => $product['name'],
                 "PRODUCT_DESCRIPTION" => "",
                 "PRODUCT_QUANTITY" => count($listItems),
                 "PRODUCT_PRICE" => $codAmount,
@@ -981,7 +983,6 @@ class ShippingOrderController extends Controller
             ->get($link);
         // dd($token);
         $response = $response->json();
-        dd($response);
         if ($response['success']) {
             $data = $response['data'];
             $package = $data['Package'];
@@ -1011,7 +1012,7 @@ class ShippingOrderController extends Controller
     public function detailDataVTPost($orderCode)
     {
         $result = [];
-        $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiaW50ZXJuYWwiOmZhbHNlLCJGcm9tU291cmNlIjozLCJUb2tlbiI6IkJDMDVGMThBRTM5QUIwNEY4RDhBOTBGNDNEM0VDNUM2Iiwic2Vzc2lvbklkIjoiMTAyQTBFQjhEMEE4ODdCQzNDOThDNzJGREUzRDYxQzEiLCJsc3RDaGlsZHJlbiI6IiIsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MSwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsIlVzZXJJZCI6MTY5ODIzMDYsIkJQSWQiOiIiLCJleHAiOjE3NjQyMjA3MjMsIlBhcnRuZXIiOjB9.MfuDgmJZb6xEHqH3UGhnIZVlQ-oBuwqx5ybSKhxUDlLQI3lxOJHImG9pQuljzbRaPdR7w_yRoqhrRxzfmi2PEg';
+        $token = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwODI3NTc2NTY2IiwiaW50ZXJuYWwiOmZhbHNlLCJGcm9tU291cmNlIjozLCJUb2tlbiI6IkJDMDVGMThBRTM5QUIwNEY4RDhBOTBGNDNEM0VDNUM2Iiwic2Vzc2lvbklkIjoiMTAyQTBFQjhEMEE4ODdCQzNDOThDNzJGREUzRDYxQzEiLCJsc3RDaGlsZHJlbiI6IiIsImRldmljZUlkIjoibHAzdGRscnRpYm12bGg0a2M1NmZsIiwidmVyc2lvbiI6MSwiU1NPSWQiOiIxLTA2OTdkNDVlLWZmZjgtNDFiYS05ZGZiLTkwZjc3YTBjZjQ4OCIsIlVzZXJJZCI6MTY5ODIzMDYsIkJQSWQiOiIiLCJleHAiOjE3NjYzODgyNjIsIlBhcnRuZXIiOjB9.8Z7LpPVFAlx7BoxDQGdlJMtK484Wa6uDMwmFkvEIBjPc81CPqMfiHEUbwGgIryqQwkmPK8WYUo4KFrD3jnnJQQ';
 
         try {
             //token lấy từ web

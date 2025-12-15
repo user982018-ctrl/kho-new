@@ -165,12 +165,7 @@
         }
     }
 </script>
-<?php 
 
-// dd($list);
-
-// 
-?>
 @foreach ($list as $orderTracking)
 <?php
 $i = 1;

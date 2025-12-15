@@ -1730,9 +1730,9 @@ class HomeController extends Controller
 
     public function getListMktReportOrder($req, $listSrc)
     {
-        // if (!$listSrc) {
-        //     return [];
-        // }
+        if (!$listSrc) {
+            return [];
+        }
 
         $ordersController = new OrdersController();
         $userAdmin = User::find(1);
@@ -1748,6 +1748,7 @@ class HomeController extends Controller
         
         // Tối ưu: eager load relationships để tránh N+1 queries
         $listOrders = $listOrders->with(['saleCare.getSrcPage.userDigital:id,real_name']);
+        
         foreach ($listOrders->get() as $order) {
             if (empty($order->saleCare) || empty($order->saleCare->getSrcPage) || empty($order->saleCare->getSrcPage->userDigital)) {
                 Log::channel('c')->info('Mã đơn hàng - data ko xác định data/ nguồn: ' . $order->id . '-' . $order->sale_care);
@@ -1759,46 +1760,46 @@ class HomeController extends Controller
             $srcId = $srcPageOfOrder->id;
             $digitalSrc = $srcPageOfOrder->userDigital;
             if (isset($listSrc[$digitalSrc->id])) {
-                if (($sc->old_customer == 0 || $sc->old_customer == 2) && isset($listSrc[$digitalSrc->id]['new_customer'])) {
-                    $listSrc[$digitalSrc->id]['new_customer']['total'] += $order->total;
-                    $listSrc[$digitalSrc->id]['new_customer']['product'] += $order->qty;
-                    $listSrc[$digitalSrc->id]['new_customer']['count_order'] ++;
-                } else if (isset($listSrc[$digitalSrc->id]['old_customer'])) {
-                    $listSrc[$digitalSrc->id]['old_customer']['total'] += $order->total;
-                    $listSrc[$digitalSrc->id]['old_customer']['product'] += $order->qty;
-                    $listSrc[$digitalSrc->id]['old_customer']['count_order'] ++;
-                }
-
-            } else {
-                // Tối ưu: cache listSrcIds để tránh gọi Helper nhiều lần
-                if (!isset($listSrcIdsCache)) {
-                    $listSrcIdsCache = Helper::getSrcByPermission(Auth::user(), $req);
-                }
-                
-                if (in_array($srcId, $listSrcIdsCache)) {
-                    $listSrc[$digitalSrc->id]['id'] = $digitalSrc->id; // Thêm id để sort by user_id
-                    $listSrc[$digitalSrc->id]['name'] = $digitalSrc->real_name ?? '';
-                    if ($sc->old_customer == 0 || $sc->old_customer == 2) {
-                        $listSrc[$digitalSrc->id]['new_customer'] = [
-                            'total' => $order->total,
-                            'count_order' => 1,
-                            'product' => $order->qty,
-                            'contact' => 0,
-                            'id' => $digitalSrc->id
-                        ];
-                    } else {
-                        $listSrc[$digitalSrc->id]['old_customer'] = [
-                            'total' => $order->total,
-                            'count_order' => 1,
-                            'product' => $order->qty,
-                            'contact' => 0,
-                            'id' => $digitalSrc->id
-                        ];
+                    if (($sc->old_customer == 0 || $sc->old_customer == 2) && isset($listSrc[$digitalSrc->id]['new_customer'])) {
+                        $listSrc[$digitalSrc->id]['new_customer']['total'] += $order->total;
+                        $listSrc[$digitalSrc->id]['new_customer']['product'] += $order->qty;
+                        $listSrc[$digitalSrc->id]['new_customer']['count_order'] ++;
+                    } else if (isset($listSrc[$digitalSrc->id]['old_customer'])) {
+                        $listSrc[$digitalSrc->id]['old_customer']['total'] += $order->total;
+                        $listSrc[$digitalSrc->id]['old_customer']['product'] += $order->qty;
+                        $listSrc[$digitalSrc->id]['old_customer']['count_order'] ++;
                     }
+
                 } else {
-                    Log::channel('c')->info('Mã đơn hàng - data ko xác định data/ nguồn: ' . $order->id . '-' . $order->sale_care);
+                    // Tối ưu: cache listSrcIds để tránh gọi Helper nhiều lần
+                    if (!isset($listSrcIdsCache)) {
+                        $listSrcIdsCache = Helper::getSrcByPermission(Auth::user(), $req);
+                    }
+                    
+                    if (in_array($srcId, $listSrcIdsCache)) {
+                        $listSrc[$digitalSrc->id]['id'] = $digitalSrc->id; // Thêm id để sort by user_id
+                        $listSrc[$digitalSrc->id]['name'] = $digitalSrc->real_name ?? '';
+                        if ($sc->old_customer == 0 || $sc->old_customer == 2) {
+                            $listSrc[$digitalSrc->id]['new_customer'] = [
+                                'total' => $order->total,
+                                'count_order' => 1,
+                                'product' => $order->qty,
+                                'contact' => 0,
+                                'id' => $digitalSrc->id
+                            ];
+                        } else {
+                            $listSrc[$digitalSrc->id]['old_customer'] = [
+                                'total' => $order->total,
+                                'count_order' => 1,
+                                'product' => $order->qty,
+                                'contact' => 0,
+                                'id' => $digitalSrc->id
+                            ];
+                        }
+                    } else {
+                        Log::channel('c')->info('Mã đơn hàng - data ko xác định data/ nguồn: ' . $order->id . '-' . $order->sale_care);
+                    }
                 }
-            }
         }
  
         // Bỏ logic array_slice ở đây vì đã xử lý ở ajaxFilterDashboardDigitalV3
@@ -1879,7 +1880,7 @@ class HomeController extends Controller
     public function getReportUserDigitalV3($dataFilter) 
     {
         $listFiltrSrc = $this->getListSaleCare($dataFilter);
-
+        
         // Lưu danh sách digital user IDs cần lọc (nếu có groupDigital)
         $filterDigitalIds = null;
         if (isset($dataFilter['groupDigital']) && $dataFilter['groupDigital'] != 999) {
@@ -1895,7 +1896,8 @@ class HomeController extends Controller
                 $listFiltrSrc = [];
             }
         }
-
+        
+        // dd($listFiltrSrc);
         $result = $this->getListMktReportOrder($dataFilter, $listFiltrSrc);
         
         // Lọc lại kết quả sau getListMktReportOrder (vì hàm này có thể thêm digital users mới)

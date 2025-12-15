@@ -132,9 +132,83 @@
     white-space: nowrap;
     display: flex;
     align-items: center;
-    animation: scrollLeft 26s linear infinite;
+    animation: trainMove 60s linear infinite;
     font-size: 18px;
+    position: relative;
+    padding: 10px 0;
   }
+
+/* Đầu tàu */
+.scroll-text::before {
+  content: '🚂';
+  font-size: 40px;
+  margin-right: 15px;
+  animation: trainSmoke 2s ease-in-out infinite;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* Khói tàu - nhiều lớp */
+.scroll-text::after {
+  content: '💨💨💨';
+  position: absolute;
+  left: -50px;
+  font-size: 28px;
+  opacity: 0.8;
+  animation: smokeRise1 2.5s ease-out infinite;
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+/* Lớp khói động */
+.scroll-text {
+  position: relative;
+}
+
+.scroll-text .smoke-layer {
+  position: absolute;
+  left: -50px;
+  font-size: 28px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.scroll-text .smoke-layer-1 {
+  opacity: 0.8;
+  animation: smokeRise1 2.5s ease-out infinite;
+  filter: blur(1px);
+}
+
+.scroll-text .smoke-layer-2 {
+  opacity: 0.7;
+  animation: smokeRise2 3s ease-out infinite 0.3s;
+  filter: blur(2px);
+  font-size: 32px;
+  left: -45px;
+}
+
+.scroll-text .smoke-layer-3 {
+  opacity: 0.6;
+  animation: smokeRise3 3.5s ease-out infinite 0.6s;
+  filter: blur(3px);
+  font-size: 36px;
+  left: -40px;
+}
+
+.scroll-text .smoke-layer-4 {
+  opacity: 0.5;
+  animation: smokeRise4 2.8s ease-out infinite 0.9s;
+  filter: blur(2px);
+  font-size: 30px;
+  left: -35px;
+}
+
+.scroll-text .smoke-layer-5 {
+  opacity: 0.6;
+  animation: smokeRise1 3.2s ease-out infinite 1.2s;
+  filter: blur(2.5px);
+  font-size: 34px;
+  left: -42px;
+}
 
   .rank {
     margin: 0 40px;
@@ -510,7 +584,7 @@ img.avatar {
 
  <!-- Dòng chữ chạy chân trang -->
   <!-- Dòng chữ chạy chân trang -->
-  <div class="honor-bar">
+  {{-- <div class="honor-bar">
     <div class="scroll-text">
       <div class="rank">
         <span class="rankBadge gold">🥇 Top 1</span>
@@ -563,21 +637,80 @@ img.avatar {
           </div>
       </div>
     </div>
-  </div>
+  </div> --}}
 </div> 
 <style>
-  /* Honor Bar */
+  /* Honor Bar - Đoàn tàu chở quà */
 .honor-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  /* height: 70px; */
-  background: #fff;
+  height: 110px;
+  background: 
+    linear-gradient(to bottom, #2c3e50 0%, #34495e 50%, #2c3e50 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 40px,
+      rgba(255, 255, 255, 0.05) 40px,
+      rgba(255, 255, 255, 0.05) 80px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 60px,
+      rgba(0, 0, 0, 0.1) 60px,
+      rgba(0, 0, 0, 0.1) 120px
+    );
+  background-size: 100% 100%, 160px 100%, 240px 100%;
+  background-position: 0 0, 0 0, 0 0;
+  animation: backgroundMove 15s linear infinite;
   display: flex;
   align-items: center;
-  overflow: hidden;
+  overflow: visible;
   z-index: 9999;
+  border-top: 3px solid #1a252f;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes backgroundMove {
+  0% { 
+    background-position: 0 0, 0 0, 0 0; 
+  }
+  100% { 
+    background-position: 0 0, 160px 0, 240px 0; 
+  }
+}
+
+/* Đường ray tàu hỏa */
+.honor-bar::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: repeating-linear-gradient(
+    to right,
+    #8b4513 0px,
+    #8b4513 20px,
+    #654321 20px,
+    #654321 40px
+  );
+  border-top: 2px solid #1a1a1a;
+}
+
+/* Thanh ray */
+.honor-bar::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #1a1a1a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .honor-track {
@@ -597,14 +730,261 @@ img.avatar {
 
 .rank {
   margin: 0 40px;
-  /* display: flex; */
+  display: flex;
   align-items: center;
   gap: 12px;
+  background: linear-gradient(to bottom, #e8e8e8 0%, #f5f5f5 30%, #ffffff 60%, #f5f5f5 100%);
+  padding: 15px 25px;
+  border-radius: 8px 8px 0 0;
+  border: 3px solid #2c3e50;
+  border-bottom: none;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    inset 0 2px 4px rgba(255, 255, 255, 0.9),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: transform 0.3s ease;
+  min-height: 60px;
 }
 
-@keyframes scrollLeft {
-  0% { transform: translateX(50%); }
+/* Mái tàu */
+.rank::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -3px;
+  right: -3px;
+  height: 12px;
+  background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Cửa sổ toa tàu */
+.rank .train-window {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  background: #4a90e2;
+  border: 2px solid #2c3e50;
+  border-radius: 2px;
+  box-shadow: 18px 0 0 #4a90e2, 18px 0 0 2px #2c3e50, 36px 0 0 #4a90e2, 36px 0 0 2px #2c3e50;
+}
+
+/* Bánh xe quay bên dưới toa tàu */
+.rank .train-wheels {
+  position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 25px;
+    z-index: 10000;
+    width: 100%;
+    pointer-events: none;
+    justify-content: space-around;
+}
+
+.rank .train-wheel {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(circle, #0a0a0a 20%, #1a1a1a 25%, #2c3e50 30%, #1a1a1a 35%, #0a0a0a 40%, #1a1a1a 50%);
+  border: 3px solid #000;
+  border-top-color: #333;
+  border-left-color: #333;
+  border-bottom-color: #0a0a0a;
+  border-right-color: #0a0a0a;
+  box-shadow: 
+    inset 0 0 6px rgba(0, 0, 0, 0.8),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1),
+    0 3px 6px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(100, 100, 100, 0.3);
+  animation: wheelRotateReverse 0.4s linear infinite;
+  position: relative;
+  z-index: 10001;
+}
+
+/* Vành bánh xe */
+.rank .train-wheel::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #0a0a0a;
+  box-shadow: 
+    inset 0 0 3px rgba(0, 0, 0, 0.8),
+    0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+/* Nan hoa bánh xe */
+.rank .train-wheel::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2.5px;
+  height: 14px;
+  background: #1a1a1a;
+  box-shadow: 
+    5.5px 0 0 #1a1a1a,
+    -5.5px 0 0 #1a1a1a,
+    0 5.5px 0 #1a1a1a,
+    0 -5.5px 0 #1a1a1a,
+    4px 4px 0 #1a1a1a,
+    -4px -4px 0 #1a1a1a,
+    4px -4px 0 #1a1a1a,
+    -4px 4px 0 #1a1a1a;
+  border-radius: 1px;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
+}
+
+/* Icon quà tặng sau mỗi rank */
+.rank::after {
+  content: '🎁';
+  margin-left: 10px;
+  font-size: 20px;
+  animation: giftBounce 2s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes wheelRotateReverse {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+@keyframes giftBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-3px) rotate(-5deg); }
+  75% { transform: translateY(-3px) rotate(5deg); }
+}
+
+@keyframes trainMove {
+  0% { transform: translateX(100%); }
   100% { transform: translateX(-100%); }
+}
+
+@keyframes trainSmoke {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.1); }
+}
+
+@keyframes smokeRise1 {
+  0% { 
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 1;
+  }
+  20% {
+    transform: translateY(-10px) translateX(5px) scale(1.3);
+    opacity: 0.9;
+  }
+  40% {
+    transform: translateY(-25px) translateX(12px) scale(1.6);
+    opacity: 0.7;
+  }
+  60% {
+    transform: translateY(-45px) translateX(20px) scale(1.9);
+    opacity: 0.5;
+  }
+  80% {
+    transform: translateY(-70px) translateX(30px) scale(2.2);
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateY(-100px) translateX(40px) scale(2.5);
+    opacity: 0;
+  }
+}
+
+@keyframes smokeRise2 {
+  0% { 
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.95;
+  }
+  20% {
+    transform: translateY(-12px) translateX(4px) scale(1.4);
+    opacity: 0.85;
+  }
+  40% {
+    transform: translateY(-28px) translateX(10px) scale(1.7);
+    opacity: 0.65;
+  }
+  60% {
+    transform: translateY(-50px) translateX(18px) scale(2.0);
+    opacity: 0.4;
+  }
+  80% {
+    transform: translateY(-75px) translateX(28px) scale(2.3);
+    opacity: 0.15;
+  }
+  100% {
+    transform: translateY(-105px) translateX(38px) scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes smokeRise3 {
+  0% { 
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.9;
+  }
+  20% {
+    transform: translateY(-15px) translateX(8px) scale(1.5);
+    opacity: 0.8;
+  }
+  40% {
+    transform: translateY(-32px) translateX(15px) scale(1.8);
+    opacity: 0.6;
+  }
+  60% {
+    transform: translateY(-55px) translateX(25px) scale(2.1);
+    opacity: 0.35;
+  }
+  80% {
+    transform: translateY(-80px) translateX(35px) scale(2.4);
+    opacity: 0.1;
+  }
+  100% {
+    transform: translateY(-110px) translateX(45px) scale(2.7);
+    opacity: 0;
+  }
+}
+
+@keyframes smokeRise4 {
+  0% { 
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.85;
+  }
+  20% {
+    transform: translateY(-8px) translateX(3px) scale(1.25);
+    opacity: 0.75;
+  }
+  40% {
+    transform: translateY(-22px) translateX(8px) scale(1.55);
+    opacity: 0.55;
+  }
+  60% {
+    transform: translateY(-42px) translateX(15px) scale(1.85);
+    opacity: 0.3;
+  }
+  80% {
+    transform: translateY(-65px) translateX(25px) scale(2.15);
+    opacity: 0.1;
+  }
+  100% {
+    transform: translateY(-95px) translateX(35px) scale(2.4);
+    opacity: 0;
+  }
 }
 
 .rankBadge {
@@ -638,13 +1018,40 @@ img.avatar {
   top: -10px;
   color: rgba(255, 255, 255, 0.9);
   text-shadow: 0 0 6px rgba(15, 23, 42, 0.4);
-  animation-name: snowFall;
+  animation-name: snowFallWithWind;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
-@keyframes snowFall {
+@keyframes snowFallWithWind {
   0% {
     transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  10% {
+    transform: translate3d(var(--wind-strength, 10px), 10vh, 0) rotate(36deg);
+  }
+  20% {
+    transform: translate3d(0, 20vh, 0) rotate(72deg);
+  }
+  30% {
+    transform: translate3d(calc(var(--wind-strength, 10px) * -1), 30vh, 0) rotate(108deg);
+  }
+  40% {
+    transform: translate3d(0, 40vh, 0) rotate(144deg);
+  }
+  50% {
+    transform: translate3d(var(--wind-strength, 10px), 50vh, 0) rotate(180deg);
+  }
+  60% {
+    transform: translate3d(0, 60vh, 0) rotate(216deg);
+  }
+  70% {
+    transform: translate3d(calc(var(--wind-strength, 10px) * -1), 70vh, 0) rotate(252deg);
+  }
+  80% {
+    transform: translate3d(0, 80vh, 0) rotate(288deg);
+  }
+  90% {
+    transform: translate3d(var(--wind-strength, 10px), 90vh, 0) rotate(324deg);
   }
   100% {
     transform: translate3d(var(--drift, 20px), 110vh, 0) rotate(360deg);
@@ -874,7 +1281,7 @@ img.avatar {
   
 <div class="snow-container" aria-hidden="true"></div>
  
-<div id="topEmployeesPopup" class="top-employees-popup hidden">
+{{-- <div id="topEmployeesPopup" class="top-employees-popup hidden">
   <div class="popup-backdrop"></div>
   <div class="popup-card">
     <button type="button" class="popup-close" aria-label="Đóng">&times;</button>
@@ -954,7 +1361,7 @@ img.avatar {
       </label>
     </div>
   </div>
-</div>
+</div> --}}
 <script type="text/javascript" src="{{asset('public/js/dateRangePicker/daterangepicker.min.js')}}"></script>
 
 <script>
@@ -999,13 +1406,70 @@ function initSnowEffect() {
     flake.className = 'snowflake';
     flake.textContent = Math.random() > 0.3 ? '❄' : '✻';
     flake.style.left = `${Math.random() * 100}%`;
-    flake.style.animationDuration = `${6 + Math.random() * 12}s`;
+    
+    // Thời gian rơi (kết hợp cả rơi và gió)
+    const fallDuration = 6 + Math.random() * 12;
+    flake.style.animationDuration = `${fallDuration}s`;
     flake.style.animationDelay = `${Math.random() * 10}s`;
+    
     flake.style.fontSize = `${8 + Math.random() * 20}px`;
     flake.style.opacity = 0.3 + Math.random() * 0.6;
-    flake.style.setProperty('--drift', `${-60 + Math.random() * 120}px`);
+    
+    // Độ drift ngang khi rơi (tăng để có hiệu ứng gió mạnh hơn)
+    const driftAmount = -80 + Math.random() * 160;
+    flake.style.setProperty('--drift', `${driftAmount}px`);
+    
+    // Độ mạnh của gió (lắc lư ngang khi rơi)
+    const windStrength = 15 + Math.random() * 35;
+    flake.style.setProperty('--wind-strength', `${windStrength}px`);
+    
     container.appendChild(flake);
   }
+}
+
+function initTrainSmoke() {
+  const scrollText = document.querySelector('.scroll-text');
+  if (!scrollText) return;
+  
+  // Tạo nhiều lớp khói
+  const smokeLayers = [
+    { class: 'smoke-layer-1', text: '💨💨💨', delay: 0 },
+    { class: 'smoke-layer-2', text: '💨💨💨💨', delay: 0.3 },
+    { class: 'smoke-layer-3', text: '💨💨💨💨💨', delay: 0.6 },
+    { class: 'smoke-layer-4', text: '💨💨💨', delay: 0.9 },
+    { class: 'smoke-layer-5', text: '💨💨💨💨', delay: 1.2 },
+  ];
+  
+  smokeLayers.forEach(layer => {
+    const smokeEl = document.createElement('span');
+    smokeEl.className = `smoke-layer ${layer.class}`;
+    smokeEl.textContent = layer.text;
+    smokeEl.style.animationDelay = `${layer.delay}s`;
+    scrollText.appendChild(smokeEl);
+  });
+}
+
+function initTrainCars() {
+  const ranks = document.querySelectorAll('.rank');
+  ranks.forEach(rank => {
+    // Tạo cửa sổ toa tàu
+    const windowEl = document.createElement('div');
+    windowEl.className = 'train-window';
+    rank.appendChild(windowEl);
+    
+    // Tạo bánh xe quay
+    const wheelsContainer = document.createElement('div');
+    wheelsContainer.className = 'train-wheels';
+    
+    // Tạo 3 bánh xe cho mỗi toa
+    for (let i = 0; i < 3; i++) {
+      const wheel = document.createElement('div');
+      wheel.className = 'train-wheel';
+      wheelsContainer.appendChild(wheel);
+    }
+    
+    rank.appendChild(wheelsContainer);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -1024,20 +1488,28 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(showTopEmployeesPopup, 800);
   }
   initSnowEffect();
+  initTrainSmoke();
+  initTrainCars();
 });
   $(document).ready(function() {
     
-    $('input[name="daterange"]').daterangepicker({
+    var daterangePicker = $('input[name="daterange"]').daterangepicker({
+      timePicker: true,
+      timePicker24Hour: true,
+      timePickerIncrement: 1,
+      timePickerSeconds: false,
+      startDate: moment().startOf('day').hour(0).minute(0),
+      endDate: moment().endOf('day').hour(23).minute(59),
       ranges: {
-        'Hôm nay': [moment(), moment()],
-        'Hôm qua': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-        '7 ngày gần đây': [moment().subtract(6, 'days'), moment()],
-        '30 ngày gần đây': [moment().subtract(29, 'days'), moment()],
-        'Tháng này': [moment().startOf('month'), moment().endOf('month')],
-        'Tháng trước': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        'Hôm nay': [moment().startOf('day').hour(0).minute(0), moment().endOf('day').hour(23).minute(59)],
+        'Hôm qua': [moment().subtract(1, 'days').startOf('day').hour(0).minute(0), moment().subtract(1, 'days').endOf('day').hour(23).minute(59)],
+        '7 ngày gần đây': [moment().subtract(6, 'days').startOf('day').hour(0).minute(0), moment().endOf('day').hour(23).minute(59)],
+        '30 ngày gần đây': [moment().subtract(29, 'days').startOf('day').hour(0).minute(0), moment().endOf('day').hour(23).minute(59)],
+        'Tháng này': [moment().startOf('month').hour(0).minute(0), moment().endOf('month').hour(23).minute(59)],
+        'Tháng trước': [moment().subtract(1, 'month').startOf('month').hour(0).minute(0), moment().subtract(1, 'month').endOf('month').hour(23).minute(59)]
       },
       locale: {
-        "format": 'DD/MM/YYYY',
+        "format": 'DD/MM/YYYY HH:mm',
         "applyLabel": "OK",
         "cancelLabel": "Huỷ",
         "fromLabel": "Từ",
@@ -1049,7 +1521,31 @@ document.addEventListener('DOMContentLoaded', function () {
           "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
 	        "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12" 
         ],
+      },
+      opens: 'left',
+      applyClass: 'btn-sm btn-primary',
+      cancelClass: 'btn-sm btn-default'
+    }, function(start, end, label) {
+      // Tự động set thời gian mặc định: begin 00:00, end 23:59 cho tất cả các range
+      start.hour(0).minute(0);
+      end.hour(23).minute(59);
+      daterangePicker.data('daterangepicker').setStartDate(start);
+      daterangePicker.data('daterangepicker').setEndDate(end);
+    });
+
+    // Đảm bảo khi mở picker, set thời gian mặc định cho tất cả các range
+    $('input[name="daterange"]').on('show.daterangepicker', function(ev, picker) {
+      // Set thời gian mặc định cho tất cả các range
+      if (!picker.chosenLabel || picker.chosenLabel === 'Custom Range') {
+        picker.startDate.hour(0).minute(0);
+        picker.endDate.hour(23).minute(59);
       }
+    });
+    
+    // Đảm bảo khi chọn range, thời gian được set đúng
+    $('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) {
+      picker.startDate.hour(0).minute(0);
+      picker.endDate.hour(23).minute(59);
     });
     $('[data-range-key="Custom Range"]').text('Tuỳ chỉnh');
 

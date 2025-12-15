@@ -3170,3 +3170,107 @@
     // dd($dataExport);
     return Excel::download(new UsersExport($dataExport), 'GHTK-10-11.xlsx');
   }
+
+
+  public function updateName(){
+    $list = SaleCare::where('old_customer', 0)
+    ->whereDate('created_at', '>=', '2025-12-01')
+    ->whereDate('created_at', '<=', '2025-12-30')
+    ->whereFullName('Loading')
+    // ->limit(100)
+    // ->where('id', 99145)
+    ->get();
+    // dd($list);
+   foreach ($list as $item) {
+        $src = $item->getSrcPage;
+        $phoneSearch = $item->phone;
+        // dd($src->id_page);
+        if ($src && ($pIdPan = $src->id_page) && ($token = $src->token)) {
+            // dd($pIdPan);
+            $endpoint = "https://pancake.vn/api/v1/pages/$pIdPan/conversations";
+            $endpoint = "$endpoint/search?q=$phoneSearch&access_token=$token&cursor_mode=true";
+            $response = Http::withHeaders(['access_token' => $token])->get($endpoint);
+            // dd($endpoint);
+            if ($response->status() == 200) {
+                $content  = json_decode($response->body());
+                
+                // if (isset($content->success) && $content->success == false) {
+                //     dd($content);
+                // }
+                if (isset($content->conversations) && count($content->conversations) > 0) {
+                    // dd($content);
+                    $data     = $content->conversations;
+                    $customer = $data[0]->customers[0];
+                    $name = $customer->name;
+                    $item->full_name = $name;
+                    $item->save();
+                    echo $name . ' - ' . $phoneSearch . '<br>';
+                }
+            }
+        }
+   }
+}
+
+public function wakeUp()
+{
+  // Log::channel('d')->info('run wakeUp');
+  $listSc = SaleCare::whereNotNull('result_call')
+    ->whereNotNull('type_TN')
+    ->where('result_call', '!=', 0)
+    ->where('result_call', '!=', -1)
+    ->where('has_TN', 1)
+    ->where('created_at', '>' , '2025-06-01')
+    ->limit(1000)
+    // ->where('id', '44520')
+    ->orderBy('id', 'DESC')
+    ->get();
+  
+  foreach ($listSc as $sc) {
+
+    $call = $sc->call;
+    if (empty($call->time)) {
+      continue;
+    }
+
+    $time = $call->time;
+    $updatedAt  = $sc->time_update_TN;
+    $isRunjob   = $sc->is_runjob;
+    $saleAssign   = $sc->user->real_name;
+
+    if (!$sc->user->status || !$sc->user->is_receive_data) {
+      continue;
+    }
+    
+    if (!$call || !$time || !$updatedAt || $isRunjob || !$saleAssign) {
+      continue;
+    }
+    
+    //cộng ngày update và time cuộc gọi
+    if ($sc->time_wakeup_TN) {
+      $newDate = strtotime($sc->time_wakeup_TN);
+    } else {
+      $newDate = strtotime("+$time hours", strtotime($updatedAt));
+    }
+
+    if ($newDate <= time()) {
+      $nextTN = $call->thenCall;
+      if (!$nextTN) {
+        continue;
+      }
+
+      //set lần gọi tiếp theo
+      if ($sc->type_TN != $nextTN->id) {
+        $sc->result_call = 0;
+      }
+
+      // 24 id: nhắc lại
+      if ($nextTN->id != 24) {
+        $sc->type_TN = $nextTN->id;
+      }
+
+      $sc->has_TN = 0;
+      $sc->is_runjob = 1;
+      $sc->save();
+    }
+  }
+}

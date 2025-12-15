@@ -28,13 +28,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-      $schedule->call(function() {
-        $this->crawlerGroup();
-        $this->ghtkToShipping();
-        $this->updateDateSuccess();
-        // $this->updateStatusOrderGHTK();
-        // $this->updateStatusOrderGhnV2();
-      })->cron('*/10 * * * *');
+
+      // $schedule->call(function() {
+      //   // $this->crawlerGroup();
+      //   $this->ghtkToShipping();
+      //   $this->updateDateSuccess();
+      //   $this->updateName();
+      //   // $this->getU2Data();
+      // })->cron('*/10 * * * *');
 
       $schedule->call(function() {
         $this->updateStatusOrderGHTK();
@@ -42,25 +43,26 @@ class Kernel extends ConsoleKernel
       })->cron('*/15 * * * *');
 
       $schedule->call(function() {
-        $this->wakeUp();
-      })->cron('* * * * *');
-
-      $schedule->call(function() {
         $this->updatePrintStatusGHN2();
         $this->updatePrintStatusGHN();
-        // $this->testCron();
-      })->everyMinute();
-
-      $schedule->call(function() {
         $this->updatePrintStatusGHTK();
-        // $this->testCron();
+
+        $this->ghtkToShipping();
+        $this->updateDateSuccess();
+        // $this->updateName();
+
+        // $this->wakeUp();
+        // $this->testCron('ffff');
       })->everyMinute();
 
-      $schedule->call(function() {
-        $this->updateName();
-        $this->testCron('updateName');
-      })->everyTenMinutes();
     }
+
+  public function getU2Data()
+  {
+    $toolController = new ToolController();
+    $toolController->getU2Data();
+    Log::channel('d')->info('Welcome getU2Data');
+  }
 
   public function updateDateSuccess()
   {
@@ -75,8 +77,10 @@ class Kernel extends ConsoleKernel
 
   public function updateName()
   {
+    Log::channel('d')->info('Welcome updateName');
     $toolController = new ToolController();
-    $toolController->updateName();
+    $toolController->updateNameV2();
+
   }
 
   /**
@@ -466,66 +470,8 @@ class Kernel extends ConsoleKernel
 
   public function wakeUp()
   {
-    // Log::channel('d')->info('run wakeUp');
-    $listSc = SaleCare::whereNotNull('result_call')
-      ->whereNotNull('type_TN')
-      ->where('result_call', '!=', 0)
-      ->where('result_call', '!=', -1)
-      ->where('has_TN', 1)
-      ->where('created_at', '>' , '2025-06-01')
-      ->limit(1000)
-      // ->where('id', '44520')
-      ->orderBy('id', 'DESC')
-      ->get();
-    
-    foreach ($listSc as $sc) {
-
-      $call = $sc->call;
-      if (empty($call->time)) {
-        continue;
-      }
-
-      $time = $call->time;
-      $updatedAt  = $sc->time_update_TN;
-      $isRunjob   = $sc->is_runjob;
-      $saleAssign   = $sc->user->real_name;
-
-      if (!$sc->user->status || !$sc->user->is_receive_data) {
-        continue;
-      }
-      
-      if (!$call || !$time || !$updatedAt || $isRunjob || !$saleAssign) {
-        continue;
-      }
-      
-      //cộng ngày update và time cuộc gọi
-      if ($sc->time_wakeup_TN) {
-        $newDate = strtotime($sc->time_wakeup_TN);
-      } else {
-        $newDate = strtotime("+$time hours", strtotime($updatedAt));
-      }
-
-      if ($newDate <= time()) {
-        $nextTN = $call->thenCall;
-        if (!$nextTN) {
-          continue;
-        }
-
-        //set lần gọi tiếp theo
-        if ($sc->type_TN != $nextTN->id) {
-          $sc->result_call = 0;
-        }
-
-        // 24 id: nhắc lại
-        if ($nextTN->id != 24) {
-          $sc->type_TN = $nextTN->id;
-        }
-
-        $sc->has_TN = 0;
-        $sc->is_runjob = 1;
-        $sc->save();
-      }
-    }
+    $testController = new TestController();
+    $testController->wakeUp();
   }
 
   public function updateStatusOrderGHN() 

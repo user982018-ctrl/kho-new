@@ -1476,14 +1476,14 @@ class TestController extends Controller
 
   public function export()
   {
-    $user = User::find(159);
-    $listSaleOfLeader = Helper::getListSaleV2($user);
-    // dd($listSaleOfLeader);
-    $listSaleId = $listSaleOfLeader->pluck('id')->toArray();
+    // $user = User::find(159);
+    // $listSaleOfLeader = Helper::getListSaleV2($user);
+    // // dd($listSaleOfLeader);
+    // $listSaleId = $listSaleOfLeader->pluck('id')->toArray();
     // dd($listSaleId);
     $sale = new SaleController();
     $req = new Request();
-    $req['daterange'] = ['01/11/2025', '30/11/2025'];
+    $req['daterange'] = ['01/10/2025', '31/10/2025'];
     // $req['sale'] = '76';
     // $req['typeDate'] = '2';
     // $sales = ['171','70'];
@@ -1496,25 +1496,25 @@ class TestController extends Controller
     // $list->where('is_duplicate', 0);
     $list->where('group_id', '11');
     // $list->paginate(1000, ['*'], 'page', 4);
-    if (isset($listSaleId)) {
-      $list->whereIn('assign_user', $listSaleId);
-    }
+    // if (isset($listSaleId)) {
+    //   $list->whereIn('assign_user', $listSaleId);
+    // }
     // dd($list->pluck('assign_user')->toArray());
     $dataExport[] = [
-      'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách', 'Sale'
+      'STT', 'Ngày nhận', 'Số điện thoại', 'Tên khách', 'sale', 'Note'
     ];
 
     // dd($list->get());
     $i = 1;
     foreach ($list->get() as $data) {
 
-      // $tnCan = $data->TN_can;
-      // if ($data->listHistory) {
-      //   foreach ($data->listHistory as $his) {
-      //     $tnCan .= date_format($his->created_at,"d-m-Y ") . ': ' . $his->note . ', ';
-      //   }
+      $tnCan = $data->TN_can;
+      if ($data->listHistory) {
+        foreach ($data->listHistory as $his) {
+          $tnCan .= date_format($his->created_at,"d-m-Y ") . ': ' . $his->note . ', ';
+        }
 
-      // }
+      }
       // dd($data->user->real_name);
       $dataExport[] = [
         $i,
@@ -1522,11 +1522,12 @@ class TestController extends Controller
         $data->phone,
         $data->full_name,
         $data->user->real_name ?? '',
+        $tnCan,
       ];
       $i++;
     }
 
-    return Excel::download(new UsersExport($dataExport), 'Truc-11.xlsx');
+    return Excel::download(new UsersExport($dataExport), 'thang08-TS.xlsx');
   }
 
   public function export2()
@@ -1636,23 +1637,28 @@ class TestController extends Controller
 
   public function wakeUp()
   {
-    $listSc = SaleCare::whereNotNull('result_call')
-      ->whereNotNull('type_TN')
-      ->where('result_call', '!=', 0)
-      ->where('result_call', '!=', -1)
-      ->where('has_TN', 1)
-      ->where('created_at', '>' , '2025-08-01')
+    $listSc = SaleCare::join('call', 'call.id', '=', 'sale_care.result_call')
+      ->join('users', 'users.id', '=', 'sale_care.assign_user')
+      ->where('users.status', 1)
+      ->where('users.is_receive_data', 1)
+      ->whereNotIn('call.result_call', [42,41,35,31,18,10,7,6,1])
+      ->whereNotNull('sale_care.type_TN')
+      ->where('sale_care.result_call', '!=', 0)
+      ->where('sale_care.result_call', '!=', -1)
+      ->where('sale_care.has_TN', 1)
+      ->where('sale_care.created_at', '>' , '2025-08-01')
       // ->limit(200)
-      // ->where('id', '74390')
-      ->orderBy('id', 'DESC')
+      // ->where('sale_care.id', '51714')
+      ->orderBy('sale_care.id', 'ASC')
+      ->select('sale_care.*')
       ->get();
 
-    // dd($listSc);
+      $listRs = '';
     foreach ($listSc as $sc) {
-
+      // echo 'Chuẩn bị: ' . $sc->phone . ' - ' . $sc->id . "<br>";
       $call = $sc->call;
       // dd($call);
-      if (!isset($call->time) || empty($call->time) || (!empty($call->time) && $call->time == '')) {
+      if (!isset($call->time) || $call->time == '') {
         // Not empty (0 is allowed here)
         continue;
       }
@@ -1696,6 +1702,8 @@ class TestController extends Controller
         $sc->has_TN = 0;
         $sc->is_runjob = 1;
         $sc->save();
+        $listRs .= $sc->phone . ' ';
+        echo $listRs;
       }
     }
   }
@@ -1808,7 +1816,7 @@ WHERE  NOT EXISTS
       // ->whereDate('orders.date_success', '<=', $dateEnd)
       // ->where('sale_care.group_id', '!=', 11)
       // ->whereNotIn('sale_care.group_id', [11, 12])
-      // ->where('orders.id', '23050')
+      // ->where('orders.id', '28421')
       ->orderBy('orders.id', 'desc');
 
       // dd($list->get());
@@ -1835,340 +1843,134 @@ WHERE  NOT EXISTS
     
     foreach ($list as $data) {
       try {
-      $orderTmp[] = $data->id;
-      $listProduct = json_decode($data->id_product,true);
-       //trường hợp đơn chỉ cho 1 sp
-      $percenTax = '5';
-      $totalGTGT = '';
-      
-      $orderCode = $data->shippingOrder->order_code;
-      $dateCreated = $allOrderCodes[$orderCode] ?? $data->created_at;
-      // if ($orderCode != '1707356929') {
-      //   // dd($dateCreated);
-      //   continue;
-      // }
-
-      if (count($listProduct) == 1) {
-        $item = $listProduct[0];
-        $product = getProductByIdHelper($item['id']);
-        $unit = $product->unit;
-        $total = $data->total;
-        $weight = $product->weight;
-        if (!$product) {
-          continue;
-        }
-
-        $productName = ($product->tax_name) ? $product->tax_name : $product->name;
-
-        $k = $i;
-
-        //check trường hợp sản phẩm cb và sản phẩm lẻ
-        // có dấu + là sản phẩm combo
-        $totalBefore = $product->price;
-        $productName = ($product->tax_name) ? $product->tax_name : $product->name;
-        $bottleName = $product->bottle;
-        $idString = $product->id_string ?? '';
-
-        if ($product->id == 83) {
-          $variantId = $item['variantId'];
-          $variant = HelperProduct::getProductVariantById($variantId);
-          $weight = $variant->weight;
-          $bottleName = $variant->bottle ?? 'Can Nhựa 5L (Hàng tặng không thu tiền)';
-          // dd($variant);
-          $productName = $variant->tax_name;
-          $idString = $variant->id_string ?? '';
-          $unit = 'Bộ';
-          if ($variant->tax_name) {
-            $productName = $variant->tax_name;
-          }
-
-          // if (!isset($variant->weight)) {
-          //   $productName .= ' 5kg';
-          // } else {
-          //   $weight = $variant->weight;
-          //   if ($weight == 5000.0) {
-          //     $productName .= ' 5kg';
-          //   } else {
-          //     $productName .= ' 20kg';
-          //   }
-          // }
-        }
-
-        $kg = 0;
-        $qty = $data->qty;
-        if ($product->unit == 'lít' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
-          //5000g => chia 1000 => 5kg
-          $kg = (int)($weight/1000);
-          $qty = (int)($qty * $kg);
-        }
-
-        $rateTax = 1.05; // tax = 5
-        if ($product->tax == 8) {
-          $rateTax = 1.08;
-          $percenTax = '8';
-        }
-        // dd($qty);
-
-        if (strpos($productName, "Hàng tặng") !== false ) {
-          $percenTax = '../..';
-          $totalGTGT = '../..';
-        } else {
-          $totalOrder = $total;
-          $totalBefore = $totalOrder / $rateTax;
-          $taxbeforeProduct = $totalBefore / $qty;
-          $productPrice = $taxbeforeProduct;
-          $totalGTGT = $totalOrder - $totalBefore;
-          $total = $totalOrder;
-        }
-
-        // }
-        if ($k != $i) {
-          $tmp = [
-            '',//Số thứ tự hóa đơn (*)
-            '', // Ngày hóa đơn
-            '',// Tên đơn vị mua hàng
-            '',// Mã khách hàng
-            '',// Địa chỉ
-            '',// Mã số thuế
-            '',// Người mua hàng
-            '',// Mã đơn vận
-            '',// Email
-            '',// Hình thức thanh toán
-            '',// Loại tiền
-            '',// Tỷ giá
-            '',// Tỷ lệ CK(%)
-            '',// Tiền CK
-            '',
-            $productName,// Tên hàng hóa/dịch vụ (*)
-            $idString,// Mã hàng
-            $product->unit,// 'ĐVT',
-            $qty,//  'Số lượng', 
-            $productPrice,//  'Đơn giá', 
-            '',//  'Tỷ lệ CK (%)', 
-            '',//  'Tiền CK',
-            $percenTax, // '% thuế GTGT',
-            $totalGTGT, //  'Tiền thuế GTGT',
-            $total,   // 'Thành tiền(*)'
-          ];  
-        } else {
-          $tmp = [
-          $i,//Số thứ tự hóa đơn (*)
-          // date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
-          $dateCreated,
-          '',// Tên đơn vị mua hàng
-            '',// Mã khách hàng
-            $data->address,// Địa chỉ
-            '',// Mã số thuế
-            $data->name,// Người mua hàng
-            '',// Email
-            '',// Hình thức thanh toán
-            '',// Loại tiền
-            '',// Tỷ giá
-            '',// Tỷ lệ CK(%)
-            '',// Tiền CK
-            $data->shippingOrder->order_code,// Mã đơn vận
-            $data->phone,
-            $productName,// Tên hàng hóa/dịch vụ (*)
-            $idString,// Mã hàng
-            $product->unit,// 'ĐVT',
-            $qty,//  'Số lượng', 
-            $productPrice,//  'Đơn giá', 
-            '',//  'Tỷ lệ CK (%)', 
-            '',//  'Tiền CK',
-            $percenTax, // '% thuế GTGT',
-            $totalGTGT, //  'Tiền thuế GTGT',
-            $total,   // 'Thành tiền(*)'
-          ];
-        }
-        $dataExport[] = $tmp;
-        
-        if ($kg > 0) {
-          $tmp = [
-            '',//Số thứ tự hóa đơn (*)
-            '', // Ngày hóa đơn
-            '',// Tên đơn vị mua hàng
-            '',// Mã khách hàng
-            '',// Địa chỉ
-            '',// Mã số thuế
-            '',// Mã đơn vận
-            '',// Người mua hàng
-            '',// Email
-            '',// Hình thức thanh toán
-            '',// Loại tiền
-            '',// Tỷ giá
-            '',// Tỷ lệ CK(%)
-            '',// Tiền CK
-            // '',
-            '',
-            $bottleName,// Tên hàng hóa/dịch vụ (*)
-            $bottlesInfo[$bottleName] ?? '',// Mã hàng
-            $unit,// 'ĐVT',
-            (int)($qty/$kg),//  'Số lượng', 
-            '',//  'Đơn giá', 
-            '',//  'Tỷ lệ CK (%)', 
-            '',//  'Tiền CK',
-            '../..', // '% thuế GTGT',
-            '../..', //  'Tiền thuế GTGT',
-            '',   // 'Thành tiền(*)'
-          ];
-          $dataExport[] = $tmp;
-        }
-        $k++;
-
-        // dd($dataExport);
-
-        /** số tổng sản phẩm lớn hơn 1 */
-      } else {
-        $j = $i;
+        $orderTmp[] = $data->id;
+        $listProduct = json_decode($data->id_product,true);
+        //trường hợp đơn chỉ cho 1 sp
         $percenTax = '5';
         $totalGTGT = '';
+        
+        $orderCode = $data->shippingOrder->order_code;
+        $dateCreated = $allOrderCodes[$orderCode] ?? $data->created_at;
+        // if ($orderCode != '1707356929') {
+        //   // dd($dateCreated);
+        //   continue;
+        // }
 
-        $qtyNPK = 0;
-        $isNPK = false;
-        $voucher = 'false';
-
-        // Sắp xếp listProduct: gift = false trước, gift = true sau
-        usort($listProduct, function($a, $b) {
-            $giftA = isset($a['gift']) && $a['gift'] === 'true' ? 1 : 0;
-            $giftB = isset($b['gift']) && $b['gift'] === 'true' ? 1 : 0;
-            return $giftA - $giftB;
-        });
-
-        // dd($listProduct);
-        foreach ($listProduct as $key => $item) {
+        if (count($listProduct) == 1) {
+          $item = $listProduct[0];
           $product = getProductByIdHelper($item['id']);
-          $productName = ($product->tax_name) ? $product->tax_name : $product->name;
-          $total = 0;
-          $tmp = [];
-          
+          $unit = $product->unit;
+          $total = $data->total;
+          $weight = $product->weight;
           if (!$product) {
             continue;
           }
-          // if ($product->id != 61) {
-          //   continue;
-          // }
-          $voucher = isset($item['gift']) ? $item['gift'] : 'false';
-          $totalOrder = $data->total;
-          $productPrice = $product->price;
-          $qty = (int)$item['val'];
-          $percenTax = '5';
-          $totalGTGT = '';
-          // dd($qty);
-          
+
           $productName = ($product->tax_name) ? $product->tax_name : $product->name;
-          // dd($productName);
-          $weight = $product->weight;
+
+          $k = $i;
+
+          //check trường hợp sản phẩm cb và sản phẩm lẻ
+          // có dấu + là sản phẩm combo
+          $totalBefore = $product->price;
+          $productName = ($product->tax_name) ? $product->tax_name : $product->name;
           $bottleName = $product->bottle;
-          $unit = $product->unit;
           $idString = $product->id_string ?? '';
 
           if ($product->id == 83) {
             $variantId = $item['variantId'];
-            // if ($variantId != 0) {
-            //   continue;
-            // }
             $variant = HelperProduct::getProductVariantById($variantId);
+            $weight = $variant->weight;
+            $bottleName = $variant->bottle ?? 'Can Nhựa 5L (Hàng tặng không thu tiền)';
+            // dd($variant);
+            $productName = $variant->tax_name;
+            $idString = $variant->id_string ?? '';
             $unit = 'Bộ';
-            $bottleName = 'Can Nhựa 5L (Hàng tặng không thu tiền)';
-            if($variant) {
-              $bottleName = $variant->bottle;
-              $weight = $variant->weight;
-              $idString = $variant->id_string ?? '';
-              
-             
-              if ($variant->tax_name) {
-                $productName = $variant->tax_name;
-              }
-            } else {
-              $productName = "Phân bón Organic AB01 - Agrium 5.5.25 5kg";
-              $weight = 5000;
-              $idString = 'NPK00011';
+            if ($variant->tax_name) {
+              $productName = $variant->tax_name;
             }
 
+            // if (!isset($variant->weight)) {
+            //   $productName .= ' 5kg';
+            // } else {
+            //   $weight = $variant->weight;
+            //   if ($weight == 5000.0) {
+            //     $productName .= ' 5kg';
+            //   } else {
+            //     $productName .= ' 20kg';
+            //   }
+            // }
           }
 
-          // dd($qty);
           $kg = 0;
-          if ($product->unit == 'lít' || $product->unit == 'Lit' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
+          $qty = $data->qty;
+          // dd($qty);
+
+          if ($product->unit == 'lít' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
             //5000g => chia 1000 => 5kg
-            $kg = (float)($weight/1000);
-            $qty = $qty * $kg;
-            $unit = 'Bộ';
+            // dd($weight);
+            $kg = (float)($weight)/1000;
+            $qty = (float)($qty * $kg);
           }
-          // dd($kg);
+
           $rateTax = 1.05; // tax = 5
           if ($product->tax == 8) {
             $rateTax = 1.08;
             $percenTax = '8';
           }
 
-          // dd($unit);
-
-          // Fulvic Acid
-          if ($productName == 'Fulvic Acid' || $product->id == 91 || $product->id == 61) {
-            $qty = $item['val']/2;
-            $bottleName = 'Chai 0,5 lít (nhựa) (Hàng tặng không thu tiền) ';
-            $unit = 'Cái';
-          }
-
-          // echo $productName . ' weight: '.$weight.'<br>';
-          // echo $product->unit . ' unit: '.$product->unit.'<br>';
-          if ($voucher == "true") {
+          $voucher = isset($item['gift']) ? $item['gift'] : 'false';
+          if ($voucher == "true" && !strpos($productName, "Hàng tặng")) {
             $productName .= " (Hàng tặng không thu tiền)";
             $percenTax = '../..';
             $totalGTGT = '../..';
             $productPrice = '';
             $total = '';
+          } 
+
+          if (strpos($productName, "Hàng tặng") !== false) {
+            $percenTax = '../..';
+            $totalGTGT = '../..';
           } else {
-            $taxBeforeTotal = $totalOrder / $rateTax;
-            $taxbeforeProduct = $taxBeforeTotal / $qty;
+            $totalOrder = $total;
+            $totalBefore = $totalOrder / $rateTax;
+            $taxbeforeProduct = $totalBefore / $qty;
             $productPrice = $taxbeforeProduct;
-            $totalGTGT = $totalOrder - $taxBeforeTotal;
+            $totalGTGT = $totalOrder - $totalBefore;
             $total = $totalOrder;
           }
-         
-          if ($j != $i) {
-            $tmp = ['', '', '', '', '', '',  '', '','', '', '','', '', '','', $productName, $idString, $product->unit, $qty, $productPrice,
-              '', '', $percenTax, $totalGTGT, $total,   
+
+          // dd('no');
+          // }
+          if ($k != $i) {
+            $tmp = [
+              '',//Số thứ tự hóa đơn (*)
+              '', // Ngày hóa đơn
+              '',// Tên đơn vị mua hàng
+              '',// Mã khách hàng
+              '',// Địa chỉ
+              '',// Mã số thuế
+              '',// Người mua hàng
+              '',// Mã đơn vận
+              '',// Email
+              '',// Hình thức thanh toán
+              '',// Loại tiền
+              '',// Tỷ giá
+              '',// Tỷ lệ CK(%)
+              '',// Tiền CK
+              '',
+              $productName,// Tên hàng hóa/dịch vụ (*)
+              $idString,// Mã hàng
+              $product->unit,// 'ĐVT',
+              $qty,//  'Số lượng', 
+              $productPrice,//  'Đơn giá', 
+              '',//  'Tỷ lệ CK (%)', 
+              '',//  'Tiền CK',
+              $percenTax, // '% thuế GTGT',
+              $totalGTGT, //  'Tiền thuế GTGT',
+              $total,   // 'Thành tiền(*)'
             ];  
-            $dataExport[] = $tmp;
-            if ($kg > 0 || $productName == 'Fulvic Acid (Hàng tặng không thu tiền)') {
-              if ($productName == 'Fulvic Acid (Hàng tặng không thu tiền)' || $product->id == 91 || $product->id == 61) {
-                $qtyTmp = $item['val'];
-              } else {
-                $qtyTmp = (float)($qty/$kg);
-              }
-              $tmp = [
-                '',//Số thứ tự hóa đơn (*)
-                '', // Ngày hóa đơn
-                '',// Tên đơn vị mua hàng
-                '',// Mã khách hàng
-                '',// Địa chỉ
-                '',// Mã số thuế
-                '',// Người mua hàng
-                '',// Email
-                '',// Mã đơn vận
-                '',// Hình thức thanh toán
-                '',// Loại tiền
-                '',// Tỷ giá
-                '',// Tỷ lệ CK(%)
-                '',// Tiền CK
-                '',
-                $bottleName,// Tên hàng hóa/dịch vụ (*)
-                $bottlesInfo[$bottleName] ?? '',// Mã hàng
-                $unit,// 'ĐVT',
-                $qtyTmp,//  'Số lượng', 
-                '',//  'Đơn giá', 
-                '',//  'Tỷ lệ CK (%)', 
-                '',//  'Tiền CK',
-                '../..', // '% thuế GTGT',
-                '../..', //  'Tiền thuế GTGT',
-                '',   // 'Thành tiền(*)'
-              ];
-              $dataExport[] = $tmp;
-            }
           } else {
-              // dd($product->name);
             $tmp = [
             $i,//Số thứ tự hóa đơn (*)
             // date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
@@ -2178,7 +1980,6 @@ WHERE  NOT EXISTS
               $data->address,// Địa chỉ
               '',// Mã số thuế
               $data->name,// Người mua hàng
-              // $data->shippingOrder->order_code,// Mã đơn vận
               '',// Email
               '',// Hình thức thanh toán
               '',// Loại tiền
@@ -2198,54 +1999,273 @@ WHERE  NOT EXISTS
               $totalGTGT, //  'Tiền thuế GTGT',
               $total,   // 'Thành tiền(*)'
             ];
+          }
+          $dataExport[] = $tmp;
+          
+          if ($kg > 0) {
+            $tmp = [
+              '',//Số thứ tự hóa đơn (*)
+              '', // Ngày hóa đơn
+              '',// Tên đơn vị mua hàng
+              '',// Mã khách hàng
+              '',// Địa chỉ
+              '',// Mã số thuế
+              '',// Mã đơn vận
+              '',// Người mua hàng
+              '',// Email
+              '',// Hình thức thanh toán
+              '',// Loại tiền
+              '',// Tỷ giá
+              '',// Tỷ lệ CK(%)
+              '',// Tiền CK
+              // '',
+              '',
+              $bottleName,// Tên hàng hóa/dịch vụ (*)
+              $bottlesInfo[$bottleName] ?? '',// Mã hàng
+              $unit,// 'ĐVT',
+              (int)($qty/$kg),//  'Số lượng', 
+              '',//  'Đơn giá', 
+              '',//  'Tỷ lệ CK (%)', 
+              '',//  'Tiền CK',
+              '../..', // '% thuế GTGT',
+              '../..', //  'Tiền thuế GTGT',
+              '',   // 'Thành tiền(*)'
+            ];
             $dataExport[] = $tmp;
+          }
+          $k++;
 
+          // dd($dataExport);
 
-            // echo $productName . ' kg :'.$kg.'<br>';
-            if ($kg > 0) {
+          /** số tổng sản phẩm lớn hơn 1 */
+        } else {
+          $j = $i;
+          $percenTax = '5';
+          $totalGTGT = '';
+
+          $qtyNPK = 0;
+          $isNPK = false;
+          $voucher = 'false';
+
+          // Sắp xếp listProduct: gift = false trước, gift = true sau
+          usort($listProduct, function($a, $b) {
+              $giftA = isset($a['gift']) && $a['gift'] === 'true' ? 1 : 0;
+              $giftB = isset($b['gift']) && $b['gift'] === 'true' ? 1 : 0;
+              return $giftA - $giftB;
+          });
+
+          // dd($listProduct);
+          foreach ($listProduct as $key => $item) {
+            $product = getProductByIdHelper($item['id']);
+            $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+            $total = 0;
+            $tmp = [];
+            
+            if (!$product) {
+              continue;
+            }
+            // if ($product->id != 61) {
+            //   continue;
+            // }
+            $voucher = isset($item['gift']) ? $item['gift'] : 'false';
+            $totalOrder = $data->total;
+            $productPrice = $product->price;
+            $qty = (int)$item['val'];
+            $percenTax = '5';
+            $totalGTGT = '';
+            // dd($qty);
+            
+            $productName = ($product->tax_name) ? $product->tax_name : $product->name;
+            // dd($productName);
+            $weight = $product->weight;
+            $bottleName = $product->bottle;
+            $unit = $product->unit;
+            $idString = $product->id_string ?? '';
+
+            if ($product->id == 83) {
+              $variantId = $item['variantId'];
+              // if ($variantId != 0) {
+              //   continue;
+              // }
+              $variant = HelperProduct::getProductVariantById($variantId);
+              $unit = 'Bộ';
+              $bottleName = 'Can Nhựa 5L (Hàng tặng không thu tiền)';
+              if($variant) {
+                $bottleName = $variant->bottle;
+                $weight = $variant->weight;
+                $idString = $variant->id_string ?? '';
+                
               
-              if ($productName == 'Fulvic Acid (Hàng tặng không thu tiền)' || $product->id == 91 || $product->id == 61) {
-                $qtyTmp = $item['val'];
+                if ($variant->tax_name) {
+                  $productName = $variant->tax_name;
+                }
               } else {
-                $qtyTmp = (float)($qty/$kg);
+                $productName = "Phân bón Organic AB01 - Agrium 5.5.25 5kg";
+                $weight = 5000;
+                $idString = 'NPK00011';
               }
+
+            }
+
+            // dd($qty);
+            $kg = 0;
+            if ($product->unit == 'lít' || $product->unit == 'Lit' || $product->unit == 'Lít' || $product->unit == 'kg' || $product->unit == 'Kg') {
+              //5000g => chia 1000 => 5kg
+              $kg = (float)($weight/1000);
+              $qty = $qty * $kg;
+              $unit = 'Bộ';
+            }
+            // dd($kg);
+            $rateTax = 1.05; // tax = 5
+            if ($product->tax == 8) {
+              $rateTax = 1.08;
+              $percenTax = '8';
+            }
+
+            // dd($unit);
+
+            // Fulvic Acid
+            if ($productName == 'Fulvic Acid' || $product->id == 91 || $product->id == 61) {
+              $qty = $item['val']/2;
+              $bottleName = 'Chai 0,5 lít (nhựa) (Hàng tặng không thu tiền) ';
+              $unit = 'Cái';
+            }
+
+            // echo $productName . ' weight: '.$weight.'<br>';
+            // echo $product->unit . ' unit: '.$product->unit.'<br>';
+            if ($voucher == "true") {
+              $productName .= " (Hàng tặng không thu tiền)";
+              $percenTax = '../..';
+              $totalGTGT = '../..';
+              $productPrice = '';
+              $total = '';
+            } else {
+              $taxBeforeTotal = $totalOrder / $rateTax;
+              $taxbeforeProduct = $taxBeforeTotal / $qty;
+              $productPrice = $taxbeforeProduct;
+              $totalGTGT = $totalOrder - $taxBeforeTotal;
+              $total = $totalOrder;
+            }
+          
+            if ($j != $i) {
+              $tmp = ['', '', '', '', '', '',  '', '','', '', '','', '', '','', $productName, $idString, $product->unit, $qty, $productPrice,
+                '', '', $percenTax, $totalGTGT, $total,   
+              ];  
+              $dataExport[] = $tmp;
+              if ($kg > 0 || $productName == 'Fulvic Acid (Hàng tặng không thu tiền)') {
+                if ($productName == 'Fulvic Acid (Hàng tặng không thu tiền)' || $product->id == 91 || $product->id == 61) {
+                  $qtyTmp = $item['val'];
+                } else {
+                  $qtyTmp = (float)($qty/$kg);
+                }
+                $tmp = [
+                  '',//Số thứ tự hóa đơn (*)
+                  '', // Ngày hóa đơn
+                  '',// Tên đơn vị mua hàng
+                  '',// Mã khách hàng
+                  '',// Địa chỉ
+                  '',// Mã số thuế
+                  '',// Người mua hàng
+                  '',// Email
+                  '',// Mã đơn vận
+                  '',// Hình thức thanh toán
+                  '',// Loại tiền
+                  '',// Tỷ giá
+                  '',// Tỷ lệ CK(%)
+                  '',// Tiền CK
+                  '',
+                  $bottleName,// Tên hàng hóa/dịch vụ (*)
+                  $bottlesInfo[$bottleName] ?? '',// Mã hàng
+                  $unit,// 'ĐVT',
+                  $qtyTmp,//  'Số lượng', 
+                  '',//  'Đơn giá', 
+                  '',//  'Tỷ lệ CK (%)', 
+                  '',//  'Tiền CK',
+                  '../..', // '% thuế GTGT',
+                  '../..', //  'Tiền thuế GTGT',
+                  '',   // 'Thành tiền(*)'
+                ];
+                $dataExport[] = $tmp;
+              }
+            } else {
+                // dd($product->name);
               $tmp = [
-                '',//Số thứ tự hóa đơn (*)
-                '', // Ngày hóa đơn
-                '',// Tên đơn vị mua hàng
+              $i,//Số thứ tự hóa đơn (*)
+              // date_format($data->created_at,"d-m-Y "), // Ngày hóa đơn
+              $dateCreated,
+              '',// Tên đơn vị mua hàng
                 '',// Mã khách hàng
-                '',// Địa chỉ
+                $data->address,// Địa chỉ
                 '',// Mã số thuế
-                '',// Người mua hàng
+                $data->name,// Người mua hàng
+                // $data->shippingOrder->order_code,// Mã đơn vận
                 '',// Email
                 '',// Hình thức thanh toán
                 '',// Loại tiền
                 '',// Tỷ giá
                 '',// Tỷ lệ CK(%)
                 '',// Tiền CK
-                '',
-                '',
-                $bottleName,// Tên hàng hóa/dịch vụ (*)
-                $bottlesInfo[$bottleName] ??  '',// Mã hàng
-                $unit,// 'ĐVT',
-                $qtyTmp,//  'Số lượng', 
-                '',//  'Đơn giá', 
+                $data->shippingOrder->order_code,// Mã đơn vận
+                $data->phone,
+                $productName,// Tên hàng hóa/dịch vụ (*)
+                $idString,// Mã hàng
+                $product->unit,// 'ĐVT',
+                $qty,//  'Số lượng', 
+                $productPrice,//  'Đơn giá', 
                 '',//  'Tỷ lệ CK (%)', 
                 '',//  'Tiền CK',
-                '../..', // '% thuế GTGT',
-                '../..', //  'Tiền thuế GTGT',
-                '',   // 'Thành tiền(*)'
+                $percenTax, // '% thuế GTGT',
+                $totalGTGT, //  'Tiền thuế GTGT',
+                $total,   // 'Thành tiền(*)'
               ];
               $dataExport[] = $tmp;
+
+
+              // echo $productName . ' kg :'.$kg.'<br>';
+              if ($kg > 0) {
+                
+                if ($productName == 'Fulvic Acid (Hàng tặng không thu tiền)' || $product->id == 91 || $product->id == 61) {
+                  $qtyTmp = $item['val'];
+                } else {
+                  $qtyTmp = (float)($qty/$kg);
+                }
+                $tmp = [
+                  '',//Số thứ tự hóa đơn (*)
+                  '', // Ngày hóa đơn
+                  '',// Tên đơn vị mua hàng
+                  '',// Mã khách hàng
+                  '',// Địa chỉ
+                  '',// Mã số thuế
+                  '',// Người mua hàng
+                  '',// Email
+                  '',// Hình thức thanh toán
+                  '',// Loại tiền
+                  '',// Tỷ giá
+                  '',// Tỷ lệ CK(%)
+                  '',// Tiền CK
+                  '',
+                  '',
+                  $bottleName,// Tên hàng hóa/dịch vụ (*)
+                  $bottlesInfo[$bottleName] ??  '',// Mã hàng
+                  $unit,// 'ĐVT',
+                  $qtyTmp,//  'Số lượng', 
+                  '',//  'Đơn giá', 
+                  '',//  'Tỷ lệ CK (%)', 
+                  '',//  'Tiền CK',
+                  '../..', // '% thuế GTGT',
+                  '../..', //  'Tiền thuế GTGT',
+                  '',   // 'Thành tiền(*)'
+                ];
+                $dataExport[] = $tmp;
+              }
+                
             }
-              
+            $j++;
           }
-          $j++;
         }
-      }
-      $i++;
-    } catch (\Exception $e) {
-      dd($data->id);
+        $i++;
+      } catch (\Exception $e) {
+        dd($e);
     }
     }
     
